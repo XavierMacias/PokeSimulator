@@ -8,13 +8,12 @@ public class Type {
     public String name;
     public List<String> weaknesses, resistances, immunities;
 
-    public Type(String internalName, String name, List<String> weaknesses, List<String> resistances, List<String> immunities) {
+    public Type(String internalName, String name) {
         this.internalName = internalName;
         this.name = name;
-        this.weaknesses = weaknesses;
-        this.resistances = resistances;
-        this.immunities = immunities;
     }
-
+    public void setWeaknesses(List<String> w) { weaknesses = w; }
+    public void setResistances(List<String> r) { resistances = r; }
+    public void setImmunities(List<String> i) { immunities = i; }
     public String getInternalName() { return internalName; }
 }

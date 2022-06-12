@@ -1,5 +1,7 @@
 package PokeData;
 
+import com.google.common.collect.Multimap;
+
 import java.util.List;
 
 enum GrowthRate {
@@ -11,6 +13,9 @@ enum GrowthRate {
     FLUCTUATING
 }
 
+/*
+Here are defined the properties of a Pokemon specie, that all the Pokemon of this specie share between them.
+ */
 public class Specie {
     private String internalName;
     public String name, kind;
@@ -20,9 +25,10 @@ public class Specie {
     public float genderrate, height, weight;
     public List<Integer> stats, evs;
     public GrowthRate growthRate;
-    public List<Movement> moveset, eggmoves;
+    public Multimap<Integer, Movement> moveset;
+    public List<Movement> eggmoves;
 
-    public Specie(String internalName, String name, String kind, int number, int experience, int ratio, Type type1, Type type2, Ability ability1, Ability ability2, Ability hiddenAbility, float genderrate, float height, float weight, List<Integer> stats, List<Integer> evs, GrowthRate growthRate, List<Movement> moveset, List<Movement> eggmoves) {
+    public Specie(String internalName, String name, String kind, int number, int experience, int ratio, Type type1, Type type2, Ability ability1, Ability ability2, Ability hiddenAbility, float genderrate, float height, float weight, List<Integer> stats, List<Integer> evs, GrowthRate growthRate, Multimap<Integer, Movement> moveset, List<Movement> eggmoves) {
         this.internalName = internalName;
         this.name = name;
         this.kind = kind;
