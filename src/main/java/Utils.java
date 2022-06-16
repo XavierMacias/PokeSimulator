@@ -2,14 +2,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
 
-import PokeData.Ability;
-import PokeData.Movement;
-import PokeData.Specie;
-import PokeData.Type;
+import PokeData.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.checkerframework.common.value.qual.EnsuresMinLenIf;
 
+import javax.lang.model.element.AnnotationValueVisitor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Utils {
@@ -30,14 +31,16 @@ public class Utils {
         String t = "";
         try {
             File myObj = new File("TYPES.txt");
-            Scanner myReader = new Scanner(myObj);
+            Scanner myReader = new Scanner(myObj,"iso-8859-1");
             while (myReader.hasNextLine()) {
                 String[] data = myReader.nextLine().split(",");
                 if(i%4==0) {
+                    // type info
                     Type type = new Type(data[0],data[1]);
                     types.add(type);
                     t = type.getInternalName();
                 } else if(i%4==1) {
+                    // type weaknesses
                     if(getType(t) != null) {
                         List<String> w = new ArrayList<String>();
                         for(int j=0;j<data.length;j++) {
@@ -46,6 +49,7 @@ public class Utils {
                         getType(t).setWeaknesses(w);
                     }
                 } else if(i%4==2) {
+                    // type resistances
                     if(getType(t) != null) {
                         List<String> r = new ArrayList<String>();
                         for(int j=0;j<data.length;j++) {
@@ -54,6 +58,7 @@ public class Utils {
                         getType(t).setResistances(r);
                     }
                 } else if(i%4==3) {
+                    // type immunities
                     if(getType(t) != null) {
                         List<String> im = new ArrayList<String>();
                         for(int j=0;j<data.length;j++) {
@@ -71,13 +76,138 @@ public class Utils {
         }
     }
 
+    public void addAbilities() {
+        try {
+            File myObj = new File("ABILITIES.txt");
+            Scanner myReader = new Scanner(myObj,"iso-8859-1");
+            while (myReader.hasNextLine()) {
+                String[] data = myReader.nextLine().split(",");
+                Ability ability = new Ability(data[0], data[1], data[2]);
+                abilities.add(ability);
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    public void addMoves() {
+        try {
+            File myObj = new File("MOVES.txt");
+            Scanner myReader = new Scanner(myObj,"iso-8859-1");
+            while (myReader.hasNextLine()) {
+                String[] data = myReader.nextLine().split(",");
+                Movement movement = new Movement(data[0],data[1],getType(data[2]),Integer.parseInt(data[3]),
+                        Integer.parseInt(data[4]), Category.valueOf(data[5]),Integer.parseInt(data[6]),
+                        Integer.parseInt(data[7]),Target.valueOf(data[8]),Integer.parseInt(data[9]),data[10],
+                        Integer.parseInt(data[11]),data[12]);
+                moves.add(movement);
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    public void addSpecies() {
+        int i = 0;
+        String p = "";
+        try {
+            File myObj = new File("POKEMON.txt");
+            Scanner myReader = new Scanner(myObj,"iso-8859-1");
+            while (myReader.hasNextLine()) {
+                String[] data = myReader.nextLine().split(",");
+                if(i%3==0) {
+                    // specie info
+                    List<Integer> st = new ArrayList<Integer>();
+                    for(int j=0;j<6;j++) {
+                        st.add(Integer.parseInt(data[5+j]));
+                    }
+                    List<Integer> evs = new ArrayList<Integer>();
+                    for(int j=0;j<6;j++) {
+                        evs.add(Integer.parseInt(data[18+j]));
+                    }
+                    List<Evolution> evos = new ArrayList<Evolution>();
+                    for(int k=30;k<data.length;k+=3) {
+                        Evolution e = new Evolution(data[k],data[k+1],data[k+2]);
+                        evos.add(e);
+                    }
+                    Specie specie = new Specie(Integer.parseInt(data[0]),data[1],data[2],getType(data[3]),getType(data[4]),
+                            st,getAbility(data[11]),getAbility(data[12]),getAbility(data[13]),Integer.parseInt(data[14]),
+                            Integer.parseInt(data[15]),Integer.parseInt(data[16]),Float.parseFloat(data[17]),evs,
+                            GrowthRate.valueOf(data[24]), EggGroups.valueOf(data[25]),EggGroups.valueOf(data[26]),
+                            Float.parseFloat(data[27]), Float.parseFloat(data[28]),data[29],evos);
+                    species.add(specie);
+                    p = specie.getInternalName();
+                } else if(i%3==1) {
+                    // moveset
+                    Multimap<Integer, Movement> mvs = ArrayListMultimap.create();
+                    for(int k=0;k<data.length;k+=2) {
+                        mvs.put(Integer.parseInt(data[k]),getMove(data[k+1]));
+                    }
+                    if(getPokemon(p) != null) {
+                        getPokemon(p).setMoveset(mvs);
+                    }
+                } else if(i%3==2) {
+                    // egg moves
+                    List<Movement> egg = new ArrayList<Movement>();
+                    for(int k=0;k<data.length;k++) {
+                        egg.add(getMove(data[k]));
+                    }
+                    if(getPokemon(p) != null) {
+                        getPokemon(p).setEggMoves(egg);
+                    }
+                }
+                i++;
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
     public Type getType(String t) {
         for(int i=0;i<types.size();i++) {
-            if(types.get(i).getInternalName() == t) {
+            if(types.get(i).getInternalName().equals(t)) {
                 return types.get(i);
             }
         }
         return null;
+    }
+
+    public Ability getAbility(String a) {
+        for(int i=0;i<abilities.size();i++) {
+            if(abilities.get(i).getInternalName().equals(a)) {
+                return abilities.get(i);
+            }
+        }
+        return null;
+    }
+
+    public Movement getMove(String m) {
+        for(int i=0;i<moves.size();i++) {
+            if(moves.get(i).getInternalName().equals(m)) {
+                return moves.get(i);
+            }
+        }
+        return null;
+    }
+
+    public Specie getPokemon(String p) {
+        for(int i=0;i<species.size();i++) {
+            if(species.get(i).getInternalName().equals(p)) {
+                return species.get(i);
+            }
+        }
+        return null;
+    }
+
+    public int getRandomNumberBetween(int min, int max) { // min is inclusive, max not
+        Random random = new Random();
+        return random.nextInt(max - min) + min;
     }
 
     public ArrayList<Type> getTypes() {
