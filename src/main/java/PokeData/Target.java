@@ -6,6 +6,7 @@ public enum Target {
     ALLALLIES,
     USERANDALLIES,
     FOE,
+    RANDOMFOE,
     ALLFOES,
     ALLBATTLERS,
     USERSIDE,

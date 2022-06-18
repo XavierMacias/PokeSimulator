@@ -1,9 +1,10 @@
 package PokeData;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 enum Natures {
     BASHFUL,
@@ -35,6 +36,7 @@ enum Natures {
 
 public class Pokemon {
     Specie specie;
+    Utils utils;
     int level, gender, form, psActuales;
     int experience = 0;
     String nickname;
@@ -42,12 +44,13 @@ public class Pokemon {
     int happiness;
     Natures nature;
     Natures[] natureList = Natures.values();
-    HashMap<Movement,Integer> moves;
+    List<Pair<Movement,Integer>> moves;
     Ability ability;
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
 
-    public Pokemon(Specie specie, int level) {
+    public Pokemon(Specie specie, int level, Utils utils) {
         Random random = new Random();
+        this.utils = utils;
         this.specie = specie;
         this.level = level;
         nickname = specie.name;
@@ -59,7 +62,7 @@ public class Pokemon {
         }
         // gender
         gender = 1; // female
-        if(Math.random() * 100 < specie.genderrate) {
+        if((int)(Math.random() * 100) < specie.genderrate) {
             gender = 0; // male
         }
         if(specie.genderrate < 0.0) {
@@ -73,7 +76,7 @@ public class Pokemon {
         ivs = new ArrayList<Integer>();
         // set random IVs
         for(int i=0;i<6;i++) {
-            ivs.add((int) Math.random()*32);
+            ivs.add((int) (Math.random() * 32));
         }
         statChanges = new ArrayList<Integer>();
         // set stat changes
@@ -84,9 +87,46 @@ public class Pokemon {
         nature = natureList[random.nextInt(natureList.length)];
         // calculate experience
         experience = calcExperience(level);
+        calcStats();
+        psActuales = stats.get(0);
+        moves = new ArrayList<Pair<Movement,Integer>>();
+        setMoves();
 
         // alternative forms
         form = 0;
+    }
+
+    public boolean hasMove(String move) {
+        for(int i=0;i<moves.size();i++) {
+            if(moves.get(i).getMove().getInternalName() == move) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setMoves() {
+        List<Integer> keySet = specie.moveset.keySet().stream().sorted().toList(); // order the moves list by level
+        Iterator keyIterator = keySet.iterator();
+        while (keyIterator.hasNext()) {
+            int key = (Integer) keyIterator.next();
+            if(key <= level) { // check if level is equal or superior
+                Iterator iterator = specie.moveset.get(key).iterator();
+                while(iterator.hasNext()) {
+                    Movement mv = (Movement)iterator.next();
+                    if(!hasMove(mv.getInternalName())) { // if the pokemon hasnt that move
+                        if(moves.size() < 4) {
+                            // add move
+                            moves.add(new Pair<>(mv,mv.getPP()));
+                        } else {
+                            // delete move
+                            int rand = ((int)(Math.random() * 5));
+                            if(rand < 4) moves.set(rand, new Pair<>(mv, mv.getPP()));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public int calcExperience(int l) {
@@ -127,5 +167,64 @@ public class Pokemon {
         }
 
         return exp;
+    }
+
+    public void calcStats() {
+        stats = new ArrayList<Integer>();
+        for(int i=0;i<6;i++) {
+            if(i==0) {
+                // HP stat
+                stats.add((int) ((((specie.stats.get(0)*2)+ivs.get(0)+(evs.get(0)/4.0))*level)/100.0)+level+10);
+            } else {
+                // other stats
+                stats.add((int) ((((((specie.stats.get(i)*2)+ivs.get(i)+(evs.get(i)/4.0))*level)/100.0)+5)*getNat(i)));
+            }
+        }
+    }
+
+    public double getNat(int st) {
+        double nat = 1.0;
+        if(st == 1) { // attack
+            if(nature.equals(Natures.ADAMANT) || nature.equals(Natures.LONELY) || nature.equals(Natures.NAUGHTY) ||
+                    nature.equals(Natures.BRAVE)) {
+                nat = 1.1;
+            } else if(nature.equals(Natures.BOLD) || nature.equals(Natures.MODEST) || nature.equals(Natures.CALM) ||
+                    nature.equals(Natures.TIMID)) {
+                nat = 0.9;
+            }
+        } else if(st == 2) { // defense
+            if(nature.equals(Natures.BOLD) || nature.equals(Natures.IMPISH) || nature.equals(Natures.LAX) ||
+                    nature.equals(Natures.RELAXED)) {
+                nat = 1.1;
+            } else if(nature.equals(Natures.LONELY) || nature.equals(Natures.MILD) || nature.equals(Natures.GENTLE) ||
+                    nature.equals(Natures.HASTY)) {
+                nat = 0.9;
+            }
+        } else if(st == 3) { // special attack
+            if(nature.equals(Natures.MODEST) || nature.equals(Natures.MILD) || nature.equals(Natures.RASH) ||
+                    nature.equals(Natures.QUIET)) {
+                nat = 1.1;
+            } else if(nature.equals(Natures.ADAMANT) || nature.equals(Natures.IMPISH) || nature.equals(Natures.CAREFUL) ||
+                    nature.equals(Natures.JOLLY)) {
+                nat = 0.9;
+            }
+        } else if(st == 4) { // special defense
+            if(nature.equals(Natures.CALM) || nature.equals(Natures.GENTLE) || nature.equals(Natures.CAREFUL) ||
+                    nature.equals(Natures.SASSY)) {
+                nat = 1.1;
+            } else if(nature.equals(Natures.NAUGHTY) || nature.equals(Natures.LAX) || nature.equals(Natures.RASH) ||
+                    nature.equals(Natures.NAIVE)) {
+                nat = 0.9;
+            }
+        }else { // speed
+            if(nature.equals(Natures.TIMID) || nature.equals(Natures.HASTY) || nature.equals(Natures.JOLLY) ||
+                    nature.equals(Natures.NAIVE)) {
+                nat = 1.1;
+            } else if(nature.equals(Natures.BRAVE) || nature.equals(Natures.RELAXED) || nature.equals(Natures.QUIET) ||
+                    nature.equals(Natures.SASSY)) {
+                nat = 0.9;
+            }
+        }
+        return nat;
     }
 }

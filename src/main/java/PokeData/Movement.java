@@ -4,9 +4,9 @@ public class Movement {
     private String internalName;
     public String name, description;
     public Type type;
-    public int power, accuracy, pp, priority, addEffect, code;
-    public Target target;
-    public Category category;
+    private int power, accuracy, pp, priority, addEffect, code;
+    private Target target;
+    private Category category;
     /*
     FLAGS ->
      a: is contact move
@@ -27,7 +27,7 @@ public class Movement {
      p: cannot use by metronome
      q: affect substitute
     */
-    public String flags;
+    private String flags;
 
     public Movement(String internalName, String name, Type type, int power, int accuracy, Category category, int pp, int priority,
                     Target target, int addEffect, String flags, int code, String description) {
@@ -48,4 +48,39 @@ public class Movement {
 
     public String getInternalName() { return internalName; }
 
+    public int getPower() {
+        return power;
+    }
+
+    public int getAccuracy() {
+        return accuracy;
+    }
+
+    public int getPP() {
+        return pp;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public int getAddEffect() {
+        return addEffect;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public Target getTarget() {
+        return target;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public String getFlags() {
+        return flags;
+    }
 }

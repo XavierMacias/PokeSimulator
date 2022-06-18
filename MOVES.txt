@@ -1,16 +1,30 @@
+TACKLE,Placaje,NORMAL,40,100,PHYSICAL,35,0,FOE,0,abcf,0,Golpea al enemigo con el cuerpo
 VINEWHIP,Látigo cepa,GRASS,45,100,PHYSICAL,25,0,FOE,0,abcf,0,Ataca al enemigo con una liana
 RAZORLEAF,Hoja afilada,GRASS,55,95,PHYSICAL,25,0,ALLFOES,0,bcfh,0,Un ataque con unas hojas afiladas que suele ser crítico
+MAGICALLEAF,Hoja mágica,GRASS,60,0,SPECIAL,20,0,FOE,0,bcf,0,Unas hojas extrañas que nunca fallan
 SEEDBOMB,Bomba germen,GRASS,80,100,PHYSICAL,15,0,FOE,0,bcfn,0,Lanza semillas explosivas al rival
+POWERWHIP,Latigazo,GRASS,120,85,PHYSICAL,10,0,FOE,0,abcf,0,Ataca con una liana muy poderosa como si fuera un látigo
+PETALBLIZZARD,Tormenta floral,GRASS,90,100,PHYSICAL,15,0,ALLBATTLERS,0,bcf,0,Ataca a todos los Pokémon adyacentes con una tormenta de pétalos
+GROWL,Gruñido,NORMAL,0,100,STATUS,40,0,ALLFOES,0,bcdjq,1,Reduce el ataque del rival
+LEECHSEED,Drenadoras,GRASS,0,90,STATUS,10,0,FOE,0,bcd,2,Infecta al enemigo y le roba PS en cada turno
+SLUDGE,Residuos,POISON,65,100,SPECIAL,20,0,FOE,30,bc,2,Un ataque con suciedad que puede envenenar al rival
+POISONPOWDER,Polvo veneno,POISON,0,75,STATUS,35,0,FOE,0,bcdl,3,Envenena al rival
 SLEEPPOWDER,Somnífero,GRASS,0,75,STATUS,15,0,FOE,0,bcdl,4,Duerme al rival
 GRASSWHISTLE,Silbato,GRASS,0,55,STATUS,15,0,FOE,0,bcdjq,4,Duerme al rival
-LEECHSEED,Drenadoras,GRASS,0,90,STATUS,10,0,FOE,0,bcd,2,Infecta al enemigo y le roba PS en cada turno
-SYNTHESIS,Síntesis,GRASS,0,0,STATUS,5,0,USER,0,e,10,Recupera PS al usuario dependiendo del clima
-WORRYSEED,Abatidoras,GRASS,0,100,STATUS,10,0,FOE,0,bcd,9,Cambia la habilidad del enemigo a Insomnio
-TACKLE,Placaje,NORMAL,40,100,PHYSICAL,35,0,FOE,0,abcf,0,Golpea al enemigo con el cuerpo
 TAKEDOWN,Derribo,NORMAL,90,85,PHYSICAL,20,0,FOE,0,abcf,5,Golpea al enemigo pero hiere al usuario
-DOUBLEEDGE,Doble filo,NORMAL,120,100,PHYSICAL,15,0,FOE,0,abcf,8,Golpea al enemigo pero hiere mucho al usuario
-SKULLBASH,Cabezazo,NORMAL,130,100,PHYSICAL,10,0,FOE,0,abcf,11,Primer turno: Sube la defensa. Segundo turno: ataca
-GROWL,Gruñido,NORMAL,0,100,STATUS,40,0,ALLFOES,0,bcdjq,1,Reduce el ataque del rival
-GROWTH,Desarrollo,NORMAL,0,0,STATUS,20,0,USER,0,e,7,Aumenta el ataque y el ataque especial del usuario
 SWEETSCENT,Dulce aroma,NORMAL,0,100,STATUS,20,0,ALLFOES,0,bcd,6,Reduce la evasión de los enemigos
-POISONPOWDER,Polvo veneno,POISON,0,75,STATUS,35,0,FOE,0,bcdl,3,Envenena al rival
+GROWTH,Desarrollo,NORMAL,0,0,STATUS,20,0,USER,0,e,7,Aumenta el ataque y el ataque especial del usuario
+DOUBLEEDGE,Doble filo,NORMAL,120,100,PHYSICAL,15,0,FOE,0,abcf,8,Golpea al enemigo pero hiere mucho al usuario
+WORRYSEED,Abatidoras,GRASS,0,100,STATUS,10,0,FOE,0,bcd,9,Cambia la habilidad del enemigo a Insomnio
+SYNTHESIS,Síntesis,GRASS,0,0,STATUS,5,0,USER,0,e,10,Recupera PS al usuario dependiendo del clima
+SKULLBASH,Cabezazo,NORMAL,130,100,PHYSICAL,10,0,FOE,0,abcf,11,Primer turno: Sube la defensa. Segundo turno: ataca
+SOLARBEAM,Rayo solar,GRASS,120,100,SPECIAL,10,0,FOE,0,bcf,11,Primer turno: Absorbe luz solar. Segundo turno: ataca
+CHARM,Encanto,FAIRY,0,100,STATUS,20,0,FOE,0,bcd,12,Reduce mucho el ataque del rival
+CURSE,Maldición,GHOST,0,0,STATUS,10,0,USER,0,,13,Tiene un efecto distinto en los Pokémon Fantasma
+AMNESIA,Amnesia,PSYCHIC,0,0,STATUS,20,0,FOE,0,e,14,Aumenta mucho la defensa especial del usuario
+NATUREPOWER,Adaptación,NORMAL,0,0,STATUS,20,0,FOE,0,,15,Se transforma en otro movimiento dependiendo del entorno
+INGRAIN,Arraigo,GRASS,0,0,STATUS,20,0,USER,0,e,16,Echa raíces al suelo y cura algunos PS cada turno
+LEAFSTORM,Lluevehojas,GRASS,130,90,SPECIAL,5,0,FOE,0,bcf,17,Una tormenta de hojas que baja mucho el ataque especial del usuario
+GIGADRAIN,Gigadrenado,GRASS,75,100,SPECIAL,10,0,FOE,0,bc,18,Absorbe PS al enemigo y recupera la mitad del daño causado
+ENDURE,Aguante,NORMAL,0,0,STATUS,10,4,USER,0,,19,Aguanta un golpe que normalmente lo debilitaría en ese turno
+PETALDANCE,Danza pétalo,GRASS,120,100,SPECIAL,10,0,RANDOMFOE,0,abcf,20,Ataca de 2 a 3 turnos consecutivos y después se confunde

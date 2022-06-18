@@ -1,20 +1,18 @@
+package PokeData;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Array;
 
 import PokeData.*;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.checkerframework.common.value.qual.EnsuresMinLenIf;
 
-import javax.lang.model.element.AnnotationValueVisitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Utils {
-
     private ArrayList<Type> types;
     private ArrayList<Movement> moves;
     private ArrayList<Ability> abilities;
