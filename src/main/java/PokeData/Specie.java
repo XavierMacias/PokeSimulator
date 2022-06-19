@@ -11,7 +11,7 @@ Here are defined the properties of a Pokemon specie, that all the Pokemon of thi
 public class Specie {
     private String internalName;
     public String name, kind;
-    public int number, experience, ratio, baseHappiness;
+    public int number, experience, ratio, baseHappiness, stepsToHatch;
     public Type type1, type2;
     public Ability ability1, ability2, hiddenAbility;
     public float genderrate, height, weight;
@@ -24,7 +24,7 @@ public class Specie {
 
     public Specie(int number, String internalName, String name, Type type1, Type type2, List<Integer> stats, Ability ability1,
                   Ability ability2, Ability hiddenAbility, int experience, int ratio, int baseHappiness, float genderrate, List<Integer> evs,
-                  GrowthRate growthRate, EggGroups eggGroups1, EggGroups eggGroups2, float height, float weight, String kind,
+                  int stepsToHatch, GrowthRate growthRate, EggGroups eggGroups1, EggGroups eggGroups2, float height, float weight, String kind,
                   List<Evolution> evos) {
         this.number = number;
         this.internalName = internalName;
@@ -39,6 +39,7 @@ public class Specie {
         this.ability2 = ability2;
         this.hiddenAbility = hiddenAbility;
         this.genderrate = genderrate;
+        this.stepsToHatch = stepsToHatch;
         this.height = height;
         this.weight = weight;
         this.stats = stats;

@@ -42,6 +42,7 @@ public class Pokemon {
     String nickname;
     List<Integer> stats, evs, ivs;
     int happiness;
+    boolean isShiny = false;
     Natures nature;
     Natures[] natureList = Natures.values();
     List<Pair<Movement,Integer>> moves;
@@ -89,9 +90,13 @@ public class Pokemon {
         experience = calcExperience(level);
         calcStats();
         psActuales = stats.get(0);
+        // set initial moves
         moves = new ArrayList<Pair<Movement,Integer>>();
         setMoves();
-
+        //is shiny?
+        if(utils.getRandomNumberBetween(1,4097) == 1) {
+            isShiny = true;
+        }
         // alternative forms
         form = 0;
     }

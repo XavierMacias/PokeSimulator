@@ -128,15 +128,15 @@ public class Utils {
                         evs.add(Integer.parseInt(data[18+j]));
                     }
                     List<Evolution> evos = new ArrayList<Evolution>();
-                    for(int k=30;k<data.length;k+=3) {
+                    for(int k=31;k<data.length;k+=3) {
                         Evolution e = new Evolution(data[k],data[k+1],data[k+2]);
                         evos.add(e);
                     }
                     Specie specie = new Specie(Integer.parseInt(data[0]),data[1],data[2],getType(data[3]),getType(data[4]),
                             st,getAbility(data[11]),getAbility(data[12]),getAbility(data[13]),Integer.parseInt(data[14]),
                             Integer.parseInt(data[15]),Integer.parseInt(data[16]),Float.parseFloat(data[17]),evs,
-                            GrowthRate.valueOf(data[24]), EggGroups.valueOf(data[25]),EggGroups.valueOf(data[26]),
-                            Float.parseFloat(data[27]), Float.parseFloat(data[28]),data[29],evos);
+                            Integer.parseInt(data[24]), GrowthRate.valueOf(data[25]), EggGroups.valueOf(data[26]),
+                            EggGroups.valueOf(data[27]), Float.parseFloat(data[28]), Float.parseFloat(data[29]),data[30],evos);
                     species.add(specie);
                     p = specie.getInternalName();
                 } else if(i%3==1) {
