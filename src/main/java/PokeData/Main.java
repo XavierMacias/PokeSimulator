@@ -1,5 +1,7 @@
 package PokeData;
 
+import PokeBattle.Battle;
+
 import java.util.Scanner;
 
 public class Main {
@@ -14,30 +16,51 @@ public class Main {
 
         Pokemon starter = null;
         String choose = "0";
+        String menu = "0";
 
         Player player = new Player(0,"Xavi",utils);
         System.out.println("Welcome to Pokemon World, " + player.name +"!");
         System.out.println("What starter Pokemon do you want?");
 
-        Pokemon bulbasaur = new Pokemon(utils.getPokemon("BULBASAUR"),12, utils);
-        Pokemon charmander = new Pokemon(utils.getPokemon("CHARMANDER"),12, utils);
-        Pokemon squirtle = new Pokemon(utils.getPokemon("SQUIRTLE"),12, utils);
-
-        System.out.println("1: "+bulbasaur.specie.name+"\n2: "+charmander.specie.name+"\n3: "+squirtle.specie.name);
+        System.out.println("1: Bulbasaur\n2: Charmander\n3: Squirtle");
         do {
             choose = in.nextLine();
-        } while(!choose.equals("1") && !choose.equals("2")  && !choose.equals("3") );
+        } while(!choose.equals("1") && !choose.equals("2")  && !choose.equals("3"));
 
         if(choose.equals("1")) {
-            starter = bulbasaur;
+            starter = new Pokemon(utils.getPokemon("BULBASAUR"),12, utils);
         } else if(choose.equals("2")) {
-            starter = charmander;
+            starter = new Pokemon(utils.getPokemon("CHARMANDER"),12, utils);
         } else if(choose.equals("3")) {
-            starter = squirtle;
+            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),12, utils);
         }
 
         player.getTeam().obtainPokemon(starter);
 
-        System.out.println(starter.nickname);
+        while(!menu.equals("-1")) {
+            System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");
+            menu = in.nextLine();
+            switch(menu) {
+                case "1":
+                    // battle
+                    Battle battle = new Battle();
+                    System.out.println("Choose the Pokemon number");
+                    String pkmnIndex = "0";
+                    pkmnIndex = in.nextLine();
+                    if(utils.getPokemonByNumber(Integer.valueOf(pkmnIndex)) != null) {
+                        Team rivalTeam = new Team();
+                        rivalTeam.addPokemon(new Pokemon(utils.getPokemonByNumber(Integer.valueOf(pkmnIndex)),12,utils));
+                        battle.WildSingleBattle(player.getTeam(),rivalTeam);
+                    }
+                    break;
+                case "2":
+                    // bag
+                    break;
+                case "3":
+                    // pokedex
+                    break;
+            }
+        }
+
     }
 }

@@ -36,18 +36,20 @@ enum Natures {
 
 public class Pokemon {
     Specie specie;
-    Utils utils;
+    public Utils utils;
     int level, gender, form, psActuales;
     int experience = 0;
-    String nickname;
-    List<Integer> stats, evs, ivs;
+    public String nickname;
+    private List<Integer> stats, evs, ivs;
     int happiness;
     boolean isShiny = false;
     Natures nature;
     Natures[] natureList = Natures.values();
-    List<Pair<Movement,Integer>> moves;
+    private List<Pair<Movement,Integer>> moves;
+    private List<Integer> remainPPs;
     Ability ability;
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
+    public int criticalIndex = 0;
 
     public Pokemon(Specie specie, int level, Utils utils) {
         Random random = new Random();
@@ -92,6 +94,7 @@ public class Pokemon {
         psActuales = stats.get(0);
         // set initial moves
         moves = new ArrayList<Pair<Movement,Integer>>();
+        remainPPs = new ArrayList<Integer>();
         setMoves();
         //is shiny?
         if(utils.getRandomNumberBetween(1,4097) == 1) {
@@ -101,6 +104,46 @@ public class Pokemon {
         form = 0;
     }
 
+    public List<Pair<Movement, Integer>> getMoves() {
+        return moves;
+    }
+    public Specie getSpecie() { return specie; }
+
+    public List<Integer> getRemainPPs() {
+        return remainPPs;
+    }
+
+    public List<Integer> getStats() { return stats; }
+
+    public int getAttack() { return stats.get(1); }
+    public int getDefense() { return stats.get(2); }
+    public int getSpecialAttack() { return stats.get(3); }
+    public int getSpecialDefense() { return stats.get(4); }
+    public int getVelocity() { return stats.get(5); }
+    public int getHP() { return stats.get(0); }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public List<Integer> getEvs() { return evs; }
+
+    public boolean hasType(String type) {
+        if(specie.type1 != null) {
+            if(specie.type1.getInternalName() == type) {
+                return true;
+            }
+        }
+
+        if(specie.type2 != null) {
+            if(specie.type2.getInternalName() == type) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean hasMove(String move) {
         for(int i=0;i<moves.size();i++) {
             if(moves.get(i).getMove().getInternalName() == move) {
@@ -108,6 +151,15 @@ public class Pokemon {
             }
         }
         return false;
+    }
+
+    public int getIndexMove(String move) {
+        for(int i=0;i<moves.size();i++) {
+            if(moves.get(i).getMove().getInternalName() == move) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public void setMoves() {
@@ -123,15 +175,48 @@ public class Pokemon {
                         if(moves.size() < 4) {
                             // add move
                             moves.add(new Pair<>(mv,mv.getPP()));
+                            remainPPs.add(mv.getPP());
                         } else {
                             // delete move
                             int rand = ((int)(Math.random() * 5));
-                            if(rand < 4) moves.set(rand, new Pair<>(mv, mv.getPP()));
+                            if(rand < 4) {
+                                moves.set(rand, new Pair<>(mv, mv.getPP()));
+                                remainPPs.set(rand, mv.getPP());
+                            }
+
                         }
                     }
                 }
             }
         }
+    }
+
+    public void reducePP(Movement move) {
+        int ind = getIndexMove(move.getInternalName());
+        if(ind != -1) {
+            remainPPs.set(ind,remainPPs.get(ind)-1);
+        }
+    }
+
+    public void reduceHP(int damage) {
+        psActuales -= damage;
+        if(psActuales < 0) {
+            psActuales = 0;
+        }
+    }
+
+    public boolean hasPP(Movement move) {
+        int ind = getIndexMove(move.getInternalName());
+        return remainPPs.get(ind) > 0;
+    }
+
+    public boolean isOutPP() {
+        for(int i=0;i<remainPPs.size();i++) {
+            if(remainPPs.get(i) > 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public int calcExperience(int l) {

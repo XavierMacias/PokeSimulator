@@ -132,11 +132,17 @@ public class Utils {
                         Evolution e = new Evolution(data[k],data[k+1],data[k+2]);
                         evos.add(e);
                     }
+                    EggGroups eggGroup2;
+                    if(data[27] == "") {
+                        eggGroup2 = null;
+                    } else {
+                        eggGroup2 =  EggGroups.valueOf(data[27]);
+                    }
                     Specie specie = new Specie(Integer.parseInt(data[0]),data[1],data[2],getType(data[3]),getType(data[4]),
                             st,getAbility(data[11]),getAbility(data[12]),getAbility(data[13]),Integer.parseInt(data[14]),
                             Integer.parseInt(data[15]),Integer.parseInt(data[16]),Float.parseFloat(data[17]),evs,
                             Integer.parseInt(data[24]), GrowthRate.valueOf(data[25]), EggGroups.valueOf(data[26]),
-                            EggGroups.valueOf(data[27]), Float.parseFloat(data[28]), Float.parseFloat(data[29]),data[30],evos);
+                            eggGroup2, Float.parseFloat(data[28]), Float.parseFloat(data[29]),data[30],evos);
                     species.add(specie);
                     p = specie.getInternalName();
                 } else if(i%3==1) {
@@ -197,6 +203,15 @@ public class Utils {
     public Specie getPokemon(String p) {
         for(int i=0;i<species.size();i++) {
             if(species.get(i).getInternalName().equals(p)) {
+                return species.get(i);
+            }
+        }
+        return null;
+    }
+
+    public Specie getPokemonByNumber(int n) {
+        for(int i=0;i<species.size();i++) {
+            if(species.get(i).number == n) {
                 return species.get(i);
             }
         }

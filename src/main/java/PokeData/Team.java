@@ -23,6 +23,14 @@ public class Team {
         giveNickname(pkm);
     }
 
+    public Pokemon getPokemon(int i) {
+        return pokemonTeam.get(i);
+    }
+
+    public void addPokemon(Pokemon pkm) {
+        pokemonTeam.add(pkm);
+    }
+
     public Pokemon getFirstAlivePokemon() {
         for(int i=0;i<pokemonTeam.size();i++) {
             if(pokemonTeam.get(i).psActuales > 0) {
