@@ -12,35 +12,32 @@ public class Battle {
     Team userTeam, rivalTeam;
     Pokemon firstAttacker, secondAttacker;
     Movement firstMove, secondMove;
-    Pokemon user, rival;
-    Movement userMove, rivalMove;
     private boolean endBattle;
     public int turn;
     Scanner in;
     Random random;
+    int battleResult;
 
     public Battle() {
         random = new Random();
         firstAttacker = null;
         secondAttacker = null;
-        user = null;
-        rival = null;
-        userMove = null;
-        rivalMove = null;
         firstMove = null;
         secondMove = null;
         in = new Scanner(System.in);
     }
 
     public void WildSingleBattle(Team team1, Team team2) {
+        battleResult = 0;
         turn = 1;
         endBattle = false;
         userTeam = team1;
         rivalTeam = team2;
-        rival = team2.getPokemon(0);
+        Pokemon rival = team2.getFirstAlivePokemon();
 
         System.out.println("A wild "+rival.nickname +"!");
-        user = team1.getFirstAlivePokemon();
+        Pokemon user = team1.getFirstAlivePokemon();
+        user.setParticipate(true);
         System.out.println("Go, "+user.nickname +"!");
 
         String battleChoose = "0";
@@ -55,7 +52,7 @@ public class Battle {
             switch (battleChoose) {
                 case "1":
                     // fight
-                    decision = fight();
+                    decision = fight(user,rival);
                     break;
                 case "2":
                     // bag
@@ -68,12 +65,14 @@ public class Battle {
                     break;
             }
             if(decision) turn++;
-            System.out.println("Turn: " + turn);
+            //System.out.println("Turn: " + turn);
             //endBattle = true;
         } while(!endBattle);
+
+        endBattle(rival, false);
     }
 
-    private boolean fight() {
+    private boolean fight(Pokemon user, Pokemon rival) {
         int chosenIndex = -1;
         do {
             System.out.println("0: Exit");
@@ -89,14 +88,20 @@ public class Battle {
         if(chosenIndex == 0) {
             return false;
         }
-        userMove = user.getMoves().get(chosenIndex-1).getMove();
+        Movement userMove = user.getMoves().get(chosenIndex-1).getMove();
 
         // choose rival move TODO: AI, for the moment is random
-        rivalMove = rival.getMoves().get(random.nextInt(rival.getMoves().size())).getMove();
+        Movement rivalMove = rival.getMoves().get(random.nextInt(rival.getMoves().size())).getMove();
 
-        determinePriority();
+        determinePriority(user,rival,userMove,rivalMove);
         useMove(firstAttacker,secondAttacker,firstMove,secondMove);
+        if(checkFaint() != 0) {
+            return true;
+        }
         useMove(secondAttacker,firstAttacker,secondMove,firstMove);
+        if(checkFaint() != 0) {
+            return true;
+        }
 
         return true;
     }
@@ -105,11 +110,34 @@ public class Battle {
         System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
         if(attackerMove.getPower() > 0) {
             int dmg = CalcDamage(attacker,defender,attackerMove);
+            defender.reduceHP(dmg);
         }
         // TODO: get the secondary effects
+        attacker.reducePP(attackerMove);
+
+        System.out.println(defender.nickname + " HP: " + defender.getPsActuales() + "/" + defender.getHP());
     }
 
-    private void determinePriority() {
+    private int checkFaint() {
+        /* 0 -> nothing
+           1 -> win
+           2 -> lose
+           3 -> run (only for wild battles)
+           4 -> caught (only for wild battles)
+        */
+        if(userTeam.isTeamDefeated()) {
+            // lose
+            endBattle = true;
+            battleResult = 2;
+        } else if(rivalTeam.isTeamDefeated()) {
+            // win
+            endBattle = true;
+            battleResult = 1;
+        }
+        return battleResult;
+    }
+
+    private void determinePriority(Pokemon user, Pokemon rival, Movement userMove, Movement rivalMove) {
         boolean userFirst;
         // moves priority
         if(userMove.getPriority() > rivalMove.getPriority()) {
@@ -147,26 +175,28 @@ public class Battle {
         int defense = 0;
         double stab = 1.0;
         int variation = attacker.utils.getRandomNumberBetween(85,101);
+        boolean critical = isCriticalHit(attacker,defender,move);
         // get effectiveness
-        double effectiveness = getEffectiveness(attacker, move);
+        double effectiveness = getEffectiveness(attacker, defender, move);
         // move power
         int power = move.getPower();
         // STAB
         if(attacker.hasType(move.type.getInternalName())) {
             stab = 1.5;
         }
+
         // move category, physical or special?
         if(move.getCategory() == Category.PHYSICAL) {
-            attack = attacker.getAttack();
-            defense = defender.getDefense();
+            attack = attacker.getAttack(critical);
+            defense = defender.getDefense(critical);
         } else if(move.getCategory() == Category.SPECIAL) {
-            attack = attacker.getSpecialAttack();
-            defense = defender.getSpecialDefense();
+            attack = attacker.getSpecialAttack(critical);
+            defense = defender.getSpecialDefense(critical);
         }
         // calculate damage
         damage = (int) (0.01*stab*effectiveness*variation*(((attack*power*(0.2*attacker.getLevel()+1))/(25*defense))+2));
         // critical hit
-        if(isCriticalHit(attacker,defender,move)) {
+        if(critical) {
             damage *= 1.5;
         }
 
@@ -181,27 +211,47 @@ public class Battle {
         }
         return false;
     }
-    private double getEffectiveness(Pokemon attacker, Movement move) {
+    private double getEffectiveness(Pokemon attacker, Pokemon defender, Movement move) {
         double effectiveness = 1.0;
-        if(attacker.getSpecie().type1 != null) {
-            if(attacker.getSpecie().type1.weaknesses.contains(move.type.getInternalName())) {
+        if(defender.getSpecie().type1 != null) {
+            if(defender.getSpecie().type1.weaknesses.contains(move.type.getInternalName())) {
                 effectiveness *= 2.0;
-            } else if(attacker.getSpecie().type1.resistances.contains(move.type.getInternalName())) {
+            } else if(defender.getSpecie().type1.resistances.contains(move.type.getInternalName())) {
                 effectiveness *= 0.5;
-            } else if(attacker.getSpecie().type1.immunities.contains(move.type.getInternalName())) {
+            } else if(defender.getSpecie().type1.immunities.contains(move.type.getInternalName())) {
                 effectiveness *= 0.0;
             }
         }
-        if(attacker.getSpecie().type2 != null) {
-            if(attacker.getSpecie().type2.weaknesses.contains(move.type.getInternalName())) {
+        if(defender.getSpecie().type2 != null) {
+            if(defender.getSpecie().type2.weaknesses.contains(move.type.getInternalName())) {
                 effectiveness *= 2.0;
-            } else if(attacker.getSpecie().type2.resistances.contains(move.type.getInternalName())) {
+            } else if(defender.getSpecie().type2.resistances.contains(move.type.getInternalName())) {
                 effectiveness *= 0.5;
-            } else if(attacker.getSpecie().type2.immunities.contains(move.type.getInternalName())) {
+            } else if(defender.getSpecie().type2.immunities.contains(move.type.getInternalName())) {
                 effectiveness *= 0.0;
             }
         }
 
+        if(effectiveness >= 2.0) {
+            System.out.println("It's very effective!");
+        } else if(effectiveness <= 0.5) {
+            System.out.println("It's not very effective...");
+        } else if(effectiveness == 0.0) {
+            System.out.println("It doesn't affect " + defender.nickname + "...");
+        }
+
         return effectiveness;
+    }
+
+    private void endBattle(Pokemon rival, boolean trainer) {
+        userTeam.battleEnded();
+        if(battleResult == 1) {
+            // get experience
+            userTeam.gainTeamExperience(rival,trainer);
+        } else if(battleResult == 2) {
+            System.out.println("You lose!");
+            // heal team
+            userTeam.healTeam();
+        }
     }
 }

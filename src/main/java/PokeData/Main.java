@@ -59,6 +59,9 @@ public class Main {
                 case "3":
                     // pokedex
                     break;
+                /*case "4":
+                    starter.participate = true;
+                    starter.gainExperience(starter,1,true);*/
             }
         }
 

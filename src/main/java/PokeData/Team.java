@@ -23,6 +23,48 @@ public class Team {
         giveNickname(pkm);
     }
 
+    public int alivePokemon() {
+        int total = 0;
+        for(int i=0;i<pokemonTeam.size();i++) {
+            if(!pokemonTeam.get(i).status.equals(Status.FAINTED)) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    public boolean isTeamDefeated() {
+        return alivePokemon() == 0;
+    }
+
+    public void healTeam() {
+        for(int i=0;i<pokemonTeam.size();i++) {
+            pokemonTeam.get(i).healPokemon();
+        }
+    }
+
+    private int getParticipants() {
+        int total = 0;
+        for(int i=0;i<pokemonTeam.size();i++) {
+            if(pokemonTeam.get(i).participate && !pokemonTeam.get(i).isFainted()) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    public void gainTeamExperience(Pokemon rival, boolean trainer) {
+        for(int i=0;i<pokemonTeam.size();i++) {
+            pokemonTeam.get(i).gainExperience(rival,getParticipants(),trainer);
+        }
+    }
+
+    public void battleEnded() {
+        for(int i=0;i<pokemonTeam.size();i++) {
+            pokemonTeam.get(i).battleEnded();
+        }
+    }
+
     public Pokemon getPokemon(int i) {
         return pokemonTeam.get(i);
     }
@@ -33,7 +75,7 @@ public class Team {
 
     public Pokemon getFirstAlivePokemon() {
         for(int i=0;i<pokemonTeam.size();i++) {
-            if(pokemonTeam.get(i).psActuales > 0) {
+            if(!pokemonTeam.get(i).status.equals(Status.FAINTED)) {
                 return pokemonTeam.get(i);
             }
         }

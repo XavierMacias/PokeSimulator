@@ -34,6 +34,28 @@ enum Natures {
     SERIOUS
 }
 
+enum Status {
+    FINE,
+    FAINTED,
+    POISONED,
+    BADLYPOISONED,
+    PARALYZED,
+    ASLEEP,
+    BURNED,
+    FROZEN
+}
+
+enum TemporalStatus {
+    CONFUSED,
+    INFATUATED,
+    TRAPPED,
+    PARTIALLYTRAPPED,
+    CURSED,
+    SEEDED,
+    PERISHSONG,
+    CENTERATTENTION
+}
+
 public class Pokemon {
     Specie specie;
     public Utils utils;
@@ -49,7 +71,10 @@ public class Pokemon {
     private List<Integer> remainPPs;
     Ability ability;
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
+    Status status;
+    List<TemporalStatus> tempStatus;
     public int criticalIndex = 0;
+    boolean participate = false;
 
     public Pokemon(Specie specie, int level, Utils utils) {
         Random random = new Random();
@@ -86,10 +111,18 @@ public class Pokemon {
         for(int i=0;i<7;i++) {
             statChanges.add(0);
         }
+        status = Status.FINE;
+        tempStatus = new ArrayList<TemporalStatus>();
+
         // choose nature
         nature = natureList[random.nextInt(natureList.length)];
         // calculate experience
         experience = calcExperience(level);
+        // calculate initial stats
+        stats = new ArrayList<Integer>();
+        for(int i=0;i<6;i++) {
+            stats.add(0);
+        }
         calcStats();
         psActuales = stats.get(0);
         // set initial moves
@@ -104,6 +137,10 @@ public class Pokemon {
         form = 0;
     }
 
+    public void setParticipate(boolean participate) {
+        this.participate = participate;
+    }
+
     public List<Pair<Movement, Integer>> getMoves() {
         return moves;
     }
@@ -115,18 +152,52 @@ public class Pokemon {
 
     public List<Integer> getStats() { return stats; }
 
-    public int getAttack() { return stats.get(1); }
-    public int getDefense() { return stats.get(2); }
-    public int getSpecialAttack() { return stats.get(3); }
-    public int getSpecialDefense() { return stats.get(4); }
-    public int getVelocity() { return stats.get(5); }
+    public int getAttack(boolean critic) {
+        if (critic && getStatChange(0) < 1.0) {
+            return stats.get(1);
+        }
+        return (int) (stats.get(1) * getStatChange(0));
+    }
+
+    public int getDefense(boolean critic) {
+        if (critic && getStatChange(1) > 1.0) {
+            return stats.get(2);
+        }
+        return (int) (stats.get(2)*getStatChange(1));
+    }
+    public int getSpecialAttack(boolean critic) {
+        if (critic && getStatChange(2) < 1.0) {
+            return stats.get(3);
+        }
+        return (int) (stats.get(3)*getStatChange(2));
+    }
+    public int getSpecialDefense(boolean critic) {
+        if (critic && getStatChange(3) > 1.0) {
+            return stats.get(4);
+        }
+        return (int) (stats.get(4)*getStatChange(3));
+    }
+    public int getVelocity() { return (int) (stats.get(5)*getStatChange(4)); }
     public int getHP() { return stats.get(0); }
+
+    public double getAccuracy() { return getStatChange(5); }
+    public double getEvasion() { return getStatChange(6); }
 
     public int getLevel() {
         return level;
     }
 
-    public List<Integer> getEvs() { return evs; }
+    public int getPsActuales() {
+        return psActuales;
+    }
+
+    private int totalEvs() {
+        int total = 0;
+        for(int i=0;i<evs.size();i++) {
+            total += evs.get(i);
+        }
+        return total;
+    }
 
     public boolean hasType(String type) {
         if(specie.type1 != null) {
@@ -191,6 +262,10 @@ public class Pokemon {
         }
     }
 
+    public boolean isFainted() {
+        return status.equals(Status.FAINTED);
+    }
+
     public void reducePP(Movement move) {
         int ind = getIndexMove(move.getInternalName());
         if(ind != -1) {
@@ -200,8 +275,11 @@ public class Pokemon {
 
     public void reduceHP(int damage) {
         psActuales -= damage;
-        if(psActuales < 0) {
+        System.out.println(nickname + " lost " + damage + " HP!");
+        if(psActuales <= 0) {
             psActuales = 0;
+            status = Status.FAINTED;
+            System.out.println(nickname + " fainted!");
         }
     }
 
@@ -217,6 +295,91 @@ public class Pokemon {
             }
         }
         return true;
+    }
+
+    public void healPokemon() {
+        healHP(-1);
+        healStatus(true);
+        healPP(-1,-1);
+    }
+    public void healPP(int move, int pps) {
+        // move -1 means all the moves will be restored
+        // pps -1 means all the PPs will be restored
+        for(int i=0;i<remainPPs.size();i++) {
+            if(i==move || move == -1) {
+                if(pps == -1) {
+                    remainPPs.set(i,getMoves().get(i).getPP());
+                } else {
+                    remainPPs.set(i, remainPPs.get(i)+pps);
+                    // check if max PPs are not overed
+                    if(remainPPs.get(i) > moves.get(i).getPP()) {
+                        remainPPs.set(i, moves.get(i).getPP());
+                    }
+                }
+            }
+        }
+    }
+
+    public void healStatus(boolean fainted) {
+        tempStatus.clear();
+        if(fainted || !status.equals(Status.FAINTED)) {
+            status = Status.FINE;
+        }
+    }
+
+    public void healHP(int hp) {
+        // hp -1 means all the HP will be restored
+        psActuales += hp;
+        if(hp == -1 || psActuales > getHP()) {
+            psActuales = getHP();
+        }
+    }
+
+    public void gainExperience(Pokemon rival, int participants, boolean isTrainer) {
+        if(participate && !isFainted()) {
+            double base = rival.specie.experience*rival.level/participants/5;
+            double a = Math.pow((2*rival.level+10),(5/2));
+            double b = Math.pow((level+rival.level+10),(5/2));
+            double bonus = 1.0;
+            if(isTrainer) { // TODO: or user has a Lucky Egg
+                bonus *= 1.5;
+            }
+
+            int exp = (int)((base*a/b + 1)*bonus);
+            experience += exp;
+            System.out.println(nickname + " gained " + exp + " points of experience!");
+            // gain evs
+            if(totalEvs() < 510) {
+                for(int i=0;i<evs.size();i++) {
+                    evs.set(i,evs.get(i)+rival.specie.evs.get(i));
+                    if(evs.get(i) > 252) {
+                        evs.set(i,252);
+                    }
+                }
+            }
+            // raise level
+            raiseLevel();
+        }
+    }
+
+    private void raiseLevel() {
+        while(experience >= calcExperience(level+1)) {
+            level++;
+            System.out.println(nickname + " raised to level " + level + "!");
+            List<Integer> tempStats = new ArrayList<Integer>();
+            for(int i=0;i<6;i++) {
+                tempStats.add(stats.get(i));
+            }
+            calcStats();
+            // show new stats
+            System.out.println("HP +" + (stats.get(0)-tempStats.get(0)) + ": " + stats.get(0));
+            System.out.println("Attack +" + (stats.get(1)-tempStats.get(1)) + ": " + stats.get(1));
+            System.out.println("Defense +" + (stats.get(2)-tempStats.get(2)) + ": " + stats.get(2));
+            System.out.println("Sp. At +" + (stats.get(3)-tempStats.get(3)) + ": " + stats.get(3));
+            System.out.println("Sp. Def +" + (stats.get(4)-tempStats.get(4)) + ": " + stats.get(4));
+            System.out.println("Speed +" + (stats.get(5)-tempStats.get(5)) + ": " + stats.get(5));
+            tempStats.clear();
+        }
     }
 
     public int calcExperience(int l) {
@@ -260,16 +423,106 @@ public class Pokemon {
     }
 
     public void calcStats() {
-        stats = new ArrayList<Integer>();
         for(int i=0;i<6;i++) {
             if(i==0) {
                 // HP stat
-                stats.add((int) ((((specie.stats.get(0)*2)+ivs.get(0)+(evs.get(0)/4.0))*level)/100.0)+level+10);
+                stats.set(0,(int) (((((specie.stats.get(0)*2)+ivs.get(0)+(evs.get(0)/4.0))*level)/100.0)+level+10));
             } else {
                 // other stats
-                stats.add((int) ((((((specie.stats.get(i)*2)+ivs.get(i)+(evs.get(i)/4.0))*level)/100.0)+5)*getNat(i)));
+                stats.set(i,(int) (((((((specie.stats.get(i)*2)+ivs.get(i)+(evs.get(i)/4.0))*level)/100.0)+5)*getNat(i))));
             }
         }
+    }
+
+    public void changedPokemon() {
+        tempStatus.clear();
+        for(int i=0;i<statChanges.size();i++) {
+            statChanges.set(i,0);
+        }
+    }
+
+    public void battleEnded() {
+        changedPokemon();
+        participate = false;
+    }
+
+    public double getStatChange(int i) {
+        switch (statChanges.get(i)) {
+            case 1:
+                if(i <= 4) {
+                    return 1.5;
+                } else {
+                    return 1.33;
+                }
+            case 2:
+                if(i <= 4) {
+                    return 2.0;
+                } else {
+                    return 1.67;
+                }
+            case 3:
+                if(i <= 4) {
+                    return 2.5;
+                } else {
+                    return 2.0;
+                }
+            case 4:
+                if(i <= 4) {
+                    return 3.0;
+                } else {
+                    return 2.33;
+                }
+            case 5:
+                if(i <= 4) {
+                    return 3.5;
+                } else {
+                    return 2.67;
+                }
+            case 6:
+                if(i <= 4) {
+                    return 4.0;
+                } else {
+                    return 3.0;
+                }
+            case -1:
+                if(i <= 4) {
+                    return 0.67;
+                } else {
+                    return 0.75;
+                }
+            case -2:
+                if(i <= 4) {
+                    return 0.5;
+                } else {
+                    return 0.6;
+                }
+            case -3:
+                if(i <= 4) {
+                    return 0.4;
+                } else {
+                    return 0.5;
+                }
+            case -4:
+                if(i <= 4) {
+                    return 0.33;
+                } else {
+                    return 0.43;
+                }
+            case -5:
+                if(i <= 4) {
+                    return 0.29;
+                } else {
+                    return 0.38;
+                }
+            case -6:
+                if(i <= 4) {
+                    return 0.25;
+                } else {
+                    return 0.33;
+                }
+        }
+
+        return 1.0;
     }
 
     public double getNat(int st) {
