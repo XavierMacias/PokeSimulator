@@ -244,10 +244,10 @@ public class Battle {
     }
 
     private void endBattle(Pokemon rival, boolean trainer) {
-        userTeam.battleEnded();
         if(battleResult == 1) {
             // get experience
             userTeam.gainTeamExperience(rival,trainer);
+            userTeam.battleEnded();
         } else if(battleResult == 2) {
             System.out.println("You lose!");
             // heal team

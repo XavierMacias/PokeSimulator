@@ -28,11 +28,11 @@ public class Main {
         } while(!choose.equals("1") && !choose.equals("2")  && !choose.equals("3"));
 
         if(choose.equals("1")) {
-            starter = new Pokemon(utils.getPokemon("BULBASAUR"),12, utils);
+            starter = new Pokemon(utils.getPokemon("BULBASAUR"),15, utils);
         } else if(choose.equals("2")) {
-            starter = new Pokemon(utils.getPokemon("CHARMANDER"),12, utils);
+            starter = new Pokemon(utils.getPokemon("CHARMANDER"),15, utils);
         } else if(choose.equals("3")) {
-            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),12, utils);
+            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),15, utils);
         }
 
         player.getTeam().obtainPokemon(starter);
@@ -59,9 +59,9 @@ public class Main {
                 case "3":
                     // pokedex
                     break;
-                /*case "4":
+                case "4":
                     starter.participate = true;
-                    starter.gainExperience(starter,1,true);*/
+                    starter.gainExperience(starter,1,true);
             }
         }
 

@@ -74,10 +74,12 @@ public class Pokemon {
     Status status;
     List<TemporalStatus> tempStatus;
     public int criticalIndex = 0;
-    boolean participate = false;
+    boolean participate;
+    private Scanner in;
 
     public Pokemon(Specie specie, int level, Utils utils) {
         Random random = new Random();
+        in = new Scanner(System.in);
         this.utils = utils;
         this.specie = specie;
         this.level = level;
@@ -128,13 +130,14 @@ public class Pokemon {
         // set initial moves
         moves = new ArrayList<Pair<Movement,Integer>>();
         remainPPs = new ArrayList<Integer>();
-        setMoves();
+        setMoves(false, false);
         //is shiny?
         if(utils.getRandomNumberBetween(1,4097) == 1) {
             isShiny = true;
         }
         // alternative forms
         form = 0;
+        participate = false;
     }
 
     public void setParticipate(boolean participate) {
@@ -233,12 +236,12 @@ public class Pokemon {
         return -1;
     }
 
-    public void setMoves() {
+    public void setMoves(boolean learn, boolean evol) {
         List<Integer> keySet = specie.moveset.keySet().stream().sorted().toList(); // order the moves list by level
         Iterator keyIterator = keySet.iterator();
         while (keyIterator.hasNext()) {
             int key = (Integer) keyIterator.next();
-            if(key <= level) { // check if level is equal or superior
+            if((key <= level && !learn) || (key == level && learn) || (key == 0 && evol)) { // check if level is equal or superior
                 Iterator iterator = specie.moveset.get(key).iterator();
                 while(iterator.hasNext()) {
                     Movement mv = (Movement)iterator.next();
@@ -247,14 +250,43 @@ public class Pokemon {
                             // add move
                             moves.add(new Pair<>(mv,mv.getPP()));
                             remainPPs.add(mv.getPP());
+                            if(learn) System.out.println(nickname + " learned " + mv.name + "!");
                         } else {
                             // delete move
-                            int rand = ((int)(Math.random() * 5));
-                            if(rand < 4) {
-                                moves.set(rand, new Pair<>(mv, mv.getPP()));
-                                remainPPs.set(rand, mv.getPP());
+                            // if the moves are set initially, the deleted move is random
+                            if(!learn) {
+                                int rand = ((int)(Math.random() * 5));
+                                if(rand < 4) {
+                                    moves.set(rand, new Pair<>(mv, mv.getPP()));
+                                    remainPPs.set(rand, mv.getPP());
+                                }
+                            } else {
+                                // if not, is decided by the player
+                                System.out.println(nickname + " wants to learn " + mv.name + "\nBut " + nickname + " already known 4 moves");
+                                System.out.println("Do you want to forget a move in order to learn " + mv.name + "?");
+                                System.out.println("1: Yes\n2: No");
+                                if(in.nextLine().equals("1")) {
+                                    System.out.println("What move do you want to remove?");
+                                    int chosenIndex = -1;
+                                    do {
+                                        System.out.println("0: Exit");
+                                        for(int i=0;i<moves.size();i++) {
+                                            System.out.println((i+1)+": "+moves.get(i).getMove().name);
+                                        }
+                                        chosenIndex = Integer.parseInt(in.nextLine());
+                                    } while(chosenIndex < 0 || chosenIndex > getMoves().size());
+                                    if(chosenIndex == 0) {
+                                        System.out.println(nickname + " didn't learn " + mv.name);
+                                    } else {
+                                        System.out.println("1, 2, 3... and... Poof!\n" + nickname +" forgot " + moves.get(chosenIndex-1).getMove().name + "!");
+                                        moves.set(chosenIndex-1, new Pair<>(mv, mv.getPP()));
+                                        remainPPs.set(chosenIndex-1, mv.getPP());
+                                        System.out.println("And...\n" + nickname +" learned " + moves.get(chosenIndex-1).getMove().name + "!");
+                                    }
+                                } else {
+                                    System.out.println(nickname + " didn't learn " + mv.name);
+                                }
                             }
-
                         }
                     }
                 }
@@ -379,7 +411,34 @@ public class Pokemon {
             System.out.println("Sp. Def +" + (stats.get(4)-tempStats.get(4)) + ": " + stats.get(4));
             System.out.println("Speed +" + (stats.get(5)-tempStats.get(5)) + ": " + stats.get(5));
             tempStats.clear();
+
+            setMoves(true,false);
+            checkEvolution();
         }
+    }
+
+    public void checkEvolution() {
+        for(int i=0;i<specie.evos.size();i++) {
+            Evolution ev = specie.evos.get(i);
+            // check evolution method -> LEVEL
+            if(ev.method.equals("Level")) {
+                if(level >= Integer.parseInt(ev.complement)) {
+                    evolve(utils.getPokemon(ev.evo));
+                }
+            }
+            // TODO: rest of evolution methods
+        }
+    }
+
+    private void evolve(Specie evolution) {
+        System.out.println("What?\n" + nickname + " is evolving!");
+        if(nickname.equals(specie.name)) {
+            nickname = evolution.name;
+        }
+        specie = evolution;
+        calcStats();
+        System.out.println("Congratulations!\nYour " + nickname + " has evolved into " + evolution.name + "!");
+        setMoves(true,true);
     }
 
     public int calcExperience(int l) {
