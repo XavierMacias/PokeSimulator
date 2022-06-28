@@ -1,9 +1,6 @@
 package PokeBattle;
 
-import PokeData.Category;
-import PokeData.Movement;
-import PokeData.Pokemon;
-import PokeData.Team;
+import PokeData.*;
 
 import java.util.Random;
 import java.util.Scanner;
@@ -17,6 +14,7 @@ public class Battle {
     Scanner in;
     Random random;
     int battleResult;
+    MoveEffects moveEffects;
 
     public Battle() {
         random = new Random();
@@ -25,6 +23,7 @@ public class Battle {
         firstMove = null;
         secondMove = null;
         in = new Scanner(System.in);
+        moveEffects = new MoveEffects(this);
     }
 
     public void WildSingleBattle(Team team1, Team team2) {
@@ -64,7 +63,18 @@ public class Battle {
                     // run
                     break;
             }
-            if(decision) turn++;
+            if(decision) {
+                // end turn
+                endTurn(firstAttacker,secondAttacker);
+                if(checkFaint() != 0) {
+                    break;
+                }
+                endTurn(secondAttacker,firstAttacker);
+                if(checkFaint() != 0) {
+                    break;
+                }
+                turn++;
+            }
             //System.out.println("Turn: " + turn);
             //endBattle = true;
         } while(!endBattle);
@@ -77,11 +87,15 @@ public class Battle {
         do {
             System.out.println("0: Exit");
             // moves list
-            //TODO: check if there are remain PPs and if it must use STRUGGLE
+            //TODO: check if it must use STRUGGLE
             for(int i=0;i<user.getMoves().size();i++) {
                 System.out.println((i+1)+": "+user.getMoves().get(i).getMove().name+" - "+user.getRemainPPs().get(i)+"/"+user.getMoves().get(i).getPP());
             }
             chosenIndex = Integer.parseInt(in.nextLine());
+            if(user.hasPPByIndex(chosenIndex-1) == 0) {
+                System.out.println("There are no PPs for this move!");
+                chosenIndex = -1;
+            }
         } while(chosenIndex < 0 || chosenIndex > user.getMoves().size());
 
         // if we cancel, return to previous menu
@@ -107,14 +121,36 @@ public class Battle {
     }
 
     private void useMove(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove) {
-        System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
-        if(attackerMove.getPower() > 0) {
-            int dmg = CalcDamage(attacker,defender,attackerMove);
-            defender.reduceHP(dmg);
-        }
-        // TODO: get the secondary effects
-        attacker.reducePP(attackerMove);
+        int dmg = 0;
 
+        // TODO: unable to move if asleep, paralyze, frozen, infatuated...
+
+        System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
+        int moveAccuracy = attackerMove.getAccuracy();
+        double a = (moveAccuracy/100.0)*(attacker.getAccuracy()/defender.getEvasion());
+        // calculate precision
+        if(a >= Math.random() || moveAccuracy == 0) {
+            if(attackerMove.getPower() > 0) {
+                dmg = CalcDamage(attacker,defender,attackerMove);
+                if(dmg > 0) {
+                    defender.reduceHP(dmg);
+                    if(checkFaint() == 0 && (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect()/100.0) >= Math.random()))) {
+                        moveEffects.moveEffects(attackerMove,attacker,defender,defenderMove, dmg);
+                    }
+                }
+            } else {
+                if(attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect()/100.0) >= Math.random())) {
+                    if(!moveEffects.moveEffects(attackerMove,attacker,defender,defenderMove, dmg)) {
+                        System.out.println("But it failed!");
+                    }
+                }
+            }
+        } else {
+            // move failed
+            System.out.println(attacker.nickname + "'s move missed!");
+        }
+
+        attacker.reducePP(attackerMove);
         System.out.println(defender.nickname + " HP: " + defender.getPsActuales() + "/" + defender.getHP());
     }
 
@@ -194,22 +230,24 @@ public class Battle {
             defense = defender.getSpecialDefense(critical);
         }
         // calculate damage
-        damage = (int) (0.01*stab*effectiveness*variation*(((attack*power*(0.2*attacker.getLevel()+1))/(25*defense))+2));
+        double dmg = (0.01*stab*effectiveness*variation*(((attack*power*(0.2*attacker.getLevel()+1))/(25*defense))+2));
         // critical hit
         if(critical) {
-            damage *= 1.5;
+            dmg *= 1.5;
         }
 
+        // the minimum damage is always 1
+        damage = (int) dmg;
+        if(dmg < 1.0 && dmg > 0.0) {
+            damage = 1;
+        }
         return damage;
     }
 
     private boolean isCriticalHit(Pokemon attacker, Pokemon defender, Movement move) {
         int rand = attacker.utils.getRandomNumberBetween(0,101);
-        if((attacker.criticalIndex == 0 && rand <= 4.167) || (attacker.criticalIndex == 1 && rand <= 12.5) ||
-                (attacker.criticalIndex == 2 && rand <= 50) || attacker.criticalIndex >= 3) {
-            return true;
-        }
-        return false;
+        return (attacker.criticalIndex == 0 && rand <= 4.167) || (attacker.criticalIndex == 1 && rand <= 12.5) ||
+                (attacker.criticalIndex == 2 && rand <= 50) || attacker.criticalIndex >= 3;
     }
     private double getEffectiveness(Pokemon attacker, Pokemon defender, Movement move) {
         double effectiveness = 1.0;
@@ -234,13 +272,40 @@ public class Battle {
 
         if(effectiveness >= 2.0) {
             System.out.println("It's very effective!");
-        } else if(effectiveness <= 0.5) {
+        } else if(effectiveness <= 0.5 && effectiveness > 0.0) {
             System.out.println("It's not very effective...");
         } else if(effectiveness == 0.0) {
             System.out.println("It doesn't affect " + defender.nickname + "...");
         }
 
         return effectiveness;
+    }
+
+    private void endTurn(Pokemon target, Pokemon other) {
+
+        // weather
+        // poison
+        if(target.hasStatus(Status.POISONED)) {
+            System.out.println(target.nickname + " is affected by the poison!");
+            target.reduceHP(target.getHP()/8);
+        }
+        // badly poison
+        if(target.hasStatus(Status.BADLYPOISONED)) {
+            System.out.println(target.nickname + " is affected by the poison!");
+            target.reduceHP(target.getHP()/16);
+        }
+        // burn
+        if(target.hasStatus(Status.BURNED)) {
+            System.out.println(target.nickname + " is affected by the burn!");
+            target.reduceHP(target.getHP()/16);
+        }
+        // leech seed
+        if(target.hasTemporalStatus(TemporalStatus.SEEDED)) {
+            System.out.println(target.nickname + " is seeded by Leech Seed!");
+            target.reduceHP(target.getHP()/8);
+            other.healHP(target.getHP()/8, true);
+        }
+        System.out.println("Turn: " + turn);
     }
 
     private void endBattle(Pokemon rival, boolean trainer) {

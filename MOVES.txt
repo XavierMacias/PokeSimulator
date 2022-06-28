@@ -22,9 +22,9 @@ FEINTATTACK,Finta,DARK,60,0,PHYSICAL,20,0,FOE,0,abcf,0,Un ataque engañoso que n
 AURASPHERE,Esfera aural,FIGHTING,80,0,SPECIAL,20,0,FOE,0,bcfmn,0,Un bola de aura que ataca al enemigo y nunca falla
 GROWL,Gruñido,NORMAL,0,100,STATUS,40,0,ALLFOES,0,bcdjq,1,Reduce el ataque del rival
 LEECHSEED,Drenadoras,GRASS,0,90,STATUS,10,0,FOE,0,bcd,2,Infecta al enemigo y le roba PS en cada turno
-SLUDGE,Residuos,POISON,65,100,SPECIAL,20,0,FOE,30,bc,2,Un ataque con suciedad que puede envenenar al rival
-POISONSTING,Picotazo venenoso,POISON,15,100,PHYSICAL,35,0,FOE,30,bc,2,Un pin de veneno que puede envenenar al rival
-POISONJAB,Puya nociva,POISON,80,100,PHYSICAL,20,0,FOE,30,abcf,2,Un golpe muy fuerte que puede envenenar al rival
+SLUDGE,Residuos,POISON,65,100,SPECIAL,20,0,FOE,30,bc,3,Un ataque con suciedad que puede envenenar al rival
+POISONSTING,Picotazo venenoso,POISON,15,100,PHYSICAL,35,0,FOE,30,bc,3,Un pin de veneno que puede envenenar al rival
+POISONJAB,Puya nociva,POISON,80,100,PHYSICAL,20,0,FOE,30,abcf,3,Un golpe muy fuerte que puede envenenar al rival
 POISONPOWDER,Polvo veneno,POISON,0,75,STATUS,35,0,FOE,0,bcdl,3,Envenena al rival
 SLEEPPOWDER,Somnífero,GRASS,0,75,STATUS,15,0,FOE,0,bcdl,4,Duerme al rival
 GRASSWHISTLE,Silbato,GRASS,0,55,STATUS,15,0,FOE,0,bcdjq,4,Duerme al rival

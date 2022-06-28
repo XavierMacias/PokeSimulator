@@ -39,7 +39,7 @@ public class Team {
 
     public void healTeam() {
         for(int i=0;i<pokemonTeam.size();i++) {
-            pokemonTeam.get(i).healPokemon();
+            pokemonTeam.get(i).healPokemon(false);
         }
     }
 

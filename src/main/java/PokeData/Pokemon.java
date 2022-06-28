@@ -34,28 +34,6 @@ enum Natures {
     SERIOUS
 }
 
-enum Status {
-    FINE,
-    FAINTED,
-    POISONED,
-    BADLYPOISONED,
-    PARALYZED,
-    ASLEEP,
-    BURNED,
-    FROZEN
-}
-
-enum TemporalStatus {
-    CONFUSED,
-    INFATUATED,
-    TRAPPED,
-    PARTIALLYTRAPPED,
-    CURSED,
-    SEEDED,
-    PERISHSONG,
-    CENTERATTENTION
-}
-
 public class Pokemon {
     Specie specie;
     public Utils utils;
@@ -75,6 +53,8 @@ public class Pokemon {
     List<TemporalStatus> tempStatus;
     public int criticalIndex = 0;
     boolean participate;
+    int badPoisonTurns = 0;
+    int sleepTurns = 0;
     private Scanner in;
 
     public Pokemon(Specie specie, int level, Utils utils) {
@@ -138,6 +118,11 @@ public class Pokemon {
         // alternative forms
         form = 0;
         participate = false;
+    }
+
+    public void setMove(String m) { // ONLY FOR DEBUG
+        moves.set(0,new Pair<>(utils.getMove(m),utils.getMove(m).getPP()));
+        remainPPs.set(0,utils.getMove(m).getPP());
     }
 
     public void setParticipate(boolean participate) {
@@ -204,13 +189,13 @@ public class Pokemon {
 
     public boolean hasType(String type) {
         if(specie.type1 != null) {
-            if(specie.type1.getInternalName() == type) {
+            if(specie.type1.getInternalName().equals(type)) {
                 return true;
             }
         }
 
         if(specie.type2 != null) {
-            if(specie.type2.getInternalName() == type) {
+            if(specie.type2.getInternalName().equals(type)) {
                 return true;
             }
         }
@@ -250,7 +235,7 @@ public class Pokemon {
                             // add move
                             moves.add(new Pair<>(mv,mv.getPP()));
                             remainPPs.add(mv.getPP());
-                            if(learn) System.out.println(nickname + " learned " + mv.name + "!");
+                            if(learn || evol) System.out.println(nickname + " learned " + mv.name + "!");
                         } else {
                             // delete move
                             // if the moves are set initially, the deleted move is random
@@ -312,12 +297,112 @@ public class Pokemon {
             psActuales = 0;
             status = Status.FAINTED;
             System.out.println(nickname + " fainted!");
+            // decrease happiness
+            modifyHappiness(-1);
         }
+    }
+
+    public void causeStatus(Status st) {
+        status = st;
+        if(st.equals(Status.POISONED)) {
+            System.out.println(nickname + " was poisoned!");
+        } else if(st.equals(Status.BADLYPOISONED)) {
+            System.out.println(nickname + " was badly poisoned!");
+            badPoisonTurns = 1;
+        } else if(st.equals(Status.PARALYZED)) {
+            System.out.println(nickname + " was paralyzed! Maybe is unable to move!");
+        } else if(st.equals(Status.ASLEEP)) {
+            System.out.println(nickname + " fell sleep!");
+            sleepTurns = 1;
+        } else if(st.equals(Status.BURNED)) {
+            System.out.println(nickname + " was burned!");
+        } else if(st.equals(Status.FROZEN)) {
+            System.out.println(nickname + " was frozen solid!");
+        }
+    }
+
+    public boolean hasTemporalStatus(TemporalStatus st) {
+        return tempStatus.contains(st);
+    }
+    public boolean hasStatus(Status st) { return status.equals(st); }
+
+    public void causeTemporalStatus(TemporalStatus st) {
+        tempStatus.add(st);
+        if(st.equals(TemporalStatus.CONFUSED)) {
+            System.out.println(nickname + " was confused!");
+        } else if(st.equals(TemporalStatus.INFATUATED)) {
+            System.out.println(nickname + " was infatuated!");
+        } else if(st.equals(TemporalStatus.TRAPPED) || st.equals(TemporalStatus.PARTIALLYTRAPPED)) {
+            System.out.println(nickname + " was trapped!");
+        } else if(st.equals(TemporalStatus.CURSED)) {
+            System.out.println(nickname + " was cursed!");
+        } else if(st.equals(TemporalStatus.SEEDED)) {
+            System.out.println(nickname + " was seeded!");
+        } else if(st.equals(TemporalStatus.PERISHSONG)) {
+            System.out.println(nickname + " was perished song!");
+        } else if(st.equals(TemporalStatus.CENTERATTENTION)) {
+            System.out.println(nickname + " is now the center of attention!");
+        }
+    }
+
+    public Status getStatus() { return status; }
+
+    public void changeStat(int stat, int quantity) {
+        String st = "";
+        String raise = "";
+        switch(stat) {
+            case 0:
+                st = "Attack";
+                break;
+            case 1:
+                st = "Defense";
+                break;
+            case 2:
+                st = "Special attack";
+                break;
+            case 3:
+                st = "Special defense";
+                break;
+            case 4:
+                st = "Speed";
+                break;
+            case 5:
+                st = "Accuracy";
+                break;
+            case 6:
+                st = "Evasion";
+                break;
+        }
+        if(quantity == 1) {
+            raise = "raised";
+        } else if(quantity == 2) {
+            raise = "raised a lot";
+        } else if(quantity > 2 && quantity < 6) {
+            raise = "raised incredibly";
+        } else if(quantity == 6) {
+            raise = "maximized";
+        } else if(quantity == -1) {
+            raise = "decreased";
+        } else if(quantity == -2) {
+            raise = "decreased a lot";
+        } else if(quantity < -2 && quantity > -6) {
+            raise = "decreased incredibly";
+        } else if(quantity == -6) {
+            raise = "minimized";
+        }
+        statChanges.set(stat,statChanges.get(stat)+quantity);
+        System.out.println(st + " of " + nickname + " " + raise + "!");
     }
 
     public boolean hasPP(Movement move) {
         int ind = getIndexMove(move.getInternalName());
         return remainPPs.get(ind) > 0;
+    }
+    public int hasPPByIndex(int id) {
+        if(id < 0 || id >= remainPPs.size()) {
+            return -1;
+        }
+        return remainPPs.get(id);
     }
 
     public boolean isOutPP() {
@@ -329,9 +414,9 @@ public class Pokemon {
         return true;
     }
 
-    public void healPokemon() {
-        healHP(-1);
-        healStatus(true);
+    public void healPokemon(boolean message) {
+        healHP(-1, message);
+        healStatus(true, message);
         healPP(-1,-1);
     }
     public void healPP(int move, int pps) {
@@ -352,18 +437,31 @@ public class Pokemon {
         }
     }
 
-    public void healStatus(boolean fainted) {
+    public void healStatus(boolean fainted, boolean message) {
         tempStatus.clear();
         if(fainted || !status.equals(Status.FAINTED)) {
             status = Status.FINE;
         }
+        if(message) { System.out.println(nickname + "recovers its status!"); }
     }
 
-    public void healHP(int hp) {
+    public void healHP(int hp, boolean message) {
         // hp -1 means all the HP will be restored
         psActuales += hp;
         if(hp == -1 || psActuales > getHP()) {
             psActuales = getHP();
+        }
+        if(message) { System.out.println(nickname + "recovers " + hp + " HPs!"); }
+    }
+
+    public void modifyHappiness(int hap) {
+        if(happiness < 255) {
+            happiness += hap;
+            if(happiness < 0) {
+                happiness = 0;
+            } else if(happiness > 255) {
+                happiness = 255;
+            }
         }
     }
 
@@ -411,7 +509,15 @@ public class Pokemon {
             System.out.println("Sp. Def +" + (stats.get(4)-tempStats.get(4)) + ": " + stats.get(4));
             System.out.println("Speed +" + (stats.get(5)-tempStats.get(5)) + ": " + stats.get(5));
             tempStats.clear();
-
+            // increase happiness
+            if(happiness <= 90) {
+                modifyHappiness(5);
+            } else if(happiness <= 199) {
+                modifyHappiness(4);
+            } else {
+                modifyHappiness(3);
+            }
+            // check new moves
             setMoves(true,false);
             checkEvolution();
         }

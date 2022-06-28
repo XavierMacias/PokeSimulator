@@ -28,14 +28,15 @@ public class Main {
         } while(!choose.equals("1") && !choose.equals("2")  && !choose.equals("3"));
 
         if(choose.equals("1")) {
-            starter = new Pokemon(utils.getPokemon("BULBASAUR"),15, utils);
+            starter = new Pokemon(utils.getPokemon("BULBASAUR"),13, utils);
         } else if(choose.equals("2")) {
-            starter = new Pokemon(utils.getPokemon("CHARMANDER"),15, utils);
+            starter = new Pokemon(utils.getPokemon("CHARMANDER"),13, utils);
         } else if(choose.equals("3")) {
-            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),15, utils);
+            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils);
         }
 
         player.getTeam().obtainPokemon(starter);
+        //starter.setMove("LEECHSEED");
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");
