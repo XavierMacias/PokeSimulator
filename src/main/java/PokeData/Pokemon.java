@@ -1,10 +1,6 @@
 package PokeData;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 enum Natures {
     BASHFUL,
@@ -47,14 +43,14 @@ public class Pokemon {
     Natures[] natureList = Natures.values();
     private List<Pair<Movement,Integer>> moves;
     private List<Integer> remainPPs;
-    Ability ability;
+    Ability ability, originalAbility;
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
     Status status;
     List<TemporalStatus> tempStatus;
     public int criticalIndex = 0;
     boolean participate;
-    int badPoisonTurns = 0;
-    int sleepTurns = 0;
+    public int sleepTurns = 0;
+    public int badPoisonTurns = 0;
     private Scanner in;
 
     public Pokemon(Specie specie, int level, Utils utils) {
@@ -70,6 +66,7 @@ public class Pokemon {
         if(specie.ability2 != null && Math.random() < 0.5) {
             ability = specie.ability2;
         }
+        originalAbility = ability;
         // gender
         gender = 1; // female
         if((int)(Math.random() * 100) < specie.genderrate) {
@@ -133,6 +130,7 @@ public class Pokemon {
         return moves;
     }
     public Specie getSpecie() { return specie; }
+    public Ability getAbility() { return ability; }
 
     public List<Integer> getRemainPPs() {
         return remainPPs;
@@ -223,9 +221,9 @@ public class Pokemon {
 
     public void setMoves(boolean learn, boolean evol) {
         List<Integer> keySet = specie.moveset.keySet().stream().sorted().toList(); // order the moves list by level
-        Iterator keyIterator = keySet.iterator();
+        Iterator<Integer> keyIterator = keySet.iterator();
         while (keyIterator.hasNext()) {
-            int key = (Integer) keyIterator.next();
+            int key = keyIterator.next();
             if((key <= level && !learn) || (key == level && learn) || (key == 0 && evol)) { // check if level is equal or superior
                 Iterator iterator = specie.moveset.get(key).iterator();
                 while(iterator.hasNext()) {
@@ -327,7 +325,9 @@ public class Pokemon {
     public boolean hasStatus(Status st) { return status.equals(st); }
 
     public void causeTemporalStatus(TemporalStatus st) {
-        tempStatus.add(st);
+        if(!tempStatus.contains(st)) {
+            tempStatus.add(st);
+        }
         if(st.equals(TemporalStatus.CONFUSED)) {
             System.out.println(nickname + " was confused!");
         } else if(st.equals(TemporalStatus.INFATUATED)) {
@@ -347,31 +347,21 @@ public class Pokemon {
 
     public Status getStatus() { return status; }
 
-    public void changeStat(int stat, int quantity) {
+    public void changeAbility(String newAbility) {
+        ability = utils.getAbility(newAbility);
+    }
+
+    public boolean changeStat(int stat, int quantity) {
         String st = "";
         String raise = "";
-        switch(stat) {
-            case 0:
-                st = "Attack";
-                break;
-            case 1:
-                st = "Defense";
-                break;
-            case 2:
-                st = "Special attack";
-                break;
-            case 3:
-                st = "Special defense";
-                break;
-            case 4:
-                st = "Speed";
-                break;
-            case 5:
-                st = "Accuracy";
-                break;
-            case 6:
-                st = "Evasion";
-                break;
+        switch (stat) {
+            case 0 -> st = "Attack";
+            case 1 -> st = "Defense";
+            case 2 -> st = "Special attack";
+            case 3 -> st = "Special defense";
+            case 4 -> st = "Speed";
+            case 5 -> st = "Accuracy";
+            case 6 -> st = "Evasion";
         }
         if(quantity == 1) {
             raise = "raised";
@@ -390,8 +380,24 @@ public class Pokemon {
         } else if(quantity == -6) {
             raise = "minimized";
         }
+
+        if(statChanges.get(stat) == -6 && quantity < 0) {
+            System.out.println(st + " of " + nickname + " can't decrease more!");
+            return false;
+        } else if(statChanges.get(stat) == 6 && quantity > 0) {
+            System.out.println(st + " of " + nickname + " can't increase more!");
+            return false;
+        }
+
         statChanges.set(stat,statChanges.get(stat)+quantity);
+        if(statChanges.get(stat)+quantity > 6) {
+            statChanges.set(stat,6);
+        } else if(statChanges.get(stat)+quantity < -6) {
+            statChanges.set(stat,-6);
+        }
+
         System.out.println(st + " of " + nickname + " " + raise + "!");
+        return true;
     }
 
     public boolean hasPP(Movement move) {
@@ -406,8 +412,8 @@ public class Pokemon {
     }
 
     public boolean isOutPP() {
-        for(int i=0;i<remainPPs.size();i++) {
-            if(remainPPs.get(i) > 0) {
+        for (Integer remainPP : remainPPs) {
+            if (remainPP > 0) {
                 return false;
             }
         }
@@ -415,7 +421,7 @@ public class Pokemon {
     }
 
     public void healPokemon(boolean message) {
-        healHP(-1, message);
+        healHP(-1, message, message);
         healStatus(true, message);
         healPP(-1,-1);
     }
@@ -442,16 +448,48 @@ public class Pokemon {
         if(fainted || !status.equals(Status.FAINTED)) {
             status = Status.FINE;
         }
-        if(message) { System.out.println(nickname + "recovers its status!"); }
+        if(message) { System.out.println(nickname + " recovers its status!"); }
     }
 
-    public void healHP(int hp, boolean message) {
+    public void healPermanentStatus() {
+        if(hasStatus(Status.POISONED) || hasStatus(Status.BADLYPOISONED)) {
+            System.out.println(nickname + " recovers from Poison!");
+        } else if(hasStatus(Status.ASLEEP)) {
+            System.out.println(nickname + " woke up!");
+        } else if(hasStatus(Status.BURNED)) {
+            System.out.println(nickname + " is no longer burned!");
+        } else if(hasStatus(Status.FROZEN)) {
+            System.out.println(nickname + " thawed!");
+        } else if(hasStatus(Status.PARALYZED)) {
+            System.out.println(nickname + " is no longer paralyzed!");
+        }
+
+        status = Status.FINE;
+        badPoisonTurns = 0;
+        sleepTurns = 0;
+    }
+
+    public void healTempStatus(TemporalStatus temp, boolean message) {
+        tempStatus.remove(temp);
+        if(message) { System.out.println(nickname + " recovers its status!"); }
+    }
+
+    public boolean hasAllHP() {
+        return psActuales >= getHP();
+    }
+
+    public boolean healHP(int hp, boolean message, boolean messageAll) {
         // hp -1 means all the HP will be restored
+        if(hasAllHP()) {
+            if(messageAll) { System.out.println(nickname + " already has all its HPs!"); }
+            return false;
+        }
         psActuales += hp;
         if(hp == -1 || psActuales > getHP()) {
             psActuales = getHP();
         }
-        if(message) { System.out.println(nickname + "recovers " + hp + " HPs!"); }
+        if(message) { System.out.println(nickname + " recovers " + hp + " HPs!"); }
+        return true;
     }
 
     public void modifyHappiness(int hap) {
@@ -601,13 +639,22 @@ public class Pokemon {
 
     public void changedPokemon() {
         tempStatus.clear();
+        if(hasStatus(Status.BADLYPOISONED)) {
+            badPoisonTurns = 1;
+        }
+
         for(int i=0;i<statChanges.size();i++) {
             statChanges.set(i,0);
         }
+        // restore ability
+        ability = originalAbility;
     }
 
     public void battleEnded() {
         changedPokemon();
+        if(hasStatus(Status.ASLEEP)) {
+            sleepTurns = 1;
+        }
         participate = false;
     }
 

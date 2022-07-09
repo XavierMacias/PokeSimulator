@@ -2,6 +2,7 @@ package PokeBattle;
 
 import PokeData.*;
 
+import javax.swing.*;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -64,6 +65,9 @@ public class Battle {
                     break;
             }
             if(decision) {
+                if(checkFaint() != 0) {
+                    break;
+                }
                 // end turn
                 endTurn(firstAttacker,secondAttacker);
                 if(checkFaint() != 0) {
@@ -122,36 +126,84 @@ public class Battle {
 
     private void useMove(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove) {
         int dmg = 0;
+        // StartTurn
+        startTurn(attacker,defender);
 
-        // TODO: unable to move if asleep, paralyze, frozen, infatuated...
+        // flinched
+        if(attacker.hasTemporalStatus(TemporalStatus.FLINCHED)) {
+            System.out.println(attacker.nickname + " flinched!");
+        // paralyzed
+        } else if(attacker.hasStatus(Status.PARALYZED) && 0.25 >= Math.random()) {
+            System.out.println(attacker.nickname + " is paralyzed! It's unable to move!");
+        } else if(attacker.hasStatus(Status.FROZEN)) {
+            System.out.println(attacker.nickname + " is frozen!");
+            // asleep
+        } else if(attacker.hasStatus(Status.ASLEEP)) {
+            System.out.println(attacker.nickname + " is asleep!");
+        } else {
+            // infatuated
+            if(attacker.hasTemporalStatus(TemporalStatus.INFATUATED)) {
+                System.out.println(attacker.nickname + " is infatuated of " + defender.nickname + "!");
+                if(0.5 >= Math.random()) {
+                    System.out.println("Love prevents " + attacker.nickname + " from attacking!");
+                    return;
+                }
+            }
+            // confused
+            if(attacker.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+                System.out.println(attacker.nickname + " is confused!");
+                if(0.33 >= Math.random()) {
+                    System.out.println("It's so confused hurts itself!");
+                    attacker.reduceHP(CalcDamageConfuse(attacker));
+                    System.out.println(attacker.nickname + " HP: " + attacker.getPsActuales() + "/" + attacker.getHP());
+                    return;
+                }
+            }
+            System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
+            int moveAccuracy = attackerMove.getAccuracy();
+            double a = (moveAccuracy / 100.0) * (attacker.getAccuracy() / defender.getEvasion());
 
-        System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
-        int moveAccuracy = attackerMove.getAccuracy();
-        double a = (moveAccuracy/100.0)*(attacker.getAccuracy()/defender.getEvasion());
-        // calculate precision
-        if(a >= Math.random() || moveAccuracy == 0) {
-            if(attackerMove.getPower() > 0) {
-                dmg = CalcDamage(attacker,defender,attackerMove);
-                if(dmg > 0) {
-                    defender.reduceHP(dmg);
-                    if(checkFaint() == 0 && (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect()/100.0) >= Math.random()))) {
-                        moveEffects.moveEffects(attackerMove,attacker,defender,defenderMove, dmg);
+            // calculate precision
+            if (a >= Math.random() || moveAccuracy == 0) {
+                if (attackerMove.getPower() > 0) {
+                    dmg = CalcDamage(attacker, defender, attackerMove);
+                    if (dmg > 0) {
+                        defender.reduceHP(dmg);
+                        if (checkFaint() == 0 && (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect() / 100.0) >= Math.random()))) {
+                            moveEffects.moveEffects(attackerMove, attacker, defender, defenderMove, dmg);
+                        }
+                    }
+                } else {
+                    if (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect() / 100.0) >= Math.random())) {
+                        if (!moveEffects.moveEffects(attackerMove, attacker, defender, defenderMove, dmg)) {
+                            System.out.println("But it failed!");
+                        }
                     }
                 }
             } else {
-                if(attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect()/100.0) >= Math.random())) {
-                    if(!moveEffects.moveEffects(attackerMove,attacker,defender,defenderMove, dmg)) {
-                        System.out.println("But it failed!");
-                    }
-                }
+                // move failed
+                System.out.println(attacker.nickname + "'s move missed!");
             }
-        } else {
-            // move failed
-            System.out.println(attacker.nickname + "'s move missed!");
+            attacker.reducePP(attackerMove);
+            System.out.println(defender.nickname + " HP: " + defender.getPsActuales() + "/" + defender.getHP());
         }
+    }
 
-        attacker.reducePP(attackerMove);
-        System.out.println(defender.nickname + " HP: " + defender.getPsActuales() + "/" + defender.getHP());
+    private void startTurn(Pokemon target, Pokemon other) {
+
+        // thaw
+        if(0.2 >= Math.random() && target.hasStatus(Status.FROZEN)) {
+            System.out.println(target.nickname + " thaws!");
+            target.healPermanentStatus();
+        }
+        // wake up
+        if(0.33 >= Math.random() && target.sleepTurns == 1) {
+            target.healPermanentStatus();
+        } else if(0.66 >= Math.random() && target.sleepTurns == 2) {
+            target.healPermanentStatus();
+        } else if(target.sleepTurns >= 3) {
+            target.healPermanentStatus();
+        }
     }
 
     private int checkFaint() {
@@ -244,6 +296,23 @@ public class Battle {
         return damage;
     }
 
+    private int CalcDamageConfuse(Pokemon attacker) {
+        int damage = 0;
+        int attack = attacker.getAttack(false);
+        int defense = attacker.getDefense(false);
+        int variation = attacker.utils.getRandomNumberBetween(85,101);
+
+        // calculate damage
+        double dmg = (0.01*variation*(((attack*40*(0.2*attacker.getLevel()+1))/(25*defense))+2));
+
+        // the minimum damage is always 1
+        damage = (int) dmg;
+        if(dmg < 1.0 && dmg > 0.0) {
+            damage = 1;
+        }
+        return damage;
+    }
+
     private boolean isCriticalHit(Pokemon attacker, Pokemon defender, Movement move) {
         int rand = attacker.utils.getRandomNumberBetween(0,101);
         return (attacker.criticalIndex == 0 && rand <= 4.167) || (attacker.criticalIndex == 1 && rand <= 12.5) ||
@@ -283,28 +352,40 @@ public class Battle {
 
     private void endTurn(Pokemon target, Pokemon other) {
 
+        // remove flinch
+        target.healTempStatus(TemporalStatus.FLINCHED,false);
         // weather
+
         // poison
-        if(target.hasStatus(Status.POISONED)) {
+        if(target.hasStatus(Status.POISONED) && !target.isFainted()) {
             System.out.println(target.nickname + " is affected by the poison!");
             target.reduceHP(target.getHP()/8);
         }
         // badly poison
-        if(target.hasStatus(Status.BADLYPOISONED)) {
+        if(target.hasStatus(Status.BADLYPOISONED) && !target.isFainted()) {
             System.out.println(target.nickname + " is affected by the poison!");
-            target.reduceHP(target.getHP()/16);
+            target.reduceHP((int) (target.getHP()*(target.badPoisonTurns/16.0)));
         }
         // burn
-        if(target.hasStatus(Status.BURNED)) {
+        if(target.hasStatus(Status.BURNED) && !target.isFainted()) {
             System.out.println(target.nickname + " is affected by the burn!");
             target.reduceHP(target.getHP()/16);
         }
         // leech seed
-        if(target.hasTemporalStatus(TemporalStatus.SEEDED)) {
+        if(target.hasTemporalStatus(TemporalStatus.SEEDED) && !target.isFainted()) {
             System.out.println(target.nickname + " is seeded by Leech Seed!");
             target.reduceHP(target.getHP()/8);
-            other.healHP(target.getHP()/8, true);
+            other.healHP(target.getHP()/8, true, false);
         }
+
+        // turn counter
+        if(target.hasStatus(Status.BADLYPOISONED)) {
+            target.badPoisonTurns++;
+        }
+        if(target.hasStatus(Status.ASLEEP)) {
+            target.sleepTurns++;
+        }
+
         System.out.println("Turn: " + turn);
     }
 

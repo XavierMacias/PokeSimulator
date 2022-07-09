@@ -36,7 +36,7 @@ public class Main {
         }
 
         player.getTeam().obtainPokemon(starter);
-        //starter.setMove("LEECHSEED");
+        starter.setMove("GROWTH");
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");

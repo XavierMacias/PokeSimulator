@@ -8,5 +8,6 @@ public enum TemporalStatus {
     CURSED,
     SEEDED,
     PERISHSONG,
-    CENTERATTENTION
+    CENTERATTENTION,
+    FLINCHED
 }
