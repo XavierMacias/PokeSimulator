@@ -38,7 +38,6 @@ WORRYSEED,Abatidoras,GRASS,0,100,STATUS,10,0,FOE,0,bcd,9,Cambia la habilidad del
 SYNTHESIS,Síntesis,GRASS,0,0,STATUS,5,0,USER,0,e,10,Recupera PS al usuario dependiendo del clima
 SKULLBASH,Cabezazo,NORMAL,130,100,PHYSICAL,10,0,FOE,0,abcf,11,Primer turno: Sube la defensa. Segundo turno: ataca
 SOLARBEAM,Rayo solar,GRASS,120,100,SPECIAL,10,0,FOE,0,bcf,11,Primer turno: Absorbe luz solar. Segundo turno: ataca
-FOCUSPUNCH,Puño certero,FIGHTING,150,100,PHYSICAL,20,-3,FOE,0,abk,11,1r turno: carga. 2o turno: ataca. Falla si es golpeado antes de atacar
 CHARM,Encanto,FAIRY,0,100,STATUS,20,0,FOE,0,bcd,12,Reduce mucho el ataque del rival
 FEATHERDANCE,Danza pluma,FLYING,0,100,STATUS,15,0,FOE,0,bcdo,12,Reduce mucho el ataque del rival
 CURSE,Maldición,GHOST,0,0,STATUS,10,0,USER,0,,13,Tiene un efecto distinto en los Pokémon Fantasma
@@ -72,14 +71,16 @@ FIRESPIN,Giro fuego,FIRE,35,85,SPECIAL,15,0,FOE,0,bcf,27,Un tornado de fuego que
 BELLYDRUM,Tambor,NORMAL,0,0,STATUS,10,0,USER,0,e,28,Reduce mucho los PS del usuario pero maximiza su ataque
 ANCIENTPOWER,Poder pasado,ROCK,60,100,SPECIAL,5,0,FOE,10,bc,29,Ataca y puede subir todas las características del usuario
 SILVERWIND,Viento plata,BUG,60,100,SPECIAL,5,0,FOE,10,bcf,29,Un viento que puede subir todas las características del usuario
-FIREFANG,Colmillo ígneo,FIRE,65,95,PHYSICAL,15,0,FOE,10,abcf,30,Un colmillo de fuego que puede quemar y hacer retroceder al rival
-BEATUP,Paliza,DARK,0,100,PHYSICAL,10,0,FOE,0,bcf,31,Golpea al rival ayudado por todos los miembros del equipo
+FIREFANG,Colmillo ígneo,FIRE,65,95,PHYSICAL,15,0,FOE,0,abcf,30,Un colmillo de fuego que puede quemar y hacer retroceder al rival
+BEATUP,Paliza,DARK,-1,100,PHYSICAL,10,0,FOE,0,bcf,31,Golpea al rival ayudado por todos los miembros del equipo
 DRAGONDANCE,Danza dragón,DRAGON,0,0,STATUS,20,0,USER,0,eo,32,Una danza que aumenta el ataque y la velocidad del usuario
 CRUNCH,Triturar,DARK,80,100,PHYSICAL,15,0,FOE,20,abci,33,Un mordisco enorme que puede bajar la defensa del rival
+TAILWHIP,Látigo,NORMAL,0,100,STATUS,30,0,ALLFOES,0,bcd,33,Baja la defensa del enemigo
+LEER,Malicioso,NORMAL,0,100,STATUS,30,0,ALLFOES,0,bcd,33,Baja la defensa del enemigo
 METALCLAW,Garra metal,STEEL,50,95,PHYSICAL,35,0,FOE,10,abc,34,Unas garras metálicas que pueden subir el ataque del usuario
 COUNTER,Contraataque,FIGHTING,0,100,PHYSICAL,20,-5,USER,0,ab,35,Devuelve el doble de daño de un movimiento físico usado en ese turno
 STUNSPORE,Paralizador,GRASS,0,75,STATUS,30,0,FOE,0,bcdl,36,Paraliza al enemigo
-LEER,Látigo,NORMAL,0,100,STATUS,30,0,ALLFOES,0,bcd,37,Baja la defensa del enemigo
+FOCUSPUNCH,Puño certero,FIGHTING,150,100,PHYSICAL,20,-3,FOE,0,abk,37,Carga un potente puñetazo. Falla si es golpeado antes de atacar
 WITHDRAW,Refugio,WATER,0,0,STATUS,40,0,USER,0,e,38,Sube la defensa del usuario
 HARDEN,Fortaleza,NORMAL,0,0,STATUS,30,0,USER,0,e,38,Sube la defensa del usuario
 STEELWING,Ala de acero,STEEL,70,90,PHYSICAL,25,0,FOE,10,abcf,38,Un ala envuelta en acero que puede subir la defensa del usuario
@@ -93,8 +94,8 @@ WATERPULSE,Hidropulso,WATER,60,100,SPECIAL,20,0,FOE,20,bcfm,42,Un pulso acuatico
 HURRICANE,Vendaval,FLYING,110,70,SPECIAL,10,0,FOE,30,bcf,42,Un vendaval que puede confundir al objetivo
 IRONDEFENSE,Defense férrea,STEEL,0,0,STATUS,15,0,USER,0,e,43,Aumenta mucho la defensa del usuario
 RAINDANCE,Danza lluvia,WATER,0,0,STATUS,5,0,BOTHSIDES,0,,44,Provoca el clima de lluvia en el campo
-FLAIL,Azote,NORMAL,0,100,PHYSICAL,15,0,FOE,0,abcf,45,Cuantos menos PS tenga el usuario más daño causa
-REVERSAL,Inversión,FIGHTING,0,100,PHYSICAL,15,0,FOE,0,abcf,45,Cuantos menos PS tenga el usuario más daño causa
+FLAIL,Azote,NORMAL,-1,100,PHYSICAL,15,0,FOE,0,abcf,45,Cuantos menos PS tenga el usuario más daño causa
+REVERSAL,Inversión,FIGHTING,-1,100,PHYSICAL,15,0,FOE,0,abcf,45,Cuantos menos PS tenga el usuario más daño causa
 MIRRORCOAT,Manto espejo,PSYCHIC,0,100,SPECIAL,20,-5,USER,0,b,46,Devuelve el doble de daño de un movimiento especial usado en ese turno
 MIST,Neblina,ICE,0,0,STATUS,30,0,USERSIDE,0,e,47,Evita que bajen las características
 HAZE,Niebla,ICE,0,0,STATUS,30,0,ALLBATTLERS,0,q,48,Restaura todos los cambios de características de todos los Pokémon

@@ -3,6 +3,8 @@ package PokeBattle;
 import PokeData.*;
 
 import javax.swing.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -40,15 +42,25 @@ public class Battle {
         user.setParticipate(true);
         System.out.println("Go, "+user.nickname +"!");
 
+        user.pokeTurn = 1;
+        rival.pokeTurn = 1;
         String battleChoose = "0";
 
         // battle loop
         do {
-            System.out.println("What "+ user.nickname + " should do?");
-            System.out.println("1: Fight\n2: Bag\n3: Pokemon\n4: Run");
-
             boolean decision = false;
-            battleChoose = in.nextLine();
+
+            //TODO: use 2 turns attacks automatically
+            if(user.effectMoves.get(3) == 1) {
+                decision = true;
+                battleChoose = "1";
+            } else {
+                System.out.println("What "+ user.nickname + " should do?");
+                System.out.println("1: Fight\n2: Bag\n3: Pokemon\n4: Run");
+
+                battleChoose = in.nextLine();
+            }
+
             switch (battleChoose) {
                 case "1":
                     // fight
@@ -88,28 +100,38 @@ public class Battle {
 
     private boolean fight(Pokemon user, Pokemon rival) {
         int chosenIndex = -1;
-        do {
-            System.out.println("0: Exit");
-            // moves list
-            //TODO: check if it must use STRUGGLE
-            for(int i=0;i<user.getMoves().size();i++) {
-                System.out.println((i+1)+": "+user.getMoves().get(i).getMove().name+" - "+user.getRemainPPs().get(i)+"/"+user.getMoves().get(i).getPP());
-            }
-            chosenIndex = Integer.parseInt(in.nextLine());
-            if(user.hasPPByIndex(chosenIndex-1) == 0) {
-                System.out.println("There are no PPs for this move!");
-                chosenIndex = -1;
-            }
-        } while(chosenIndex < 0 || chosenIndex > user.getMoves().size());
+        Movement userMove;
 
-        // if we cancel, return to previous menu
-        if(chosenIndex == 0) {
-            return false;
+        if(user.effectMoves.get(3) == 1) {
+            userMove = user.previousMove;
+        } else {
+            do {
+                System.out.println("0: Exit");
+                // moves list
+                //TODO: check if it must use STRUGGLE
+                for(int i=0;i<user.getMoves().size();i++) {
+                    System.out.println((i+1)+": "+user.getMoves().get(i).getMove().name+" - "+user.getRemainPPs().get(i)+"/"+user.getMoves().get(i).getPP());
+                }
+                chosenIndex = Integer.parseInt(in.nextLine());
+                if(user.hasPPByIndex(chosenIndex-1) == 0) {
+                    System.out.println("There are no PPs for this move!");
+                    chosenIndex = -1;
+                }
+            } while(chosenIndex < 0 || chosenIndex > user.getMoves().size());
+
+            // if we cancel, return to previous menu
+            if(chosenIndex == 0) {
+                return false;
+            }
+            userMove = user.getMoves().get(chosenIndex-1).getMove();
         }
-        Movement userMove = user.getMoves().get(chosenIndex-1).getMove();
 
         // choose rival move TODO: AI, for the moment is random
         Movement rivalMove = rival.getMoves().get(random.nextInt(rival.getMoves().size())).getMove();
+        if(rival.effectMoves.get(3) == 1) {
+            rivalMove = rival.previousMove;
+        }
+
 
         determinePriority(user,rival,userMove,rivalMove);
         useMove(firstAttacker,secondAttacker,firstMove,secondMove);
@@ -128,6 +150,11 @@ public class Battle {
         int dmg = 0;
         // StartTurn
         startTurn(attacker,defender);
+
+        // protect, detect, endure
+        if(attackerMove.getCode() != 19 && attackerMove.getCode() != 41) {
+            attacker.protectTurns = 0;
+        }
 
         // flinched
         if(attacker.hasTemporalStatus(TemporalStatus.FLINCHED)) {
@@ -159,30 +186,70 @@ public class Battle {
                     return;
                 }
             }
+            attacker.previousMove = attackerMove;
             System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
             int moveAccuracy = attackerMove.getAccuracy();
+            // changes in move accuracy
+            // protect moves reduce accuracy depending on turns
+            if(attackerMove.getCode() == 19 || attackerMove.getCode() == 41) {
+                moveAccuracy = (int) (100.0/(Math.pow(2,attacker.protectTurns)));
+            }
+
             double a = (moveAccuracy / 100.0) * (attacker.getAccuracy() / defender.getEvasion());
 
             // calculate precision
             if (a >= Math.random() || moveAccuracy == 0) {
-                if (attackerMove.getPower() > 0) {
-                    dmg = CalcDamage(attacker, defender, attackerMove);
-                    if (dmg > 0) {
-                        defender.reduceHP(dmg);
-                        if (checkFaint() == 0 && (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect() / 100.0) >= Math.random()))) {
-                            moveEffects.moveEffects(attackerMove, attacker, defender, defenderMove, dmg);
+                // rival is protecting
+                if(defender.effectMoves.get(2) == 1 && attackerMove.getFlags().contains("b")) {
+                    System.out.println(defender.nickname + " has protected!");
+                } // moves that will fail
+                else if(attackerMove.getInternalName().equals("FAKEOUT") && attacker.pokeTurn > 1) {
+                    System.out.println("But it failed!");
+                } else {
+                    int hits = 1;
+                    ArrayList<Pokemon> beatUp = new ArrayList<Pokemon>();
+                    // attack more than one time in 1 turn
+                    if(attackerMove.getCode() == 31) {
+                        beatUp = attacker.getTeam().getBeatUpTeam(attacker);
+                        hits = beatUp.size();
+                    }
+
+                    for(int i=0;i<hits;i++) {
+                        // BEAT UP
+                        if(attackerMove.getCode() == 31) {
+                            attacker = beatUp.get(i);
+                        }
+
+                        if ((attackerMove.getPower() != 0 && attackerMove.getCode() != 11) || (attackerMove.getCode() == 11 && attacker.effectMoves.get(3) == 1)) {
+                            dmg = CalcDamage(attacker, defender, attackerMove);
+                            if(dmg > 0) {
+                                defender.reduceHP(dmg);
+                                defender.lastMoveInThisTurn = attackerMove;
+                                defender.previousDamage = dmg;
+
+                                if (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect() / 100.0) >= Math.random())) {
+                                    moveEffects.moveEffects(attackerMove, attacker, defender, defenderMove, dmg);
+                                }
+                            }
+                        } else {
+                            if (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect() / 100.0) >= Math.random())) {
+                                if (!moveEffects.moveEffects(attackerMove, attacker, defender, defenderMove, dmg)) {
+                                    System.out.println("But it failed!");
+                                }
+                            }
                         }
                     }
-                } else {
-                    if (attackerMove.getAddEffect() == 0 || ((attackerMove.getAddEffect() / 100.0) >= Math.random())) {
-                        if (!moveEffects.moveEffects(attackerMove, attacker, defender, defenderMove, dmg)) {
-                            System.out.println("But it failed!");
-                        }
+                    // effects after attacks - LIFE ORB, ROUGH SKIN...
+                    // last effects - RAPID SPIN...
+                    if(attackerMove.getInternalName().equals("RAPIDSPIN") && !attacker.isFainted()) {
+                        attacker.rapidSpin();
                     }
                 }
+
             } else {
                 // move failed
                 System.out.println(attacker.nickname + "'s move missed!");
+                attacker.protectTurns = 0;
             }
             attacker.reducePP(attackerMove);
             System.out.println(defender.nickname + " HP: " + defender.getPsActuales() + "/" + defender.getHP());
@@ -203,6 +270,17 @@ public class Battle {
             target.healPermanentStatus();
         } else if(target.sleepTurns >= 3) {
             target.healPermanentStatus();
+        }
+
+        // fire spin, etc
+        if(0.5 >= Math.random() && target.effectMoves.get(4) == 4) {
+            target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
+            System.out.println(target.nickname + " was freed from Fire Spin!");
+            target.effectMoves.set(4, 0);
+        } else if(target.effectMoves.get(4) >= 5) {
+            target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
+            System.out.println(target.nickname + " was freed from Fire Spin!");
+            target.effectMoves.set(4, 0);
         }
     }
 
@@ -268,6 +346,13 @@ public class Battle {
         double effectiveness = getEffectiveness(attacker, defender, move);
         // move power
         int power = move.getPower();
+
+        int changePower = moveChangingPower(attacker,defender,move);
+        // moves with variable power
+        if(changePower != -1) {
+            power = changePower;
+        }
+
         // STAB
         if(attacker.hasType(move.type.getInternalName())) {
             stab = 1.5;
@@ -293,7 +378,39 @@ public class Battle {
         if(dmg < 1.0 && dmg > 0.0) {
             damage = 1;
         }
+        // resists with 1 HP
+        if(defender.getPsActuales()-damage <= 0) {
+            if(defender.effectMoves.get(1) == 1) { // endure
+                damage = defender.getPsActuales()-1;
+            }
+            //TODO: focus band, false swipe, etc...
+        }
+
         return damage;
+    }
+
+    private int moveChangingPower(Pokemon attacker, Pokemon defender, Movement move) {
+        int p = -1;
+        if(move.getCode() == 31) { // beat up
+            p = 5+(attacker.getSpecie().stats.get(1)/10);
+        }
+        if(move.getCode() == 45) { // flail, reversal
+            if(attacker.getPercentHP() >= 68.75) {
+                p = 20;
+            } else if(attacker.getPercentHP() >= 35.42) {
+                p = 40;
+            } else if(attacker.getPercentHP() >= 20.83) {
+                p = 80;
+            } else if(attacker.getPercentHP() >= 10.42) {
+                p = 100;
+            } else if(attacker.getPercentHP() >= 4.17) {
+                p = 150;
+            } else {
+                p = 200;
+            }
+        }
+
+        return p;
     }
 
     private int CalcDamageConfuse(Pokemon attacker) {
@@ -343,7 +460,7 @@ public class Battle {
             System.out.println("It's very effective!");
         } else if(effectiveness <= 0.5 && effectiveness > 0.0) {
             System.out.println("It's not very effective...");
-        } else if(effectiveness == 0.0) {
+        } else if(effectiveness <= 0.0) {
             System.out.println("It doesn't affect " + defender.nickname + "...");
         }
 
@@ -352,6 +469,8 @@ public class Battle {
 
     private void endTurn(Pokemon target, Pokemon other) {
 
+        target.lastMoveInThisTurn = null;
+        target.previousDamage = 0;
         // remove flinch
         target.healTempStatus(TemporalStatus.FLINCHED,false);
         // weather
@@ -371,11 +490,40 @@ public class Battle {
             System.out.println(target.nickname + " is affected by the burn!");
             target.reduceHP(target.getHP()/16);
         }
+        // cursed
+        if(target.hasTemporalStatus(TemporalStatus.CURSED) && !target.isFainted()) {
+            System.out.println(target.nickname + " is affected by Curse!");
+            target.reduceHP(target.getHP()/4);
+        }
         // leech seed
         if(target.hasTemporalStatus(TemporalStatus.SEEDED) && !target.isFainted()) {
             System.out.println(target.nickname + " is seeded by Leech Seed!");
             target.reduceHP(target.getHP()/8);
             other.healHP(target.getHP()/8, true, false);
+        }
+        if(target.hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED) && target.effectMoves.get(4) >= 1) {
+            System.out.println(target.nickname + " is hurt by Fire Spin!");
+            target.reduceHP(target.getHP()/8);
+            target.effectMoves.set(4, target.effectMoves.get(4)+1);
+        }
+
+        // ingrain
+        if(!target.hasAllHP() && target.effectMoves.get(0) == 1 && !target.isFainted()) {
+            System.out.println(target.nickname + " obtains energy from roots!");
+            target.healHP(target.getHP()/16, true, true);
+        }
+
+        // remove endure, protect, detect...
+        target.effectMoves.set(1, 0); // endure
+        target.effectMoves.set(2, 0); // protect
+
+        // count and remove team effects
+        if(target.getTeam().effectTeamMoves.get(0) > 0) { // mist
+            target.getTeam().increaseEffectMove(0); // increase turn
+            if(target.getTeam().effectTeamMoves.get(0) == 5) {
+                target.getTeam().effectTeamMoves.set(0, 0);
+                System.out.println("The mist of " + target.nickname + "'s team is gone!");
+            }
         }
 
         // turn counter
@@ -386,6 +534,7 @@ public class Battle {
             target.sleepTurns++;
         }
 
+        target.pokeTurn++;
         System.out.println("Turn: " + turn);
     }
 

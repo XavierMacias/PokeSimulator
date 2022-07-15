@@ -1,15 +1,25 @@
 package PokeData;
 
+import org.checkerframework.checker.units.qual.A;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Team {
     private ArrayList<Pokemon> pokemonTeam;
+    public List<Integer> effectTeamMoves;
     private Scanner in;
 
     public Team() {
         in = new Scanner(System.in);
         pokemonTeam = new ArrayList<Pokemon>();
+        effectTeamMoves = new ArrayList<Integer>();
+        // mist,
+        for(int i=0;i<5;i++) {
+            effectTeamMoves.add(0);
+        }
     }
 
     public ArrayList<Pokemon> getPokemonTeam() {
@@ -19,6 +29,7 @@ public class Team {
     public void obtainPokemon(Pokemon pkm) {
         // TODO: Check if there are more than 6 pokemon in the team
         pokemonTeam.add(pkm);
+        pkm.setTeam(this);
         System.out.println("You received a "+pkm.specie.name+"!");
         giveNickname(pkm);
     }
@@ -59,7 +70,28 @@ public class Team {
         }
     }
 
+    public ArrayList<Pokemon> getBeatUpTeam(Pokemon attacker) {
+        ArrayList<Pokemon> beatUp = new ArrayList<Pokemon>();
+        beatUp.add(attacker);
+        for(int i=0;i<pokemonTeam.size();i++) {
+            Pokemon pk = pokemonTeam.get(i);
+            if(pk != attacker && pk.hasStatus(Status.FINE)) {
+                beatUp.add(pk);
+            }
+        }
+        return beatUp;
+    }
+
+    public void increaseEffectMove(int index) {
+        effectTeamMoves.set(index,effectTeamMoves.get(index)+1);
+    }
+
     public void battleEnded() {
+        // recover move effects
+        for(int i=0;i<effectTeamMoves.size();i++) {
+            effectTeamMoves.set(i,0);
+        }
+        // reset pokemon
         for(int i=0;i<pokemonTeam.size();i++) {
             pokemonTeam.get(i).battleEnded();
         }
@@ -71,6 +103,7 @@ public class Team {
 
     public void addPokemon(Pokemon pkm) {
         pokemonTeam.add(pkm);
+        pkm.setTeam(this);
     }
 
     public Pokemon getFirstAlivePokemon() {

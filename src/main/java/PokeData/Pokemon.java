@@ -49,8 +49,16 @@ public class Pokemon {
     List<TemporalStatus> tempStatus;
     public int criticalIndex = 0;
     boolean participate;
+    private Team team;
+    // variables for status and moves
+    public int pokeTurn = 0;
     public int sleepTurns = 0;
     public int badPoisonTurns = 0;
+    public int protectTurns = 0;
+    public Movement previousMove;
+    public Movement lastMoveInThisTurn;
+    public int previousDamage;
+    public List<Integer> effectMoves;
     private Scanner in;
 
     public Pokemon(Specie specie, int level, Utils utils) {
@@ -112,6 +120,12 @@ public class Pokemon {
         if(utils.getRandomNumberBetween(1,4097) == 1) {
             isShiny = true;
         }
+
+        effectMoves = new ArrayList<Integer>();
+        // ingrain, encore, protect, two turn attack, fire spin
+        for(int i=0;i<5;i++) {
+            effectMoves.add(0);
+        }
         // alternative forms
         form = 0;
         participate = false;
@@ -131,6 +145,9 @@ public class Pokemon {
     }
     public Specie getSpecie() { return specie; }
     public Ability getAbility() { return ability; }
+
+    public Team getTeam() { return team; }
+    public void setTeam(Team t) { team = t; }
 
     public List<Integer> getRemainPPs() {
         return remainPPs;
@@ -175,6 +192,10 @@ public class Pokemon {
 
     public int getPsActuales() {
         return psActuales;
+    }
+
+    public double getPercentHP() {
+        return ((double) (psActuales/getHP())*100.0);
     }
 
     private int totalEvs() {
@@ -288,8 +309,19 @@ public class Pokemon {
         }
     }
 
+    public void recover1PP(Movement move) {
+        int ind = getIndexMove(move.getInternalName());
+        if(ind != -1) {
+            remainPPs.set(ind,remainPPs.get(ind)+1);
+        }
+    }
+
     public void reduceHP(int damage) {
+        if(damage > psActuales) {
+            damage = psActuales;
+        }
         psActuales -= damage;
+
         System.out.println(nickname + " lost " + damage + " HP!");
         if(psActuales <= 0) {
             psActuales = 0;
@@ -351,7 +383,7 @@ public class Pokemon {
         ability = utils.getAbility(newAbility);
     }
 
-    public boolean changeStat(int stat, int quantity) {
+    public boolean changeStat(int stat, int quantity, boolean selfCaused) {
         String st = "";
         String raise = "";
         switch (stat) {
@@ -369,7 +401,7 @@ public class Pokemon {
             raise = "raised a lot";
         } else if(quantity > 2 && quantity < 6) {
             raise = "raised incredibly";
-        } else if(quantity == 6) {
+        } else if(quantity >= 6) {
             raise = "maximized";
         } else if(quantity == -1) {
             raise = "decreased";
@@ -377,8 +409,12 @@ public class Pokemon {
             raise = "decreased a lot";
         } else if(quantity < -2 && quantity > -6) {
             raise = "decreased incredibly";
-        } else if(quantity == -6) {
+        } else if(quantity <= -6) {
             raise = "minimized";
+        }
+
+        if(team.effectTeamMoves.get(0) > 0 && quantity < 0 && !selfCaused) { // MIST effect
+            return false;
         }
 
         if(statChanges.get(stat) == -6 && quantity < 0) {
@@ -505,7 +541,7 @@ public class Pokemon {
 
     public void gainExperience(Pokemon rival, int participants, boolean isTrainer) {
         if(participate && !isFainted()) {
-            double base = rival.specie.experience*rival.level/participants/5;
+            double base = rival.specie.experience*rival.level/participants/5.0;
             double a = Math.pow((2*rival.level+10),(5/2));
             double b = Math.pow((level+rival.level+10),(5/2));
             double bonus = 1.0;
@@ -642,7 +678,18 @@ public class Pokemon {
         if(hasStatus(Status.BADLYPOISONED)) {
             badPoisonTurns = 1;
         }
+        previousMove = null;
+        lastMoveInThisTurn = null;
+        previousDamage = 0;
 
+        protectTurns = 0;
+        pokeTurn = 0;
+        // recover move effects
+        for(int i=0;i<effectMoves.size();i++) {
+            effectMoves.set(i,0);
+        }
+
+        // restore stat changes
         for(int i=0;i<statChanges.size();i++) {
             statChanges.set(i,0);
         }
@@ -656,6 +703,16 @@ public class Pokemon {
             sleepTurns = 1;
         }
         participate = false;
+    }
+
+    public void rapidSpin() {
+        if(hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED)) {
+            healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
+            System.out.println(nickname + " was freed!");
+            effectMoves.set(4, 0); // fire spin
+            //TODO: rest of partially trapped moves
+        }
+        //TODO: toxic spikes, spikes, stealth rock, etc...
     }
 
     public double getStatChange(int i) {
