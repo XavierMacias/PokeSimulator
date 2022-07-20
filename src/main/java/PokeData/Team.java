@@ -16,7 +16,7 @@ public class Team {
         in = new Scanner(System.in);
         pokemonTeam = new ArrayList<Pokemon>();
         effectTeamMoves = new ArrayList<Integer>();
-        // mist,
+        // mist, safeguard, tailwind
         for(int i=0;i<5;i++) {
             effectTeamMoves.add(0);
         }

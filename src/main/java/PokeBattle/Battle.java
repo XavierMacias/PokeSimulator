@@ -5,6 +5,7 @@ import PokeData.*;
 import javax.swing.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -18,6 +19,7 @@ public class Battle {
     Random random;
     int battleResult;
     MoveEffects moveEffects;
+    public List<Integer> effectFieldMoves;
 
     public Battle() {
         random = new Random();
@@ -27,6 +29,12 @@ public class Battle {
         secondMove = null;
         in = new Scanner(System.in);
         moveEffects = new MoveEffects(this);
+
+        effectFieldMoves = new ArrayList<Integer>();
+        // mud sport,
+        for(int i=0;i<5;i++) {
+            effectFieldMoves.add(0);
+        }
     }
 
     public void WildSingleBattle(Team team1, Team team2) {
@@ -89,6 +97,7 @@ public class Battle {
                 if(checkFaint() != 0) {
                     break;
                 }
+                fieldEffects();
                 turn++;
             }
             //System.out.println("Turn: " + turn);
@@ -195,8 +204,19 @@ public class Battle {
                 moveAccuracy = (int) (100.0/(Math.pow(2,attacker.protectTurns)));
             }
 
-            double a = (moveAccuracy / 100.0) * (attacker.getAccuracy() / defender.getEvasion());
+            double accuracy = attacker.getAccuracy();
+            double evasion = defender.getEvasion();
+            // changes in attacker accuracy
 
+            //changes in defender evasion
+
+            // fore sight
+            if(defender.effectMoves.get(5) > 0) {
+                accuracy = 1.0;
+                evasion = 1.0;
+            }
+
+            double a = (moveAccuracy / 100.0) * (accuracy / evasion);
             // calculate precision
             if (a >= Math.random() || moveAccuracy == 0) {
                 // rival is protecting
@@ -212,6 +232,19 @@ public class Battle {
                     if(attackerMove.getCode() == 31) {
                         beatUp = attacker.getTeam().getBeatUpTeam(attacker);
                         hits = beatUp.size();
+                    } else if(attackerMove.getCode() == 65) { // twin needle
+                        hits = 2;
+                    } else if(attackerMove.getCode() == 66) { // fury attack, pin missile
+                        double prob = Math.random();
+                        if(0.125 >= prob) {
+                            hits = 5;
+                        } else if(0.25 >= prob) {
+                            hits = 4;
+                        } else if(0.625 >= prob) {
+                            hits = 3;
+                        } else {
+                            hits = 2;
+                        }
                     }
 
                     for(int i=0;i<hits;i++) {
@@ -353,6 +386,11 @@ public class Battle {
             power = changePower;
         }
 
+        // power change for external reasons
+        if(effectFieldMoves.get(0) > 0 && move.type.getInternalName().equals("ELECTRIC")) { // mud sport
+            power *= 0.667;
+        }
+
         // STAB
         if(attacker.hasType(move.type.getInternalName())) {
             stab = 1.5;
@@ -409,6 +447,15 @@ public class Battle {
                 p = 200;
             }
         }
+        if(move.getCode() == 54) { // water spout
+            p = move.getPower()*(attacker.getPsActuales()/attacker.getHP());
+            if(p >= 0.0 && p < 1.0) {
+                p = 1;
+            }
+        }
+        if(move.getCode() == 55 && defender.getPercentHP() <= 50.0) { // brine
+            p = move.getPower()*2;
+        }
 
         return p;
     }
@@ -443,7 +490,14 @@ public class Battle {
             } else if(defender.getSpecie().type1.resistances.contains(move.type.getInternalName())) {
                 effectiveness *= 0.5;
             } else if(defender.getSpecie().type1.immunities.contains(move.type.getInternalName())) {
-                effectiveness *= 0.0;
+                // changes in effectiveness
+                if(defender.effectMoves.get(5) > 0 && defender.hasType("GHOST") && // foresight
+                        (move.type.getInternalName().equals("NORMAL") || move.type.getInternalName().equals("FIGHTING"))) {
+                    effectiveness *= 1.0;
+                } else {
+                    effectiveness *= 0.0;
+                }
+
             }
         }
         if(defender.getSpecie().type2 != null) {
@@ -452,7 +506,13 @@ public class Battle {
             } else if(defender.getSpecie().type2.resistances.contains(move.type.getInternalName())) {
                 effectiveness *= 0.5;
             } else if(defender.getSpecie().type2.immunities.contains(move.type.getInternalName())) {
-                effectiveness *= 0.0;
+                // changes in effectiveness
+                if(defender.effectMoves.get(5) > 0 && defender.hasType("GHOST") && // foresight
+                        (move.type.getInternalName().equals("NORMAL") || move.type.getInternalName().equals("FIGHTING"))) {
+                    effectiveness *= 1.0;
+                } else {
+                    effectiveness *= 0.0;
+                }
             }
         }
 
@@ -512,17 +572,47 @@ public class Battle {
             System.out.println(target.nickname + " obtains energy from roots!");
             target.healHP(target.getHP()/16, true, true);
         }
+        // aqua ring
+        if(!target.hasAllHP() && target.effectMoves.get(7) == 1 && !target.isFainted()) {
+            System.out.println(target.nickname + " recover HP by Aqua Ring!");
+            target.healHP(target.getHP()/16, true, true);
+        }
 
         // remove endure, protect, detect...
         target.effectMoves.set(1, 0); // endure
         target.effectMoves.set(2, 0); // protect
 
+        // count and remove individual effects
+        if(target.effectMoves.get(6) > 0) { // yawn
+            target.increaseEffectMove(6); // increase turn
+            if(target.effectMoves.get(6) > 2) {
+                if(moveEffects.canSleep(target,other,true)) {
+                    target.causeStatus(Status.ASLEEP);
+                }
+                target.effectMoves.set(6, 0);
+            }
+        }
+
         // count and remove team effects
         if(target.getTeam().effectTeamMoves.get(0) > 0) { // mist
             target.getTeam().increaseEffectMove(0); // increase turn
-            if(target.getTeam().effectTeamMoves.get(0) == 5) {
+            if(target.getTeam().effectTeamMoves.get(0) > 5) {
                 target.getTeam().effectTeamMoves.set(0, 0);
                 System.out.println("The mist of " + target.nickname + "'s team is gone!");
+            }
+        }
+        if(target.getTeam().effectTeamMoves.get(1) > 0) { // safeguard
+            target.getTeam().increaseEffectMove(1); // increase turn
+            if(target.getTeam().effectTeamMoves.get(1) > 5) {
+                target.getTeam().effectTeamMoves.set(1, 0);
+                System.out.println("The Safeguard of " + target.nickname + "'s team is gone!");
+            }
+        }
+        if(target.getTeam().effectTeamMoves.get(2) > 0) { // tailwind
+            target.getTeam().increaseEffectMove(2); // increase turn
+            if(target.getTeam().effectTeamMoves.get(2) > 4) {
+                target.getTeam().effectTeamMoves.set(2, 0);
+                System.out.println("The Tail Wind of " + target.nickname + "'s team has gone!");
             }
         }
 
@@ -538,7 +628,26 @@ public class Battle {
         System.out.println("Turn: " + turn);
     }
 
+    private void increaseEffectMove(int index) {
+        effectFieldMoves.set(index,effectFieldMoves.get(index)+1);
+    }
+
+    private void fieldEffects() {
+        // count and remove battle effects
+        if(effectFieldMoves.get(0) > 0) { // mud sport
+            increaseEffectMove(0); // increase turn
+            if(effectFieldMoves.get(0) > 5) {
+                effectFieldMoves.set(0, 0);
+            }
+        }
+    }
+
     private void endBattle(Pokemon rival, boolean trainer) {
+        // remove field effects
+        for(int i=0;i<effectFieldMoves.size();i++) {
+            effectFieldMoves.set(i,0);
+        }
+
         if(battleResult == 1) {
             // get experience
             userTeam.gainTeamExperience(rival,trainer);

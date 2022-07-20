@@ -122,8 +122,8 @@ public class Pokemon {
         }
 
         effectMoves = new ArrayList<Integer>();
-        // ingrain, encore, protect, two turn attack, fire spin
-        for(int i=0;i<5;i++) {
+        // ingrain, encore, protect, two turn attack, fire spin, foresight, yawn, aqua ring
+        for(int i=0;i<8;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -145,6 +145,7 @@ public class Pokemon {
     }
     public Specie getSpecie() { return specie; }
     public Ability getAbility() { return ability; }
+    public int getGender() { return gender; }
 
     public Team getTeam() { return team; }
     public void setTeam(Team t) { team = t; }
@@ -154,12 +155,18 @@ public class Pokemon {
     }
 
     public List<Integer> getStats() { return stats; }
+    public List<Integer> getStatChanges() { return statChanges; }
 
     public int getAttack(boolean critic) {
-        if (critic && getStatChange(0) < 1.0) {
-            return stats.get(1);
+        int attack = stats.get(1);
+        if (!(critic && getStatChange(0) < 1.0)) {
+            attack = (int) (stats.get(1) * getStatChange(0));
         }
-        return (int) (stats.get(1) * getStatChange(0));
+        if(hasStatus(Status.BURNED)) {
+            attack /= 2.0;
+        }
+
+        return attack;
     }
 
     public int getDefense(boolean critic) {
@@ -180,11 +187,23 @@ public class Pokemon {
         }
         return (int) (stats.get(4)*getStatChange(3));
     }
-    public int getVelocity() { return (int) (stats.get(5)*getStatChange(4)); }
+    public int getVelocity() {
+        int speed = (int) (stats.get(5)*getStatChange(4));
+        if(hasStatus(Status.PARALYZED)) {
+            speed /= 2.0;
+        }
+        if(team.effectTeamMoves.get(2) > 0) { // tailwind
+            speed *= 2.0;
+        }
+        return speed;
+    }
     public int getHP() { return stats.get(0); }
 
-    public double getAccuracy() { return getStatChange(5); }
-    public double getEvasion() { return getStatChange(6); }
+    public double getAccuracy() {
+        return getStatChange(5);
+    }
+    public double getEvasion() {
+        return getStatChange(6); }
 
     public int getLevel() {
         return level;
@@ -537,6 +556,10 @@ public class Pokemon {
                 happiness = 255;
             }
         }
+    }
+
+    public void increaseEffectMove(int index) {
+        effectMoves.set(index,effectMoves.get(index)+1);
     }
 
     public void gainExperience(Pokemon rival, int participants, boolean isTrainer) {

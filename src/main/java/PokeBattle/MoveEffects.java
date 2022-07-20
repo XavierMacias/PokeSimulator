@@ -12,7 +12,7 @@ public class MoveEffects {
         this.battle = battle;
     }
 
-    private boolean canPoison(Pokemon target, Pokemon other) {
+    private boolean canPoison(Pokemon target, Pokemon other, boolean selfCaused) {
         //TODO: conditions for poison
         if(target.hasType("POISON") || target.hasType("STEEL")) {
             return false;
@@ -20,10 +20,13 @@ public class MoveEffects {
         if(!target.getStatus().equals(Status.FINE)) {
             return false;
         }
+        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
         return true;
     }
 
-    private boolean canBurn(Pokemon target, Pokemon other) {
+    private boolean canBurn(Pokemon target, Pokemon other, boolean selfCaused) {
         //TODO: conditions for burn
         if(target.hasType("FIRE")) {
             return false;
@@ -31,10 +34,13 @@ public class MoveEffects {
         if(!target.getStatus().equals(Status.FINE)) {
             return false;
         }
+        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
         return true;
     }
 
-    private boolean canParalyze(Pokemon target, Pokemon other) {
+    private boolean canParalyze(Pokemon target, Pokemon other, boolean selfCaused) {
         //TODO: conditions for paralyze
         if(target.hasType("ELECTRIC")) {
             return false;
@@ -45,23 +51,46 @@ public class MoveEffects {
         if(!target.getStatus().equals(Status.FINE)) {
             return false;
         }
-        return true;
-    }
-
-    private boolean canSleep(Pokemon target, Pokemon other) {
-        //TODO: conditions for sleep
-        if(!target.getStatus().equals(Status.FINE)) {
+        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
             return false;
         }
         return true;
     }
 
-    private boolean canConfuse(Pokemon target, Pokemon other) {
+    public boolean canSleep(Pokemon target, Pokemon other, boolean selfCaused) {
+        //TODO: conditions for sleep
+        if(!target.getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canFreeze(Pokemon target, Pokemon other, boolean selfCaused) {
+        //TODO: conditions for freeze
+        if(target.hasType("ICE")) {
+            return false;
+        }
+        if(!target.getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    private boolean canConfuse(Pokemon target, Pokemon other, boolean selfCaused) {
         //TODO: conditions for confusion
         if(target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
             return false;
         }
         if(target.getAbility().getInternalName().equals("OWNTEMPO")) {
+            return false;
+        }
+        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
             return false;
         }
         return true;
@@ -84,6 +113,20 @@ public class MoveEffects {
         return true;
     }
 
+    private boolean canDrows(Pokemon target, Pokemon other) {
+        //TODO: conditions for drowsy
+        if(target.effectMoves.get(6) > 0) {
+            return false;
+        }
+        if(!target.getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(target.getTeam().effectTeamMoves.get(1) > 0) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
     public boolean moveEffects(Movement move, Pokemon attacker, Pokemon defender, Movement defenderMove, int damage) {
         int effect = move.getCode();
         if(effect == 1 && !defender.isFainted()) {
@@ -98,9 +141,9 @@ public class MoveEffects {
                 return false;
             }
         }
-        else if(effect == 3 && !defender.isFainted()) {
+        else if((effect == 3 || effect == 65) && !defender.isFainted()) {
             // poisons the target - POISON STING, SLUDGE BOMB, POISON POWDER
-            if(canPoison(defender, attacker)) {
+            if(canPoison(defender, attacker, false)) {
                 defender.causeStatus(Status.POISONED);
             } else {
                 return false;
@@ -108,7 +151,7 @@ public class MoveEffects {
         }
         else if(effect == 4 && !defender.isFainted()) {
             // sleeps the target - SLEEP POWDER, HYPNOSIS
-            if(canSleep(defender, attacker)) {
+            if(canSleep(defender, attacker, false)) {
                 defender.causeStatus(Status.ASLEEP);
             } else {
                 return false;
@@ -131,7 +174,7 @@ public class MoveEffects {
         else if(effect == 8) {
             // more recoil damage - DOUBLE EDGE, BRAVE BIRD, FLARE BLITZ
             attacker.reduceHP(damage/3);
-            if(0.1 >= Math.random() && canBurn(defender, attacker) && move.getInternalName().equals("FLAREBLITZ")) {
+            if(0.1 >= Math.random() && canBurn(defender, attacker, false) && move.getInternalName().equals("FLAREBLITZ")) {
                 defender.causeStatus(Status.BURNED);
             }
         }
@@ -237,7 +280,7 @@ public class MoveEffects {
         }
         else if(effect == 21) {
             // burns the target - EMBER, FLAME WHEEL, FLAMETHROWER...
-            if(canBurn(defender, attacker)) {
+            if(canBurn(defender, attacker, false)) {
                 defender.causeStatus(Status.BURNED);
             } else {
                 return false;
@@ -289,7 +332,7 @@ public class MoveEffects {
             attacker.changeStat(4, 1, true);
         } else if(effect == 30 && !defender.isFainted()) {
             // burns or flinches the target - FIRE FANG
-            if (canBurn(defender, attacker) && Math.random() <= 0.1) {
+            if (canBurn(defender, attacker, false) && Math.random() <= 0.1) {
                 defender.causeStatus(Status.BURNED);
             }
             if (canFlinch(defender, attacker) && Math.random() <= 0.1) {
@@ -314,7 +357,7 @@ public class MoveEffects {
             }
         } else if(effect == 36) {
             // paralyzes the target - STUN SPORE, THUNDERBOLT, THUNDER
-            if(canParalyze(defender, attacker)) {
+            if(canParalyze(defender, attacker, false)) {
                 defender.causeStatus(Status.PARALYZED);
             } else {
                 return false;
@@ -338,7 +381,7 @@ public class MoveEffects {
             System.out.println(attacker.nickname + " is protecting itself!");
         } else if(effect == 42 && !defender.isFainted()) {
             // confuse target - SUPERSONIC, CONFUSION, CONFUSE RAY, SIGNAL BEAM, WATER PULSE...
-            if (canConfuse(defender, attacker)) {
+            if (canConfuse(defender, attacker, false)) {
                 defender.causeTemporalStatus(TemporalStatus.CONFUSED);
             } else {
                 return false;
@@ -364,6 +407,91 @@ public class MoveEffects {
             } else {
                 return false;
             }
+        } else if(effect == 48) {
+            // restore all stat changes to 0 - HAZE
+            attacker.getStatChanges().replaceAll(ignored -> 0);
+            System.out.println("The stat changes were removed!");
+        } else if(effect == 49) {
+            // ignores enemy's evasion and user's accuracy and Ghost type can be damaged by Normal/Fighting moves - FORE SIGHT
+            if (defender.effectMoves.get(5) == 0) {
+                defender.effectMoves.set(5, 1);
+                System.out.println(defender.nickname + " was identified!");
+            } else {
+                return false;
+            }
+        }
+        if(effect == 50) {
+            // heal user from poison, paralysis or burn - REFRESH
+            if (attacker.hasStatus(Status.POISONED) || attacker.hasStatus(Status.BADLYPOISONED) || attacker.hasStatus(Status.PARALYZED)
+                    || attacker.hasStatus(Status.BURNED)) {
+                attacker.healPermanentStatus();
+            } else {
+                return false;
+            }
+        } else if(effect == 51) {
+            // numb the target, and it will sleep in the next turn - YAWN
+            if (canDrows(defender,attacker)) {
+                defender.effectMoves.set(6, 1);
+                System.out.println(defender.nickname + " is drowsy!");
+            } else {
+                return false;
+            }
+        } else if(effect == 52) {
+            // reduces the electric moves power - MUD SPORT
+            battle.effectFieldMoves.set(0, 1);
+            System.out.println("The power of Electric moves are reduced!");
+        } else if(effect == 53) {
+            // recover HP in every turn - AQUA RING
+            if (attacker.effectMoves.get(7) == 0) {
+                attacker.effectMoves.set(7, 1);
+                System.out.println(attacker.nickname + " was involved in an aqua ring!");
+            } else {
+                return false;
+            }
+        } else if(effect == 56 && !defender.isFainted()) {
+            // decreases the Special Defense of target - FLASH CANNON, BUG BUZZ
+            defender.changeStat(3,-1, false);
+        } else if(effect == 57) {
+            // steals the equipped berry of target - BUG BITE, PLUCK
+            //TODO: bug bite effect
+        } else if(effect == 58) {
+            // prevents status problems for all team - SAFEGUARD
+            if(attacker.getTeam().effectTeamMoves.get(1) == 0) {
+                attacker.getTeam().effectTeamMoves.set(1, 1);
+                System.out.println(attacker.nickname + "'s team is protected by Safeguard!");
+            } else {
+                return false;
+            }
+        } else if(effect == 59) {
+            // makes the target flee - WHIRL WIND, ROAR
+            //TODO: whirl wind effect
+        } else if(effect == 60) {
+            // makes the user the center of attention meanwhile this turn - RAGE POWDER
+            //TODO: rage powder effect
+        } else if(effect == 61 && !defender.isFainted()) {
+            // decreases target special attack if is opposite sex - CAPTIVATE
+            if((attacker.getGender() != defender.getGender()) && (attacker.getGender() != 2 && defender.getGender() != 2) &&
+            !defender.getAbility().getInternalName().equals("OBLIVIOUS")) {
+                defender.changeStat(2,-2, false);
+            } else {
+                return false;
+            }
+        } else if(effect == 62) {
+            // duplicates all team speed meanwhile 4 turns - TAIL WIND
+            if(attacker.getTeam().effectTeamMoves.get(2) == 0) {
+                attacker.getTeam().effectTeamMoves.set(2, 1);
+                System.out.println(attacker.nickname + "'s team has Tail Wind blowing on their favour!");
+            } else {
+                return false;
+            }
+        } else if(effect == 63) {
+            // increase user special attack, special defense and speed - QUIVER DANCE
+            attacker.changeStat(2,1, true);
+            attacker.changeStat(3,1, true);
+            attacker.changeStat(4,1, true);
+        } else if(effect == 64 && defender.isFainted()) {
+            // increase a lot the user attack if it faints opponent - FELL STINGER
+            attacker.changeStat(0,3, true);
         } else if(effect == 86) {
             // increase a lot of user attack - SWORDS DANCE
             attacker.changeStat(0,2, true);
