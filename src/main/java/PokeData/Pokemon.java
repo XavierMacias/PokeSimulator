@@ -43,6 +43,8 @@ public class Pokemon {
     Natures[] natureList = Natures.values();
     private List<Pair<Movement,Integer>> moves;
     private List<Integer> remainPPs;
+    public List<Boolean> usedMoves;
+    public Type battleType1, battleType2;
     Ability ability, originalAbility;
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
     Status status;
@@ -57,6 +59,7 @@ public class Pokemon {
     public int protectTurns = 0;
     public Movement previousMove;
     public Movement lastMoveInThisTurn;
+    public Movement lastMoveReceived;
     public int previousDamage;
     public List<Integer> effectMoves;
     private Scanner in;
@@ -75,6 +78,9 @@ public class Pokemon {
             ability = specie.ability2;
         }
         originalAbility = ability;
+        battleType1 = specie.type1;
+        battleType2 = specie.type2;
+
         // gender
         gender = 1; // female
         if((int)(Math.random() * 100) < specie.genderrate) {
@@ -115,6 +121,7 @@ public class Pokemon {
         // set initial moves
         moves = new ArrayList<Pair<Movement,Integer>>();
         remainPPs = new ArrayList<Integer>();
+        usedMoves = new ArrayList<Boolean>();
         setMoves(false, false);
         //is shiny?
         if(utils.getRandomNumberBetween(1,4097) == 1) {
@@ -122,8 +129,8 @@ public class Pokemon {
         }
 
         effectMoves = new ArrayList<Integer>();
-        // ingrain, encore, protect, two turn attack, fire spin, foresight, yawn, aqua ring
-        for(int i=0;i<8;i++) {
+        // ingrain, encore, protect, two turn attack, fire spin, foresight, yawn, aqua ring, rage, assurance, roost
+        for(int i=0;i<11;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -134,6 +141,7 @@ public class Pokemon {
     public void setMove(String m) { // ONLY FOR DEBUG
         moves.set(0,new Pair<>(utils.getMove(m),utils.getMove(m).getPP()));
         remainPPs.set(0,utils.getMove(m).getPP());
+        usedMoves.set(0,false);
     }
 
     public void setParticipate(boolean participate) {
@@ -142,6 +150,17 @@ public class Pokemon {
 
     public List<Pair<Movement, Integer>> getMoves() {
         return moves;
+    }
+
+    public List<Pair<Movement, Integer>> getMovesWithPP() {
+        List<Pair<Movement,Integer>> m = new ArrayList<Pair<Movement,Integer>>();
+
+        for(int i=0;i<moves.size();i++) {
+            if(hasPPByIndex(i) > 0) {
+                m.add(moves.get(i));
+            }
+        }
+        return m;
     }
     public Specie getSpecie() { return specie; }
     public Ability getAbility() { return ability; }
@@ -226,14 +245,14 @@ public class Pokemon {
     }
 
     public boolean hasType(String type) {
-        if(specie.type1 != null) {
-            if(specie.type1.getInternalName().equals(type)) {
+        if(battleType1 != null) {
+            if(battleType1.getInternalName().equals(type)) {
                 return true;
             }
         }
 
-        if(specie.type2 != null) {
-            if(specie.type2.getInternalName().equals(type)) {
+        if(battleType2 != null) {
+            if(battleType2.getInternalName().equals(type)) {
                 return true;
             }
         }
@@ -273,6 +292,7 @@ public class Pokemon {
                             // add move
                             moves.add(new Pair<>(mv,mv.getPP()));
                             remainPPs.add(mv.getPP());
+                            usedMoves.add(false);
                             if(learn || evol) System.out.println(nickname + " learned " + mv.name + "!");
                         } else {
                             // delete move
@@ -282,6 +302,7 @@ public class Pokemon {
                                 if(rand < 4) {
                                     moves.set(rand, new Pair<>(mv, mv.getPP()));
                                     remainPPs.set(rand, mv.getPP());
+                                    usedMoves.set(rand, false);
                                 }
                             } else {
                                 // if not, is decided by the player
@@ -304,6 +325,7 @@ public class Pokemon {
                                         System.out.println("1, 2, 3... and... Poof!\n" + nickname +" forgot " + moves.get(chosenIndex-1).getMove().name + "!");
                                         moves.set(chosenIndex-1, new Pair<>(mv, mv.getPP()));
                                         remainPPs.set(chosenIndex-1, mv.getPP());
+                                        usedMoves.set(chosenIndex-1, false);
                                         System.out.println("And...\n" + nickname +" learned " + moves.get(chosenIndex-1).getMove().name + "!");
                                     }
                                 } else {
@@ -328,6 +350,13 @@ public class Pokemon {
         }
     }
 
+    public void moveUsedAdded(Movement move) {
+        int ind = getIndexMove(move.getInternalName());
+        if(ind != -1) {
+            usedMoves.set(ind,true);
+        }
+    }
+
     public void recover1PP(Movement move) {
         int ind = getIndexMove(move.getInternalName());
         if(ind != -1) {
@@ -336,11 +365,11 @@ public class Pokemon {
     }
 
     public void reduceHP(int damage) {
-        if(damage > psActuales) {
+        if(damage > psActuales || damage == -1) { // -1 take all remain HP
             damage = psActuales;
         }
         psActuales -= damage;
-
+        effectMoves.set(9, 1);
         System.out.println(nickname + " lost " + damage + " HP!");
         if(psActuales <= 0) {
             psActuales = 0;
@@ -349,6 +378,10 @@ public class Pokemon {
             // decrease happiness
             modifyHappiness(-1);
         }
+    }
+
+    public void setHP(int hp) {
+        psActuales = hp;
     }
 
     public void causeStatus(Status st) {
@@ -402,7 +435,7 @@ public class Pokemon {
         ability = utils.getAbility(newAbility);
     }
 
-    public boolean changeStat(int stat, int quantity, boolean selfCaused) {
+    public boolean changeStat(int stat, int quantity, boolean selfCaused, boolean message) {
         String st = "";
         String raise = "";
         switch (stat) {
@@ -437,10 +470,10 @@ public class Pokemon {
         }
 
         if(statChanges.get(stat) == -6 && quantity < 0) {
-            System.out.println(st + " of " + nickname + " can't decrease more!");
+            if(message) { System.out.println(st + " of " + nickname + " can't decrease more!"); }
             return false;
         } else if(statChanges.get(stat) == 6 && quantity > 0) {
-            System.out.println(st + " of " + nickname + " can't increase more!");
+            if(message) { System.out.println(st + " of " + nickname + " can't increase more!"); }
             return false;
         }
 
@@ -522,6 +555,10 @@ public class Pokemon {
         status = Status.FINE;
         badPoisonTurns = 0;
         sleepTurns = 0;
+    }
+
+    public Type getType(String name) {
+        return utils.getType(name);
     }
 
     public void healTempStatus(TemporalStatus temp, boolean message) {
@@ -703,13 +740,20 @@ public class Pokemon {
         }
         previousMove = null;
         lastMoveInThisTurn = null;
+        lastMoveReceived = null;
         previousDamage = 0;
+
+        criticalIndex = 0;
 
         protectTurns = 0;
         pokeTurn = 0;
         // recover move effects
         for(int i=0;i<effectMoves.size();i++) {
             effectMoves.set(i,0);
+        }
+        // restore used moves
+        for(int i=0;i<usedMoves.size();i++) {
+            usedMoves.set(i,false);
         }
 
         // restore stat changes
@@ -718,6 +762,9 @@ public class Pokemon {
         }
         // restore ability
         ability = originalAbility;
+        // restore types
+        battleType1 = specie.type1;
+        battleType2 = specie.type2;
     }
 
     public void battleEnded() {
@@ -736,6 +783,41 @@ public class Pokemon {
             //TODO: rest of partially trapped moves
         }
         //TODO: toxic spikes, spikes, stealth rock, etc...
+    }
+
+    private boolean usedAllMoves() {
+        for(int i=0;i<usedMoves.size();i++) {
+            if(!usedMoves.get(i) && getIndexMove("LASTRESORT") != i) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean hasSomePPIsNotLastResort() {
+        for(int i=0;i<moves.size();i++) {
+            if(!moves.get(i).getMove().getInternalName().equals("LASTRESORT")) {
+                if(hasPPByIndex(i) > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean canUseLastResort() {
+        if(moves.size() == 1) {
+            return false;
+        }
+        if(!usedAllMoves()) {
+            return false;
+        }
+        if(!hasSomePPIsNotLastResort()) {
+            return false;
+        }
+
+        return true;
     }
 
     public double getStatChange(int i) {

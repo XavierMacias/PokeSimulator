@@ -123,7 +123,7 @@ RAGE,Furia,NORMAL,20,100,PHYSICAL,20,0,FOE,0,abcf,67,Aumenta el ataque cuando el
 PURSUIT,Persecución,DARK,40,100,PHYSICAL,20,0,FOE,0,abcf,68,Si el rival va a ser cambiado en ese turno hace el doble de daño
 FOCUSENERGY,Foco energía,NORMAL,0,0,STATUS,30,0,FOE,0,e,69,Aumenta el índice de golpe crítico
 VENOSHOCK,Cargatóxica,POISON,65,100,SPECIAL,10,0,FOE,0,bcf,70,Si el objetivo está envenenado causa el doble de daño
-ASSURANCE,Buena baza,DARK,60,100,PHYSICAL,10,0,FOE,0,abcf,71,Si el usuario recibe daño en ese turno hace el doble de daño
+ASSURANCE,Buena baza,DARK,60,100,PHYSICAL,10,0,FOE,0,abcf,71,Si el objetivo recibe daño en ese turno hace el doble de daño
 TOXICSPIKES,Púas tóxicas,POISON,0,0,STATUS,20,0,FOESIDE,0,d,72,Unas púas que envenenan a los rivales que entran al campo de batalla
 AGILITY,Agilidad,PSYCHIC,0,0,STATUS,30,0,USER,0,e,73,Aumenta mucho la velocidad del usuario
 ENDEAVOR,Esfuerzo,NORMAL,0,100,PHYSICAL,5,0,FOE,0,abcf,74,Iguala los PS del objetivo a los del usuario
