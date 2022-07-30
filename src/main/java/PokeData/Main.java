@@ -38,7 +38,7 @@ public class Main {
         player.getTeam().obtainPokemon(starter);
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("CHARMANDER"),13, utils));
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils));
-        //starter.setMove("LASTRESORT");
+        //starter.setMove("RAINDANCE");
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");

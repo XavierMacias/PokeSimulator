@@ -129,8 +129,23 @@ public class Pokemon {
         }
 
         effectMoves = new ArrayList<Integer>();
-        // ingrain, encore, protect, two turn attack, fire spin, foresight, yawn, aqua ring, rage, assurance, roost
-        for(int i=0;i<11;i++) {
+        /* 0 -> ingrain
+           1 -> encore
+           2 -> protect
+           3 -> two turn attack (solar beam, skull bash...)
+           4 -> fire spin, whirl pool...
+           5 -> foresight
+           6 -> yawn
+           7 -> aqua ring
+           8 -> rage
+           9 -> assurance
+           10 -> roost
+           11 -> petal dance, outrage...
+           12 -> whirlwind
+           13 -> uproar
+           14 -> focus punch
+        */
+        for(int i=0;i<15;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -773,6 +788,32 @@ public class Pokemon {
             sleepTurns = 1;
         }
         participate = false;
+    }
+
+    public boolean affectSandstorm() {
+        //TODO: safety googles return false
+        if(hasType("ROCK") || hasType("GROUND") || hasType("STEEL")) {
+            return false;
+        }
+        if(ability.getInternalName().equals("SANDVEIL") || ability.getInternalName().equals("MAGICGUARD")
+                || ability.getInternalName().equals("SANDFORCE") || ability.getInternalName().equals("OVERCOAT")
+                || ability.getInternalName().equals("SANDRUSH")) {
+            return false;
+        }
+        return true;
+    }
+
+
+    public boolean affectHail() {
+        //TODO: safety googles return false
+        if(hasType("ICE")) {
+            return false;
+        }
+        if(ability.getInternalName().equals("SNOWCLOAK") || ability.getInternalName().equals("MAGICGUARD")
+                || ability.getInternalName().equals("SLUSHRUSH") || ability.getInternalName().equals("OVERCOAT")) {
+            return false;
+        }
+        return true;
     }
 
     public void rapidSpin() {

@@ -59,7 +59,7 @@ public class MoveEffects {
 
     public boolean canSleep(Pokemon target, Pokemon other, boolean selfCaused) {
         //TODO: conditions for sleep
-        if(!target.getStatus().equals(Status.FINE)) {
+        if(!target.getStatus().equals(Status.FINE) || battle.effectFieldMoves.get(1) > 0) {
             return false;
         }
         if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
@@ -74,6 +74,9 @@ public class MoveEffects {
             return false;
         }
         if(!target.getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
             return false;
         }
         if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
@@ -167,9 +170,12 @@ public class MoveEffects {
         }
         else if(effect == 7) {
             // increases user attack and special attack - GROWTH
-            //TODO: weather increases more
-            attacker.changeStat(0,1, true, move.getAddEffect() == 0);
-            attacker.changeStat(2,1, true, move.getAddEffect() == 0);
+            int quantity = 1;
+            if(battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
+                quantity = 2;
+            }
+            attacker.changeStat(0,quantity, true, move.getAddEffect() == 0);
+            attacker.changeStat(2,quantity, true, move.getAddEffect() == 0);
         }
         else if(effect == 8) {
             // more recoil damage - DOUBLE EDGE, BRAVE BIRD, FLARE BLITZ
@@ -200,14 +206,23 @@ public class MoveEffects {
         }
         else if(effect == 10) {
             // recover HP depending on the weather - SYNTHESIS
-            //TODO: weather recovers more or less
-            return attacker.healHP(attacker.getHP()/4, true, true);
+            int quantity = attacker.getHP()/2;
+
+            if(battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
+                quantity = attacker.getHP()*2/3;
+            } else if(battle.weather.hasWeather(Weathers.RAIN) || battle.weather.hasWeather(Weathers.HEAVYRAIN) ||
+                    battle.weather.hasWeather(Weathers.HAIL) || battle.weather.hasWeather(Weathers.SANDSTORM) ||
+                    battle.weather.hasWeather(Weathers.FOG)) {
+                quantity = attacker.getHP()/4;
+            }
+
+            return attacker.healHP(quantity, true, true);
         }
         else if(effect == 11 && !attacker.isFainted()) {
             // first turn: load, second turn: attack - SKULL BASH, SOLAR BEAM
             //TODO: solar beam with weather and herb
             if(move.getInternalName().equals("SOLARBEAM")) {
-                if(attacker.effectMoves.get(3) == 0) {
+                if(attacker.effectMoves.get(3) == 0 && !battle.weather.hasWeather(Weathers.SUNLIGHT) && !battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
                     System.out.println(attacker.nickname + " is charging solar energy!");
                     attacker.recover1PP(move);
                     attacker.effectMoves.set(3,1);
@@ -276,7 +291,24 @@ public class MoveEffects {
         }
         else if(effect == 20) {
             // attack 2-3 turns and gets confuse - PETAL DANCE, OUTRAGE
-            //TODO: petal dance effect
+            if(attacker.effectMoves.get(11) == 0) {
+                attacker.effectMoves.set(11, 1);
+            } else if(attacker.effectMoves.get(11) == 1 && Math.random() < 0.5) {
+                attacker.effectMoves.set(11, 0);
+                attacker.recover1PP(move);
+                if(canConfuse(attacker,defender,true)) {
+                    attacker.causeTemporalStatus(TemporalStatus.CONFUSED);
+                }
+            } else if(attacker.effectMoves.get(11) == 2) {
+                attacker.effectMoves.set(11, 0);
+                attacker.recover1PP(move);
+                if(canConfuse(attacker,defender,true)) {
+                    attacker.causeTemporalStatus(TemporalStatus.CONFUSED);
+                }
+            } else {
+                attacker.effectMoves.set(11, 2);
+                attacker.recover1PP(move);
+            }
         }
         else if(effect == 21) {
             // burns the target - EMBER, FLAME WHEEL, FLAMETHROWER...
@@ -364,7 +396,7 @@ public class MoveEffects {
             }
         } else if(effect == 37) {
             // charges and in the end of turn attacks - FOCUS PUNCH
-            //TODO: focus punch
+            attacker.effectMoves.set(14, 0);
         } else if(effect == 38) {
             // increase user defense - WITHDRAW, HARDEN, STEEL WING...
             attacker.changeStat(1, 1, true, move.getAddEffect() == 0);
@@ -391,7 +423,8 @@ public class MoveEffects {
             attacker.changeStat(1,2, true, move.getAddEffect() == 0);
         } else if(effect == 44) {
             // starts to rain - RAIN DANCE
-            //TODO: rain dance
+            //TODO: check if attacker has roca lluvia
+            return battle.weather.changeWeather(Weathers.RAIN, false);
         } else if(effect == 46) {
             // returns the double of special damage - MIRROR COAT
             if(attacker.previousDamage > 0 && attacker.lastMoveInThisTurn.getCategory().equals(Category.SPECIAL) && defender.hasType("DARK")) {
@@ -464,7 +497,12 @@ public class MoveEffects {
             }
         } else if(effect == 59) {
             // makes the target flee - WHIRL WIND, ROAR
-            //TODO: whirl wind effect
+            if(defender.effectMoves.get(0) > 0 || defender.getAbility().getInternalName().equals("SUCTIONCUPS")) {
+                return false;
+            } else {
+                defender.effectMoves.set(12, 1);
+                System.out.println(defender.nickname + " was expelled of the combat field!");
+            }
         } else if(effect == 60) {
             // makes the user the center of attention meanwhile this turn - RAGE POWDER
             //TODO: rage powder effect
@@ -583,7 +621,20 @@ public class MoveEffects {
             }
         } else if(effect == 77) {
             // attack 3 turns, will wake up sleep Pokemon and prevent sleep - UPROAR
-            //TODO: uproar effect
+            if(attacker.effectMoves.get(13) == 0) {
+                if(!defender.isFainted()) System.out.println(attacker.nickname + " is making a Uproar!");
+                attacker.effectMoves.set(13, 1);
+                battle.effectFieldMoves.set(1, 1);
+            } else if(attacker.effectMoves.get(13) == 1) {
+                if(!defender.isFainted()) System.out.println(attacker.nickname + " is making a Uproar!");
+                attacker.effectMoves.set(13, 2);
+                attacker.recover1PP(move);
+            } else if(attacker.effectMoves.get(13) == 2) {
+                attacker.effectMoves.set(13, 0);
+                battle.effectFieldMoves.set(1, 0);
+                attacker.recover1PP(move);
+                System.out.println(attacker.nickname + " calmed down");
+            }
         } else if(effect == 78) {
             // decreases target evasion and wipe out field and team effects - DEFOG
             if (!defender.isFainted()) {
