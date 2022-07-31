@@ -36,7 +36,8 @@ public class Main {
         }
 
         player.getTeam().obtainPokemon(starter);
-        //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("CHARMANDER"),13, utils));
+        player.getTeam().addPokemon(new Pokemon(utils.getPokemon("RATTATA"),11, utils));
+        player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIDGEY"),11, utils));
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils));
         //starter.setMove("RAINDANCE");
 

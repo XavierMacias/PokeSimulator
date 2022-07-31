@@ -30,7 +30,7 @@ public class Team {
     }
 
     public void obtainPokemon(Pokemon pkm) {
-        // TODO: Check if there are more than 6 pokemon in the team
+        //TODO: Check if there are more than 6 pokemon in the team
         pokemonTeam.add(pkm);
         pkm.setTeam(this);
         System.out.println("You received a "+pkm.specie.name+"!");
@@ -45,6 +45,12 @@ public class Team {
             }
         }
         return total;
+    }
+
+    public void showTeam() {
+        for(int i=0;i<pokemonTeam.size();i++) {
+            System.out.println((i+1) + ": " + pokemonTeam.get(i).nickname + " - " + pokemonTeam.get(i).status.toString());
+        }
     }
 
     public boolean isTeamDefeated() {

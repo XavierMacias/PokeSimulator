@@ -144,8 +144,9 @@ public class Pokemon {
            12 -> whirlwind
            13 -> uproar
            14 -> focus punch
+           15 -> pursuit
         */
-        for(int i=0;i<15;i++) {
+        for(int i=0;i<16;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -802,7 +803,6 @@ public class Pokemon {
         }
         return true;
     }
-
 
     public boolean affectHail() {
         //TODO: safety googles return false

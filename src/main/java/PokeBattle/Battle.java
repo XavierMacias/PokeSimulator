@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 public class Battle {
     Team userTeam, rivalTeam;
-    Pokemon firstAttacker, secondAttacker;
+    Pokemon user, rival, firstAttacker, secondAttacker;
     Movement firstMove, secondMove;
     private boolean endBattle;
     public int turn, c;
@@ -48,10 +48,10 @@ public class Battle {
         endBattle = false;
         userTeam = team1;
         rivalTeam = team2;
-        Pokemon rival = team2.getFirstAlivePokemon();
+        rival = team2.getFirstAlivePokemon();
 
         System.out.println("A wild "+rival.nickname +"!");
-        Pokemon user = team1.getFirstAlivePokemon();
+        user = team1.getFirstAlivePokemon();
         user.setParticipate(true);
         System.out.println("Go, "+user.nickname +"!");
 
@@ -77,25 +77,26 @@ public class Battle {
             switch (battleChoose) {
                 case "1":
                     // fight
-                    decision = fight(user,rival);
+                    decision = fight();
                     break;
                 case "2":
                     // bag
                     break;
                 case "3":
                     // pokemon
+                    decision = changePokemon(false);
                     break;
                 case "4":
                     // run
-                    decision = run(user,rival);
+                    decision = run();
                     if(decision) {
                         endBattle = true;
                     } else {
                         // rival attacks you
                         firstAttacker = user;
                         secondAttacker = rival;
-                        firstMove = null;
-                        secondMove = chooseRivalMove(rival);
+                        firstMove = user.utils.getMove("STRUGGLE");
+                        secondMove = chooseRivalMove();
                         useMove(secondAttacker,firstAttacker,secondMove,firstMove, true, false);
                     }
                     break;
@@ -120,10 +121,10 @@ public class Battle {
             //endBattle = true;
         } while(!endBattle);
 
-        endBattle(rival, false);
+        endBattle(false);
     }
 
-    private boolean run(Pokemon user, Pokemon rival) {
+    private boolean run() {
         c++;
         int a = user.getVelocity();
         int b = rival.getVelocity();
@@ -140,17 +141,85 @@ public class Battle {
         return false;
     }
 
-    private boolean fight(Pokemon user, Pokemon rival) {
+    private boolean changePokemon(boolean fainted) {
+        int chosenIndex = -1;
+        do {
+            if(fainted) {
+                System.out.println("0: Run");
+            } else {
+                System.out.println("0: Exit");
+            }
+            userTeam.showTeam();
+            chosenIndex = Integer.parseInt(in.nextLine());
+            if(chosenIndex != 0) {
+                if(userTeam.getPokemon(chosenIndex-1).isFainted()) {
+                    System.out.println(userTeam.getPokemon(chosenIndex-1).nickname + " has no energy for fight!");
+                    chosenIndex = -1;
+                } else if(userTeam.getPokemon(chosenIndex-1) == user) {
+                    System.out.println(userTeam.getPokemon(chosenIndex-1).nickname + " is already in battle!");
+                    chosenIndex = -1;
+                }
+            }
+        } while(chosenIndex < 0 || chosenIndex > userTeam.getPokemonTeam().size());
+
+        if(chosenIndex == 0) {
+            if(fainted && run()) {
+                endBattle = true;
+                return true;
+            }
+            return false;
+        }
+        if(!canSwitch(user,rival)) {
+            System.out.println(user.nickname + " can't be switched!");
+            return false;
+        }
+
+        //do change
+        System.out.println("Come back! " + user.nickname + "!");
+        Movement rivalMove = chooseRivalMove();
+        if(rivalMove.getCode() == 68 && !fainted) { //pursuit
+            rival.effectMoves.set(15, 1);
+            useMove(rival,user,rivalMove,user.utils.getMove("STRUGGLE"),true,false);
+            if(checkFaint() != 0) {
+                return true;
+            }
+        }
+
+        user.changedPokemon();
+        // user is changed
+        user = userTeam.getPokemon(chosenIndex-1);
+        System.out.println("Go! " + user.nickname + "!");
+        user.setParticipate(true);
+        user.pokeTurn = 0;
+
+        //rival attacks you
+        if(!fainted) {
+            firstAttacker = rival;
+            secondAttacker = user;
+            if(rivalMove.getCode() != 68) {
+                useMove(firstAttacker,secondAttacker,rivalMove,user.utils.getMove("STRUGGLE"),true,false);
+                if(checkFaint() != 0) {
+                    return true;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean fight() {
         int chosenIndex = -1;
         Movement userMove;
 
         if(user.effectMoves.get(3) == 1 || user.effectMoves.get(11) > 0 || user.effectMoves.get(13) > 0) { // must use two turn attacks, petal dance or uproar
             userMove = user.previousMove;
+        } else if(user.getMovesWithPP().isEmpty()) {
+            // use struggle
+            userMove = user.utils.getMove("STRUGGLE");
         } else {
             do {
                 System.out.println("0: Exit");
                 // moves list
-                //TODO: check if it must use STRUGGLE
                 for(int i=0;i<user.getMoves().size();i++) {
                     System.out.println((i+1)+": "+user.getMoves().get(i).getMove().name+" - "+user.getRemainPPs().get(i)+"/"+user.getMoves().get(i).getPP());
                 }
@@ -167,7 +236,7 @@ public class Battle {
             }
             userMove = user.getMoves().get(chosenIndex-1).getMove();
         }
-        Movement rivalMove = chooseRivalMove(rival);
+        Movement rivalMove = chooseRivalMove();
 
         // focus punch initial message
         if(userMove.getCode() == 37) {
@@ -179,7 +248,7 @@ public class Battle {
         }
 
         // determine priority
-        determinePriority(user,rival,userMove,rivalMove);
+        determinePriority(userMove,rivalMove);
         if(firstAttacker != null) {
             useMove(firstAttacker,secondAttacker,firstMove,secondMove, true, false);
         }
@@ -194,18 +263,36 @@ public class Battle {
         return true;
     }
 
-    private Movement chooseRivalMove(Pokemon rival) {
+    private Movement chooseRivalMove() {
         // choose rival move TODO: AI, for the moment is random
-        //TODO: if no PP use STRUGGLE
-        Movement rivalMove = rival.getMovesWithPP().get(random.nextInt(rival.getMoves().size())).getMove();
+        Movement rivalMove;
         if(rival.effectMoves.get(3) == 1 || rival.effectMoves.get(11) > 0 || rival.effectMoves.get(13) > 0) { // must use two turn attacks, petal dance or uproar
             rivalMove = rival.previousMove;
+        } else if(rival.getMovesWithPP().isEmpty()) {
+            // use struggle
+            rivalMove = rival.utils.getMove("STRUGGLE");
+        } else {
+            rivalMove = rival.getMovesWithPP().get(random.nextInt(rival.getMoves().size())).getMove();
         }
+
         return rivalMove;
     }
 
     private boolean canScape(Pokemon target, Pokemon other) {
         //TODO: can scape? look for abilities, etc...
+        if(target.hasType("GHOST")) {
+            return true;
+        }
+        if(target.hasTemporalStatus(TemporalStatus.TRAPPED) || target.hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED)
+                || target.effectMoves.get(0) > 0) { // bind moves and ingrain
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean canSwitch(Pokemon target, Pokemon other) {
+        //TODO: can switch? look for abilities, items, etc...
         if(target.hasType("GHOST")) {
             return true;
         }
@@ -318,12 +405,12 @@ public class Battle {
                 } // moves that will fail
                 else if(attackerMove.getInternalName().equals("FAKEOUT") && attacker.pokeTurn > 1) { // fake out
                     System.out.println("But it failed!");
-                } else if(attackerMove.getCode() == 79 && ((defenderMove.getCategory().equals(Category.STATUS) && !defenderMove.getInternalName().equals("MEFIRST")) || attacker != firstAttacker)) {
-                    System.out.println("But it failed!"); // sucker punch
                 } else if(attackerMove.getCode() == 82 && attacker != firstAttacker) {
                     System.out.println("But it failed!"); // me first
                 } else if(attackerMove.getCode() == 83 && !attacker.canUseLastResort()) { // last resort
                     System.out.println("But it failed!");
+                } else if(attackerMove.getCode() == 79 && ((defenderMove.getCategory().equals(Category.STATUS) && !defenderMove.getInternalName().equals("MEFIRST")) || attacker != firstAttacker)) {
+                    System.out.println("But it failed!"); // sucker punch
                 } else {
                     int hits = 1;
                     ArrayList<Pokemon> beatUp = new ArrayList<Pokemon>();
@@ -508,12 +595,17 @@ public class Battle {
             // run
             endBattle = true;
             battleResult = 3;
+        } else if(user.isFainted()) {
+            while(!changePokemon(true)) {
+                System.out.println("Select another Pokemon: ");
+            }
+            return 5;
         }
 
         return battleResult;
     }
 
-    private void determinePriority(Pokemon user, Pokemon rival, Movement userMove, Movement rivalMove) {
+    private void determinePriority(Movement userMove, Movement rivalMove) {
         boolean userFirst;
         // moves priority
         if(userMove.getPriority() > rivalMove.getPriority()) {
@@ -635,7 +727,10 @@ public class Battle {
         if(move.getCode() == 55 && defender.getPercentHP() <= 50.0) { // brine
             p = move.getPower()*2;
         }
-        //TODO: pursuit
+        if(move.getCode() == 68 && attacker.effectMoves.get(15) > 0) {
+            p = move.getPower()*2;
+            attacker.effectMoves.set(15, 0);
+        }
         if(move.getCode() == 70 && (defender.hasStatus(Status.POISONED) || defender.hasStatus(Status.BADLYPOISONED))) { // venoshock
             p = move.getPower()*2;
         }
@@ -904,7 +999,7 @@ public class Battle {
         }
     }
 
-    private void endBattle(Pokemon rival, boolean trainer) {
+    private void endBattle(boolean trainer) {
         c = 0;
         // remove field effects
         for(int i=0;i<effectFieldMoves.size();i++) {

@@ -139,3 +139,4 @@ LASTRESORT,Última baza,NORMAL,140,100,PHYSICAL,5,0,FOE,0,abcf,83,Falla si el us
 REVENGE,Desquite,FIGHTING,60,100,PHYSICAL,10,-4,FOE,0,abcf,84,Su potencia se duplica si el usuario ha sido golpeado en ese turno
 FINALGAMBIT,Sacrificio,FIGHTING,0,100,SPECIAL,5,0,FOE,0,bf,85,Quita al rival tantos PS como tenga el usuario y se debilita
 SWORDSDANCE,Danza espada,NORMAL,0,0,STATUS,20,0,USER,0,eo,86,Aumenta mucho el ataque del usuario
+STRUGGLE,Combate,UNKNOWN,50,0,PHYSICAL,-1,0,FOE,0,abf,87,Ataque desesperado que se usa cuando no quedan PP
