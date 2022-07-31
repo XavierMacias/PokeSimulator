@@ -1,5 +1,8 @@
 package PokeData;
 
+import PokeBattle.Battle;
+import PokeBattle.Weathers;
+
 import java.util.*;
 
 enum Natures {
@@ -63,6 +66,7 @@ public class Pokemon {
     public int previousDamage;
     public List<Integer> effectMoves;
     private Scanner in;
+    public Battle battle;
 
     public Pokemon(Specie specie, int level, Utils utils) {
         Random random = new Random();
@@ -152,6 +156,7 @@ public class Pokemon {
         // alternative forms
         form = 0;
         participate = false;
+        battle = null;
     }
 
     public void setMove(String m) { // ONLY FOR DEBUG
@@ -180,6 +185,7 @@ public class Pokemon {
     }
     public Specie getSpecie() { return specie; }
     public Ability getAbility() { return ability; }
+    public boolean hasAbility(String ab) { return ability.getInternalName().equals(ab); }
     public int getGender() { return gender; }
 
     public Team getTeam() { return team; }
@@ -197,8 +203,12 @@ public class Pokemon {
         if (!(critic && getStatChange(0) < 1.0)) {
             attack = (int) (stats.get(1) * getStatChange(0));
         }
-        if(hasStatus(Status.BURNED)) {
+        if(hasStatus(Status.BURNED) && !hasAbility("GUTS")) {
             attack /= 2.0;
+        }
+        if((hasAbility("GUTS") && (hasStatus(Status.BURNED) || hasStatus(Status.POISONED) || hasStatus(Status.BADLYPOISONED) ||
+                hasStatus(Status.PARALYZED) || hasStatus(Status.ASLEEP))) || hasAbility("HUSTLE")) {
+            attack *= 1.5; // GUTS and HUSTLE effect
         }
 
         return attack;
@@ -229,6 +239,9 @@ public class Pokemon {
         }
         if(team.effectTeamMoves.get(2) > 0) { // tailwind
             speed *= 2.0;
+        }
+        if(ability.getInternalName().equals("CHLOROPHYLL") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+            speed *= 2.0; // chlorophyll
         }
         return speed;
     }
@@ -482,6 +495,12 @@ public class Pokemon {
         }
 
         if(team.effectTeamMoves.get(0) > 0 && quantity < 0 && !selfCaused) { // MIST effect
+            return false;
+        }
+        if(hasAbility("KEENEYE") && stat == 5 && quantity < 0) { // KEEN EYE effect
+            return false;
+        }
+        if(hasAbility("BIGPECKS") && stat == 1 && quantity < 0 && !selfCaused) { // BIG PECKS effect
             return false;
         }
 
@@ -785,10 +804,131 @@ public class Pokemon {
 
     public void battleEnded() {
         changedPokemon();
+        battle = null;
         if(hasStatus(Status.ASLEEP)) {
             sleepTurns = 1;
         }
         participate = false;
+    }
+    public boolean canPoison(boolean selfCaused) {
+        //TODO: conditions for poison
+        if(hasType("POISON") || hasType("STEEL")) {
+            return false;
+        }
+        if(!getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(ability.getInternalName().equals("IMMUNITY")) {
+            return false;
+        }
+        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canBurn(boolean selfCaused) {
+        //TODO: conditions for burn
+        if(hasType("FIRE")) {
+            return false;
+        }
+        if(!getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canParalyze(boolean selfCaused) {
+        //TODO: conditions for paralyze
+        if(hasType("ELECTRIC")) {
+            return false;
+        }
+        if(hasAbility("LIMBER")) {
+            return false;
+        }
+        if(!getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canSleep(boolean selfCaused) {
+        //TODO: conditions for sleep
+        if(!getStatus().equals(Status.FINE) || battle.effectFieldMoves.get(1) > 0) {
+            return false;
+        }
+        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canFreeze(boolean selfCaused) {
+        //TODO: conditions for freeze
+        if(hasType("ICE")) {
+            return false;
+        }
+        if(!getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
+            return false;
+        }
+        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canConfuse(boolean selfCaused) {
+        //TODO: conditions for confusion
+        if(hasTemporalStatus(TemporalStatus.CONFUSED)) {
+            return false;
+        }
+        if(hasAbility("OWNTEMPO")) {
+            return false;
+        }
+        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canSeed() {
+        //TODO: conditions for seed
+        if(hasType("GRASS") || hasTemporalStatus(TemporalStatus.SEEDED)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean canFlinch() {
+        //TODO: conditions for flinch
+        if(hasTemporalStatus(TemporalStatus.FLINCHED)) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canDrows() {
+        //TODO: conditions for drowsy
+        if(effectMoves.get(6) > 0) {
+            return false;
+        }
+        if(!getStatus().equals(Status.FINE)) {
+            return false;
+        }
+        if(getTeam().effectTeamMoves.get(1) > 0) { // safeguard
+            return false;
+        }
+        return true;
     }
 
     public boolean affectSandstorm() {
@@ -815,7 +955,24 @@ public class Pokemon {
         }
         return true;
     }
-
+    public boolean isLevitating() {
+        if(hasType("FLYING")) {
+            return true;
+        }
+        if(ability.getInternalName().equals("LEVITATE")) {
+            return true;
+        }
+        return false;
+    }
+    public boolean affectToxicSpikes() {
+        if(!canPoison(false)) {
+            return false;
+        }
+        if(isLevitating()) {
+            return false;
+        }
+        return true;
+    }
     public void rapidSpin() {
         if(hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED)) {
             healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
@@ -823,7 +980,10 @@ public class Pokemon {
             effectMoves.set(4, 0); // fire spin
             //TODO: rest of partially trapped moves
         }
-        //TODO: toxic spikes, spikes, stealth rock, etc...
+        //TODO: spikes, stealth rock, etc...
+        if(getTeam().effectTeamMoves.get(3) > 0) {
+            getTeam().removeTeamEffects(this,3); // remove toxic spikes
+        }
     }
 
     private boolean usedAllMoves() {

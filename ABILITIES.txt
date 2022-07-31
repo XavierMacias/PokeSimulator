@@ -4,60 +4,15 @@ BLAZE,Mar llamas,Aumenta el poder de ataques Fuego en un apuro.
 SOLARPOWER,Poder solar,Aumenta el At. Esp. cuando hay Sol pero quita PS.
 TORRENT,Torrente,Aumenta el poder de ataques Agua en un apuro.
 RAINDISH,Cura lluvia,Recupera PS cuando hay lluvia.
-KEENEYE,Vista lince,Evita que baje la precisión.
-TANGLEDFLEET,Tumbos,Aumenta la evasión al estar confuso.
-BIGPECKS,Sacapecho,Evita que disminuya la defensa.
-RUNAWAY,Fuga,Huye con facilidad.
-GUTS,Agallas,Aumenta el Ataque si tiene problemas de estado.
-HUSTLE,Entusiasmo,Aumenta el Ataque pero baja la precisión.
-INSOMNIA,Insomnio,Evita quedarse dormido.
 SHIELDDUST,Polvo escudo,Protege de efectos secundarios.
+RUNAWAY,Fuga,Huye con facilidad.
 SHEDSKIN,Mudar,Puede curar problemas de estado.
 COMPOUNDEYES,Ojocompuesto,Aumenta la precisión.
 TINTEDLENS,Cromolente,Aumenta el daño de ataques poco eficaces.
 SWARM,Enjambre,Aumenta el poder de ataques Bicho en un apuro.
 SNIPER,Francotirador,Aumenta el daño de los ataques críticos.
-INTIMIDATE,Intimidación,Reduce el ataque del rival al salir a combatir.
-UNNERVE,Nerviosismo,Impide al rival usar bayas.
-STATIC,Electricidad estática,Paraliza al contacto.
-LIGHTNINGROD,Pararrayos,Atrae los ataques Eléctricos.
-SANDVEIL,Velo arena,Aumenta la evasión con tormenta de arena.
-SANDRUSH,Ímpetu arena,Aumenta la velocidad con tormenta de arena.
-POISONPOINT,Punto tóxico,Envenena al contacto.
-RIVALRY,Rivalidad,Causa más daño si el rival es del mismo sexo.
-SHEERFORCE,Potencia bruta,Aumenta la potencia de los ataques con efecto secundario.
-CUTECHARM,Gran encanto,Enamora al contacto.
-MAGICGUARD,Muro mágico,Evita recibir daño indirecto.
-FRIENDGUARD,Compiescolta,Reduce el daño causado a aliados.
-UNAWARE,Ignorante,Ignora los cambios de estadísticas del rival.
-FLASHFIRE,Absorbe fuego,Absorbe los ataques de tipo Fuego.
-DROUGHT,Sequía,Planta el clima soleado al entrar en combate.
-COMPETITIVE,Tenacidad,Aumenta el At Esp cuando se le reducen sus stats.
-FRISK,Cacheo,Revela el objeto equipado del oponente.
-INNERFOCUS,Foco interno,Evita el retroceso.
-INFILTRATOR,Allanamiento,Ignora pantallas y sustitutos.
-STENCH,Hedor,Puede hacer retroceder al rival.
-EFFECTSPORE,Efecto espora,Puede dormir envenenar o paralizar al contacto.
-DRYSKIN,Piel seca,Pierde vida con sol y la recupera con lluvia.
-DAMP,Humedad,Evita la autodestrucción.
-WONDERSKIN,Piel milagro,Reduce la precisión de los ataques de estado del rival.
-ARENATRAP,Trampa arena,Impide huir al oponente.
-SANDFORCE,Poder arena,Aumenta la potencia de los ataques roca tierra y acero con Tormenta de Arena.
-TECHNICIAN,Experto,Potencia los movimientos con poca potencia.
-PICKUP,Recogida,Recoge objetos fuera de combate.
-CLOUDNINE,Aclimatación,Anula los efectos del clima.
-SWIFTSWIM,Nado rápido,Duplica la velocidad cuando hay lluvia.
-VITALSPIRIT,Espíritu vital,Evita que el usuario se duerma.
-ANGERPOINT,Irascible,Maxifica el Ataque si recibe un golpe crítico.
-DEFIANT,Competitivo,Aumenta el Ataque cuando se le reducen sus stats.
-LIMBER,Flexibilidad,Evita la parálisis.
-JUSTIFIED,Justiciero,Aumenta el Ataque al recibir un ataque Siniestro.
-WATERABSORB,Absorbe agua,Recupera PS al recibir un ataque Agua.
-SYNCHRONIZE,Sincronía,Transmite al rival su problema de estado.
-NOGUARD,Indefenso,Los movimientos usados por o contra el poseedor nunca fallan.
-STEADFAST,Impasible,Aumenta la Velocidad del poseedor cuando retrocede.
-GLUTTONY,Gula,Consume su baya antes de lo normal.
-CLEARBODY,Cuerpo puro,Evita que bajen las características.
-LIQUIDOOZE,Lodo líquido,Los movimientos de absorción hieren al que los usa.
-ROCKHEAD,Cabeza roca,Evita el daño de retroceso.
-STURDY,Robustez,Evita debilitarse de un golpe.
+KEENEYE,Vista lince,Evita que baje la precisión.
+TANGLEDFEET,Tumbos,Aumenta la evasión al estar confuso.
+BIGPECKS,Sacapecho,Evita que disminuya la defensa.
+GUTS,Agallas,Aumenta el Ataque si tiene problemas de estado.
+HUSTLE,Entusiasmo,Aumenta el Ataque pero baja la precisión.

@@ -12,124 +12,6 @@ public class MoveEffects {
         this.battle = battle;
     }
 
-    private boolean canPoison(Pokemon target, Pokemon other, boolean selfCaused) {
-        //TODO: conditions for poison
-        if(target.hasType("POISON") || target.hasType("STEEL")) {
-            return false;
-        }
-        if(!target.getStatus().equals(Status.FINE)) {
-            return false;
-        }
-        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
-            return false;
-        }
-        return true;
-    }
-
-    private boolean canBurn(Pokemon target, Pokemon other, boolean selfCaused) {
-        //TODO: conditions for burn
-        if(target.hasType("FIRE")) {
-            return false;
-        }
-        if(!target.getStatus().equals(Status.FINE)) {
-            return false;
-        }
-        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
-            return false;
-        }
-        return true;
-    }
-
-    private boolean canParalyze(Pokemon target, Pokemon other, boolean selfCaused) {
-        //TODO: conditions for paralyze
-        if(target.hasType("ELECTRIC")) {
-            return false;
-        }
-        if(target.getAbility().getInternalName().equals("LIMBER")) {
-            return false;
-        }
-        if(!target.getStatus().equals(Status.FINE)) {
-            return false;
-        }
-        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
-            return false;
-        }
-        return true;
-    }
-
-    public boolean canSleep(Pokemon target, Pokemon other, boolean selfCaused) {
-        //TODO: conditions for sleep
-        if(!target.getStatus().equals(Status.FINE) || battle.effectFieldMoves.get(1) > 0) {
-            return false;
-        }
-        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
-            return false;
-        }
-        return true;
-    }
-
-    public boolean canFreeze(Pokemon target, Pokemon other, boolean selfCaused) {
-        //TODO: conditions for freeze
-        if(target.hasType("ICE")) {
-            return false;
-        }
-        if(!target.getStatus().equals(Status.FINE)) {
-            return false;
-        }
-        if(battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
-            return false;
-        }
-        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
-            return false;
-        }
-        return true;
-    }
-
-    private boolean canConfuse(Pokemon target, Pokemon other, boolean selfCaused) {
-        //TODO: conditions for confusion
-        if(target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
-            return false;
-        }
-        if(target.getAbility().getInternalName().equals("OWNTEMPO")) {
-            return false;
-        }
-        if(target.getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
-            return false;
-        }
-        return true;
-    }
-
-    private boolean canSeed(Pokemon target, Pokemon other) {
-        //TODO: conditions for seed
-        if(target.hasType("GRASS") || target.hasTemporalStatus(TemporalStatus.SEEDED)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean canFlinch(Pokemon target, Pokemon other) {
-        //TODO: conditions for flinch
-        if(target.hasTemporalStatus(TemporalStatus.FLINCHED)) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean canDrows(Pokemon target, Pokemon other) {
-        //TODO: conditions for drowsy
-        if(target.effectMoves.get(6) > 0) {
-            return false;
-        }
-        if(!target.getStatus().equals(Status.FINE)) {
-            return false;
-        }
-        if(target.getTeam().effectTeamMoves.get(1) > 0) { // safeguard
-            return false;
-        }
-        return true;
-    }
-
     public boolean moveEffects(Movement move, Pokemon attacker, Pokemon defender, Movement defenderMove, int damage) {
         int effect = move.getCode();
         if (effect == 1 && !defender.isFainted()) {
@@ -137,21 +19,21 @@ public class MoveEffects {
             defender.changeStat(0, -1, false, move.getAddEffect() == 0);
         } else if (effect == 2 && !defender.isFainted()) {
             // seed the target - LEECH SEED
-            if (canSeed(defender, attacker)) {
+            if (defender.canSeed()) {
                 defender.causeTemporalStatus(TemporalStatus.SEEDED);
             } else {
                 return false;
             }
         } else if ((effect == 3 || effect == 65) && !defender.isFainted()) {
             // poisons the target - POISON STING, SLUDGE BOMB, POISON POWDER
-            if (canPoison(defender, attacker, false)) {
+            if (defender.canPoison(false)) {
                 defender.causeStatus(Status.POISONED);
             } else {
                 return false;
             }
         } else if (effect == 4 && !defender.isFainted()) {
             // sleeps the target - SLEEP POWDER, HYPNOSIS
-            if (canSleep(defender, attacker, false)) {
+            if (defender.canSleep(false)) {
                 defender.causeStatus(Status.ASLEEP);
             } else {
                 return false;
@@ -173,23 +55,15 @@ public class MoveEffects {
         } else if (effect == 8) {
             // more recoil damage - DOUBLE EDGE, BRAVE BIRD, FLARE BLITZ
             attacker.reduceHP(damage / 3);
-            if (0.1 >= Math.random() && canBurn(defender, attacker, false) && move.getInternalName().equals("FLAREBLITZ")) {
+            if (0.1 >= Math.random() && defender.canBurn(false) && move.getInternalName().equals("FLAREBLITZ")) {
                 defender.causeStatus(Status.BURNED);
             }
         } else if (effect == 9) {
             // change ability to Insomnia - WORRY SEED
-            if (defender.getAbility().getInternalName().equals("TRUANT") ||
-                    defender.getAbility().getInternalName().equals("MULTITYPE") ||
-                    defender.getAbility().getInternalName().equals("STANCECHANGE") ||
-                    defender.getAbility().getInternalName().equals("SCHOOLING") ||
-                    defender.getAbility().getInternalName().equals("COMATOSE") ||
-                    defender.getAbility().getInternalName().equals("SHIELDSDOWN") ||
-                    defender.getAbility().getInternalName().equals("DISGUISE") ||
-                    defender.getAbility().getInternalName().equals("RKSSYSTEM") ||
-                    defender.getAbility().getInternalName().equals("BATTLEBOND") ||
-                    defender.getAbility().getInternalName().equals("POWERCONSTRUCT") ||
-                    defender.getAbility().getInternalName().equals("ICEFACE") ||
-                    defender.getAbility().getInternalName().equals("GULPMISSILE")) {
+            if (defender.hasAbility("TRUANT") || defender.hasAbility("MULTITYPE") || defender.hasAbility("STANCECHANGE") ||
+                    defender.hasAbility("SCHOOLING") || defender.hasAbility("COMATOSE") || defender.hasAbility("SHIELDSDOWN") ||
+                    defender.hasAbility("DISGUISE") || defender.hasAbility("RKSSYSTEM") || defender.hasAbility("BATTLEBOND") ||
+                    defender.hasAbility("POWERCONSTRUCT") || defender.hasAbility("ICEFACE") || defender.hasAbility("GULPMISSILE")) {
                 return false;
             } else {
                 defender.changeAbility("INSOMNIA");
@@ -276,13 +150,13 @@ public class MoveEffects {
             } else if (attacker.effectMoves.get(11) == 1 && Math.random() < 0.5) {
                 attacker.effectMoves.set(11, 0);
                 attacker.recover1PP(move);
-                if (canConfuse(attacker, defender, true)) {
+                if (attacker.canConfuse(true)) {
                     attacker.causeTemporalStatus(TemporalStatus.CONFUSED);
                 }
             } else if (attacker.effectMoves.get(11) == 2) {
                 attacker.effectMoves.set(11, 0);
                 attacker.recover1PP(move);
-                if (canConfuse(attacker, defender, true)) {
+                if (attacker.canConfuse(true)) {
                     attacker.causeTemporalStatus(TemporalStatus.CONFUSED);
                 }
             } else {
@@ -291,7 +165,7 @@ public class MoveEffects {
             }
         } else if (effect == 21) {
             // burns the target - EMBER, FLAME WHEEL, FLAMETHROWER...
-            if (canBurn(defender, attacker, false)) {
+            if (defender.canBurn(false)) {
                 defender.causeStatus(Status.BURNED);
             } else {
                 return false;
@@ -308,7 +182,7 @@ public class MoveEffects {
             defender.changeStat(4, -2, false, move.getAddEffect() == 0);
         } else if (effect == 25 && !defender.isFainted()) {
             // flinched target - BITE, HYPER FANG, AIR SLASH, TWISTER, FAKE OUT...
-            if (canFlinch(defender, attacker)) {
+            if (defender.canFlinch()) {
                 defender.causeTemporalStatus(TemporalStatus.FLINCHED);
             } else {
                 return false;
@@ -340,10 +214,10 @@ public class MoveEffects {
             attacker.changeStat(4, 1, true, move.getAddEffect() == 0);
         } else if (effect == 30 && !defender.isFainted()) {
             // burns or flinches the target - FIRE FANG
-            if (canBurn(defender, attacker, false) && Math.random() <= 0.1) {
+            if (defender.canBurn(false) && Math.random() <= 0.1) {
                 defender.causeStatus(Status.BURNED);
             }
-            if (canFlinch(defender, attacker) && Math.random() <= 0.1) {
+            if (defender.canFlinch() && Math.random() <= 0.1) {
                 defender.causeTemporalStatus(TemporalStatus.FLINCHED);
             }
         } else if (effect == 32) {
@@ -365,7 +239,7 @@ public class MoveEffects {
             }
         } else if (effect == 36) {
             // paralyzes the target - STUN SPORE, THUNDERBOLT, THUNDER
-            if (canParalyze(defender, attacker, false)) {
+            if (defender.canParalyze(false)) {
                 defender.causeStatus(Status.PARALYZED);
             } else {
                 return false;
@@ -389,7 +263,7 @@ public class MoveEffects {
             System.out.println(attacker.nickname + " is protecting itself!");
         } else if (effect == 42 && !defender.isFainted()) {
             // confuse target - SUPERSONIC, CONFUSION, CONFUSE RAY, SIGNAL BEAM, WATER PULSE...
-            if (canConfuse(defender, attacker, false)) {
+            if (defender.canConfuse(false)) {
                 defender.causeTemporalStatus(TemporalStatus.CONFUSED);
             } else {
                 return false;
@@ -439,7 +313,7 @@ public class MoveEffects {
             }
         } else if (effect == 51) {
             // numb the target, and it will sleep in the next turn - YAWN
-            if (canDrows(defender, attacker)) {
+            if (defender.canDrows()) {
                 defender.effectMoves.set(6, 1);
                 System.out.println(defender.nickname + " is drowsy!");
             } else {
@@ -473,7 +347,7 @@ public class MoveEffects {
             }
         } else if (effect == 59) {
             // makes the target flee - WHIRL WIND, ROAR
-            if (defender.effectMoves.get(0) > 0 || defender.getAbility().getInternalName().equals("SUCTIONCUPS")) {
+            if (defender.effectMoves.get(0) > 0 || defender.hasAbility("SUCTIONCUPS")) {
                 return false;
             } else {
                 defender.effectMoves.set(12, 1);
@@ -484,8 +358,7 @@ public class MoveEffects {
             //TODO: rage powder effect
         } else if (effect == 61 && !defender.isFainted()) {
             // decreases target special attack if is opposite sex - CAPTIVATE
-            if ((attacker.getGender() != defender.getGender()) && (attacker.getGender() != 2 && defender.getGender() != 2) &&
-                    !defender.getAbility().getInternalName().equals("OBLIVIOUS")) {
+            if ((attacker.getGender() != defender.getGender()) && (attacker.getGender() != 2 && defender.getGender() != 2) && !defender.hasAbility("OBLIVIOUS")) {
                 defender.changeStat(2, -2, false, move.getAddEffect() == 0);
             } else {
                 return false;
@@ -520,8 +393,11 @@ public class MoveEffects {
                 attacker.criticalIndex = 4;
             }
         } else if (effect == 72) {
-            // toxic spikes that damages Pokemon entering battle field - TOXIC SPIKES
-            //TODO: toxic spikes
+            // toxic spikes that poison Pokemon entering battlefield - TOXIC SPIKES
+            if(defender.getTeam().effectTeamMoves.get(3) < 2) {
+                defender.getTeam().increaseEffectMove(3);
+            }
+            System.out.println("The enemy team field was surrounded by Toxic Spikes!");
         } else if (effect == 73) {
             // increase a lot of user speed - AGILITY
             attacker.changeStat(4, 2, true, move.getAddEffect() == 0);
@@ -584,16 +460,24 @@ public class MoveEffects {
             if (!defender.isFainted()) {
                 defender.changeStat(6, -1, true, move.getAddEffect() == 0);
             }
-            //TODO: wipe out stealth rock, spikes, toxic spikes and sticky web
+            //TODO: wipe out stealth rock, spikes and sticky web
+            if(attacker.getTeam().effectTeamMoves.get(3) > 0) {
+                attacker.getTeam().removeTeamEffects(attacker,3); // remove yours toxic spikes
+            }
+            if(defender.getTeam().effectTeamMoves.get(3) > 0) {
+                defender.getTeam().removeTeamEffects(defender,3); // remove enemy toxic spikes
+            }
+
             if (defender.getTeam().effectTeamMoves.get(0) > 0) {
-                defender.getTeam().effectTeamMoves.set(0, 0); // wipe out enemy mist
-                System.out.println("The mist of " + defender.nickname + "'s team is gone!");
+                defender.getTeam().removeTeamEffects(defender, 0); // remove rival mist
             }
             if (defender.getTeam().effectTeamMoves.get(1) > 0) {
-                defender.getTeam().effectTeamMoves.set(1, 0); // wipe out enemy safeguard
-                System.out.println("The Safeguard of " + defender.nickname + "'s team is gone!");
+                defender.getTeam().removeTeamEffects(defender, 1); // remove rival safeguard
             }
             //TODO: wipe out team enemy reflect, light screen and aurora veil
+            if(battle.weather.hasWeather(Weathers.FOG)) { // delete fog weather
+                battle.weather.endWeather();
+            }
         } else if (effect == 80) {
             // take a half of the remaining HP to target - SUPERFANG
             int dmg = defender.getPsActuales() / 2;
@@ -622,8 +506,8 @@ public class MoveEffects {
         } else if (effect == 85) {
             // take as much HP as remain user HP and faints itself - FINAL GAMBIT
             System.out.println(attacker.nickname + " sacrifices itself!");
-            attacker.reduceHP(-1);
             defender.reduceHP(attacker.getPsActuales());
+            attacker.reduceHP(-1);
         } else if (effect == 86) {
             // increase a lot of user attack - SWORDS DANCE
             attacker.changeStat(0, 2, true, move.getAddEffect() == 0);

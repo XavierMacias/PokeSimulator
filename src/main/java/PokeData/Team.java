@@ -1,5 +1,6 @@
 package PokeData;
 
+import PokeBattle.Battle;
 import org.checkerframework.checker.units.qual.A;
 
 import java.lang.reflect.Array;
@@ -19,6 +20,7 @@ public class Team {
         /* 0-> mist
            1 -> safeguard
            2 -> tailwind
+           3 -> toxic spikes
         */
         for(int i=0;i<5;i++) {
             effectTeamMoves.add(0);
@@ -122,6 +124,28 @@ public class Team {
             }
         }
         return null;
+    }
+
+    public void inBattle(Battle battle) {
+        for(int i=0;i<pokemonTeam.size();i++) {
+            pokemonTeam.get(i).battle = battle;
+        }
+    }
+
+    public void removeTeamEffects(Pokemon target, int index) {
+        effectTeamMoves.set(index, 0);
+        if(index == 0) {
+            System.out.println("The mist of " + target.nickname + "'s team is gone!");
+        }
+        else if(index == 1) {
+            System.out.println("The Safeguard of " + target.nickname + "'s team is gone!");
+        }
+        else if(index == 2) {
+            System.out.println("The Tail Wind of " + target.nickname + "'s team has gone!");
+        }
+        else if(index == 3) {
+            System.out.println("The Toxic Spikes of " + target.nickname + "'s team are gone!");
+        }
     }
 
     private void giveNickname(Pokemon pkm) {

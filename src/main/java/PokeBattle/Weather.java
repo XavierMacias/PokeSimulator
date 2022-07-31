@@ -1,17 +1,5 @@
 package PokeBattle;
 
-enum Weathers {
-    CLEARSKIES,
-    SUNLIGHT,
-    HEAVYSUNLIGHT,
-    RAIN,
-    HEAVYRAIN,
-    SANDSTORM,
-    HAIL,
-    FOG,
-    STRONGWINDS
-}
-
 public class Weather {
 
     private Weathers weather;
@@ -49,6 +37,9 @@ public class Weather {
                 break;
             case "HAIL":
                 System.out.println("The hail stopped.");
+                break;
+            case "FOG":
+                System.out.println("The fog was wiped out.");
                 break;
             case "STRONGWINDS":
                 System.out.println("The mysterious air current has dissipated!");
