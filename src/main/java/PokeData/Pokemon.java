@@ -63,8 +63,10 @@ public class Pokemon {
     public Movement previousMove;
     public Movement lastMoveInThisTurn;
     public Movement lastMoveReceived;
+    public Movement disabledMove;
     public int previousDamage;
     public List<Integer> effectMoves;
+    public int stockpile = 0;
     private Scanner in;
     public Battle battle;
 
@@ -137,7 +139,7 @@ public class Pokemon {
            1 -> encore
            2 -> protect
            3 -> two turn attack (solar beam, skull bash...)
-           4 -> fire spin, whirl pool...
+           4 -> fire spin
            5 -> foresight
            6 -> yawn
            7 -> aqua ring
@@ -149,20 +151,28 @@ public class Pokemon {
            13 -> uproar
            14 -> focus punch
            15 -> pursuit
-        */
-        for(int i=0;i<16;i++) {
+           16 -> wrap
+           17 -> disable
+           18 -> snatch
+           19 -> intimidate  */
+        for(int i=0;i<20;i++) {
             effectMoves.add(0);
         }
         // alternative forms
         form = 0;
         participate = false;
         battle = null;
+        disabledMove = null;
     }
 
     public void setMove(String m) { // ONLY FOR DEBUG
         moves.set(0,new Pair<>(utils.getMove(m),utils.getMove(m).getPP()));
         remainPPs.set(0,utils.getMove(m).getPP());
         usedMoves.set(0,false);
+    }
+    public void setAbility(String newAbility) { // ONLY FOR DEBUG
+        ability = utils.getAbility(newAbility);
+        originalAbility = utils.getAbility(newAbility);
     }
 
     public void setParticipate(boolean participate) {
@@ -177,7 +187,7 @@ public class Pokemon {
         List<Pair<Movement,Integer>> m = new ArrayList<Pair<Movement,Integer>>();
 
         for(int i=0;i<moves.size();i++) {
-            if(hasPPByIndex(i) > 0) {
+            if(hasPPByIndex(i) > 0 && disabledMove != moves.get(i).getMove()) {
                 m.add(moves.get(i));
             }
         }
@@ -185,7 +195,9 @@ public class Pokemon {
     }
     public Specie getSpecie() { return specie; }
     public Ability getAbility() { return ability; }
-    public boolean hasAbility(String ab) { return ability.getInternalName().equals(ab); }
+    public boolean hasAbility(String ab) {
+        if(ability == null) return false;
+        return ability.getInternalName().equals(ab); }
     public int getGender() { return gender; }
 
     public Team getTeam() { return team; }
@@ -240,7 +252,7 @@ public class Pokemon {
         if(team.effectTeamMoves.get(2) > 0) { // tailwind
             speed *= 2.0;
         }
-        if(ability.getInternalName().equals("CHLOROPHYLL") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+        if(hasAbility("CHLOROPHYLL") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
             speed *= 2.0; // chlorophyll
         }
         return speed;
@@ -372,10 +384,13 @@ public class Pokemon {
         return status.equals(Status.FAINTED);
     }
 
-    public void reducePP(Movement move) {
+    public void reducePP(Movement move, int quantity) {
         int ind = getIndexMove(move.getInternalName());
         if(ind != -1) {
-            remainPPs.set(ind,remainPPs.get(ind)-1);
+            remainPPs.set(ind,remainPPs.get(ind)-quantity);
+            if(remainPPs.get(ind) < 0) {
+                remainPPs.set(ind,0);
+            }
         }
     }
 
@@ -462,6 +477,7 @@ public class Pokemon {
 
     public void changeAbility(String newAbility) {
         ability = utils.getAbility(newAbility);
+        battle.activateIntimidate();
     }
 
     public boolean changeStat(int stat, int quantity, boolean selfCaused, boolean message) {
@@ -808,6 +824,7 @@ public class Pokemon {
         if(hasStatus(Status.ASLEEP)) {
             sleepTurns = 1;
         }
+        stockpile = 0;
         participate = false;
     }
     public boolean canPoison(boolean selfCaused) {
@@ -818,7 +835,7 @@ public class Pokemon {
         if(!getStatus().equals(Status.FINE)) {
             return false;
         }
-        if(ability.getInternalName().equals("IMMUNITY")) {
+        if(hasAbility("IMMUNITY")) {
             return false;
         }
         if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
@@ -914,6 +931,9 @@ public class Pokemon {
         if(hasTemporalStatus(TemporalStatus.FLINCHED)) {
             return false;
         }
+        if(hasAbility("INNERFOCUS")) {
+            return false;
+        }
         return true;
     }
 
@@ -931,14 +951,23 @@ public class Pokemon {
         return true;
     }
 
+    public boolean canIntimidate() {
+        //TODO: substitute cant intimidate
+        if(hasAbility("CLEARBODY") || hasAbility("WHITESMOKE") || hasAbility("HYPERCUTTER") || hasAbility("INNERFOCUS") ||
+                hasAbility("OBLIVIOUS") || hasAbility("SCRAPPY") || hasAbility("OWNTEMPO")) {
+            System.out.println(nickname + " evades Intimidate thanks to " + ability.name + "!");
+            return false;
+        }
+        return true;
+    }
+
     public boolean affectSandstorm() {
         //TODO: safety googles return false
         if(hasType("ROCK") || hasType("GROUND") || hasType("STEEL")) {
             return false;
         }
-        if(ability.getInternalName().equals("SANDVEIL") || ability.getInternalName().equals("MAGICGUARD")
-                || ability.getInternalName().equals("SANDFORCE") || ability.getInternalName().equals("OVERCOAT")
-                || ability.getInternalName().equals("SANDRUSH")) {
+        if(hasAbility("SANDVEIL") || hasAbility("MAGICGUARD") || hasAbility("SANDFORCE") || hasAbility("OVERCOAT")
+                || hasAbility("SANDRUSH")) {
             return false;
         }
         return true;
@@ -949,8 +978,7 @@ public class Pokemon {
         if(hasType("ICE")) {
             return false;
         }
-        if(ability.getInternalName().equals("SNOWCLOAK") || ability.getInternalName().equals("MAGICGUARD")
-                || ability.getInternalName().equals("SLUSHRUSH") || ability.getInternalName().equals("OVERCOAT")) {
+        if(hasAbility("SNOWCLOAK") || hasAbility("MAGICGUARD") || hasAbility("SLUSHRUSH") || hasAbility("OVERCOAT")) {
             return false;
         }
         return true;
@@ -959,7 +987,7 @@ public class Pokemon {
         if(hasType("FLYING")) {
             return true;
         }
-        if(ability.getInternalName().equals("LEVITATE")) {
+        if(hasAbility("LEVITATE")) {
             return true;
         }
         return false;
@@ -998,7 +1026,7 @@ public class Pokemon {
 
     private boolean hasSomePPIsNotLastResort() {
         for(int i=0;i<moves.size();i++) {
-            if(!moves.get(i).getMove().getInternalName().equals("LASTRESORT")) {
+            if(!moves.get(i).getMove().hasName("LASTRESORT")) {
                 if(hasPPByIndex(i) > 0) {
                     return true;
                 }

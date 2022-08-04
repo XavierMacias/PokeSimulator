@@ -48,6 +48,10 @@ public class Movement {
 
     public String getInternalName() { return internalName; }
 
+    public boolean hasName(String n) {
+        return internalName.equals(n);
+    }
+
     public int getPower() {
         return power;
     }

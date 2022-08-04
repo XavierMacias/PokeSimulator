@@ -16,3 +16,5 @@ TANGLEDFEET,Tumbos,Aumenta la evasión al estar confuso.
 BIGPECKS,Sacapecho,Evita que disminuya la defensa.
 GUTS,Agallas,Aumenta el Ataque si tiene problemas de estado.
 HUSTLE,Entusiasmo,Aumenta el Ataque pero baja la precisión.
+INTIMIDATE,Intimidación,Reduce el Ataque del rival al entrar al campo.
+UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes

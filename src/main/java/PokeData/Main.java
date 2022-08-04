@@ -39,7 +39,7 @@ public class Main {
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("RATTATA"),11, utils));
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIDGEY"),11, utils));
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils));
-        //starter.setMove("RAINDANCE");
+        //starter.setMove("GASTROACID");
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");

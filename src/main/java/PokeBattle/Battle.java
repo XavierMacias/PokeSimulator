@@ -60,12 +60,15 @@ public class Battle {
         user.pokeTurn = 1;
         rival.pokeTurn = 1;
         String battleChoose = "0";
+        //user.setAbility("INTIMIDATE");
+        //rival.setAbility("INTIMIDATE");
         //weather.changeWeather(Weathers.HAIL, false);
 
         // battle loop
         do {
             boolean decision = false;
 
+            activateIntimidate();
             if(user.effectMoves.get(3) == 1 || user.effectMoves.get(11) > 0 || user.effectMoves.get(13) > 0) { // must use two turn attacks, petal dance or uproar
                 decision = true;
                 battleChoose = "1";
@@ -99,7 +102,7 @@ public class Battle {
                         secondAttacker = rival;
                         firstMove = user.utils.getMove("STRUGGLE");
                         secondMove = chooseRivalMove();
-                        useMove(secondAttacker,firstAttacker,secondMove,firstMove, true, false);
+                        useMove(secondAttacker,firstAttacker,secondMove,firstMove, true, false, false);
                     }
                     break;
             }
@@ -126,6 +129,24 @@ public class Battle {
         endBattle(false);
     }
 
+    public void activateIntimidate() {
+        if(user.hasAbility("INTIMIDATE") && user.effectMoves.get(19) == 0) {
+            if(rival.canIntimidate()) {
+                System.out.println(user.nickname + " uses " + user.getAbility().name);
+                rival.changeStat(0,-1,false,true);
+            }
+            user.effectMoves.set(19, 1);
+        }
+
+        if(rival.hasAbility("INTIMIDATE") && rival.effectMoves.get(19) == 0) {
+            if(user.canIntimidate()) {
+                System.out.println(rival.nickname + " uses " + rival.getAbility().name);
+                user.changeStat(0,-1,false,true);
+            }
+            rival.effectMoves.set(19, 1);
+        }
+    }
+
     private boolean run() {
         c++;
         int a = user.getVelocity();
@@ -135,7 +156,7 @@ public class Battle {
         }
         int f = (((a*128)/b)+30*c)%256;
 
-        if(user.utils.getRandomNumberBetween(0, 256) < f && canScape(user,rival)) {
+        if((user.utils.getRandomNumberBetween(0, 256) < f && canScape(user,rival)) || user.hasAbility("RUNAWAY") || user.hasType("GHOST")) {
             System.out.println("Run successfully!");
             return true;
         }
@@ -181,7 +202,7 @@ public class Battle {
         Movement rivalMove = chooseRivalMove();
         if(rivalMove.getCode() == 68 && !fainted) { //pursuit
             rival.effectMoves.set(15, 1);
-            useMove(rival,user,rivalMove,user.utils.getMove("STRUGGLE"),true,false);
+            useMove(rival,user,rivalMove,user.utils.getMove("STRUGGLE"),true,false, false);
             if(checkFaint() != 0) {
                 return true;
             }
@@ -193,6 +214,8 @@ public class Battle {
         System.out.println("Go! " + user.nickname + "!");
         user.setParticipate(true);
         user.pokeTurn = 0;
+        // INTIMIDATE
+        activateIntimidate();
         //toxic spikes, spikes, stealth rock, etc...
         fieldTramps(user);
         //rival attacks you
@@ -200,7 +223,7 @@ public class Battle {
             firstAttacker = rival;
             secondAttacker = user;
             if(rivalMove.getCode() != 68) {
-                useMove(firstAttacker,secondAttacker,rivalMove,user.utils.getMove("STRUGGLE"),true,false);
+                useMove(firstAttacker,secondAttacker,rivalMove,user.utils.getMove("STRUGGLE"),true,false, false);
                 if(checkFaint() != 0) {
                     return true;
                 }
@@ -227,8 +250,12 @@ public class Battle {
                     System.out.println((i+1)+": "+user.getMoves().get(i).getMove().name+" - "+user.getRemainPPs().get(i)+"/"+user.getMoves().get(i).getPP());
                 }
                 chosenIndex = Integer.parseInt(in.nextLine());
+                // can't use this move
                 if(user.hasPPByIndex(chosenIndex-1) == 0) {
                     System.out.println("There are no PPs for this move!");
+                    chosenIndex = -1;
+                } else if(user.getMoves().get(chosenIndex-1).getMove() == user.disabledMove && user.effectMoves.get(17) > 0) {
+                    System.out.println("This move is disabled!");
                     chosenIndex = -1;
                 }
             } while(chosenIndex < 0 || chosenIndex > user.getMoves().size());
@@ -253,12 +280,12 @@ public class Battle {
         // determine priority
         determinePriority(userMove,rivalMove);
         if(firstAttacker != null) {
-            useMove(firstAttacker,secondAttacker,firstMove,secondMove, true, false);
+            useMove(firstAttacker,secondAttacker,firstMove,secondMove, true, false, false);
         }
         if(checkFaint() != 0) {
             return true;
         }
-        useMove(secondAttacker,firstAttacker,secondMove,firstMove, true, false);
+        useMove(secondAttacker,firstAttacker,secondMove,firstMove, true, false, false);
         if(checkFaint() != 0) {
             return true;
         }
@@ -283,9 +310,6 @@ public class Battle {
 
     private boolean canScape(Pokemon target, Pokemon other) {
         //TODO: can scape? look for abilities, etc...
-        if(target.hasType("GHOST") || target.hasAbility("RUNAWAY")) {
-            return true;
-        }
         if(target.hasTemporalStatus(TemporalStatus.TRAPPED) || target.hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED)
                 || target.effectMoves.get(0) > 0) { // bind moves and ingrain
             return false;
@@ -330,7 +354,7 @@ public class Battle {
         if (attackerMove.getCode() == 11 && attacker.effectMoves.get(3) == 1) { // if it is two turn attack and is charged
             return true;
         }
-        if (attackerMove.getInternalName().equals("SOLARBEAM") && (weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+        if (attackerMove.hasName("SOLARBEAM") && (weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
             return true; // if it is solar beam and the weather is sunlight
         }
 
@@ -343,22 +367,14 @@ public class Battle {
         if(attackerMove.getCode() == 19 || attackerMove.getCode() == 41) {
             moveAccuracy = (int) (100.0/(Math.pow(2,attacker.protectTurns)));
         }
-        // HURRICANE and THUNDER low accuracy with sun, and never fail with rain
-        if(attackerMove.getInternalName().equals("HURRICANE") || attackerMove.getInternalName().equals("THUNDER")) {
-            if(weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
-                moveAccuracy = 50;
-            } else if(weather.hasWeather(Weathers.RAIN) || weather.hasWeather(Weathers.HEAVYRAIN)) {
-                moveAccuracy = 0;
-            }
-        }
-        // BLIZZARD never will fail with hail
-        if(attackerMove.getInternalName().equals("BLIZZARD") && weather.hasWeather(Weathers.HAIL)) {
-            moveAccuracy = 0;
+        // HURRICANE and THUNDER low accuracy with sun
+        if((attackerMove.hasName("HURRICANE") || attackerMove.hasName("THUNDER")) &&
+                (weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+            moveAccuracy = 50;
         }
         // compound eyes
         if(attacker.hasAbility("COMPOUNDEYES")) {
             moveAccuracy *= 1.3;
-            if(moveAccuracy > 100) moveAccuracy = 100;
         }
         // tangled feet
         if(defender.hasAbility("TANGLEDFEET") && defender.hasTemporalStatus(TemporalStatus.CONFUSED)) {
@@ -368,17 +384,33 @@ public class Battle {
         if(attacker.hasAbility("HUSTLE") && attackerMove.getCategory().equals(Category.PHYSICAL)) {
             moveAccuracy *= 0.8;
         }
+        if(moveAccuracy == 0 && attackerMove.getAccuracy() != 0) moveAccuracy = 1;
 
+        // BLIZZARD never will fail with hail
+        if(attackerMove.hasName("BLIZZARD") && weather.hasWeather(Weathers.HAIL)) {
+            moveAccuracy = 0;
+        }
+        // HURRICANE and THUNDER never fails with rain
+        if((attackerMove.hasName("HURRICANE") || attackerMove.hasName("THUNDER")) &&
+                (weather.hasWeather(Weathers.RAIN) || weather.hasWeather(Weathers.HEAVYRAIN))) {
+            moveAccuracy = 0;
+        }
+        // TWO TURN ATTACKS always charge
+        if(attackerMove.getCode() == 11 && attacker.effectMoves.get(3) == 0) {
+            moveAccuracy = 0;
+        }
+
+        if(moveAccuracy > 100) moveAccuracy = 100;
         return moveAccuracy;
     }
 
     public boolean inmunityToAttack(Movement attackerMove) {
 
         // heavy rain and heavy sun prevents fire/water attacks
-        if(weather.hasWeather(Weathers.HEAVYSUNLIGHT) && attackerMove.type.getInternalName().equals("WATER") && !attackerMove.getCategory().equals(Category.STATUS)) {
+        if(weather.hasWeather(Weathers.HEAVYSUNLIGHT) && attackerMove.type.is("WATER") && !attackerMove.getCategory().equals(Category.STATUS)) {
             System.out.println("Heavy sunlight prevents Water-Type attacks!");
             return true;
-        } else if(weather.hasWeather(Weathers.HEAVYRAIN) && attackerMove.type.getInternalName().equals("FIRE") && !attackerMove.getCategory().equals(Category.STATUS)) {
+        } else if(weather.hasWeather(Weathers.HEAVYRAIN) && attackerMove.type.is("FIRE") && !attackerMove.getCategory().equals(Category.STATUS)) {
             System.out.println("Heavy rain prevents Fire-Type attacks!");
             return true;
         }
@@ -386,11 +418,11 @@ public class Battle {
         return false;
     }
 
-    public void useMove(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove, boolean reducePP, boolean mefirst) {
+    public void useMove(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove, boolean reducePP, boolean mefirst, boolean indirect) {
         c = 0;
         int dmg = 0;
         // StartTurn
-        startTurn(attacker,defender);
+        startMove(attacker,defender);
 
         // protect, detect, endure
         if(attackerMove.getCode() != 19 && attackerMove.getCode() != 41) {
@@ -401,7 +433,7 @@ public class Battle {
             attacker.effectMoves.set(8,0);
         }
 
-        if(!willNotAttack(attacker,defender,attackerMove)) {
+        if(!willNotAttack(attacker,defender,attackerMove) || indirect) {
             attacker.previousMove = attackerMove;
             attacker.moveUsedAdded(attackerMove);
             System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
@@ -437,14 +469,21 @@ public class Battle {
                     System.out.println(defender.nickname + " has protected!");
                     attacker.effectMoves.set(11, 0);
                 } // moves that will fail
-                else if(attackerMove.getInternalName().equals("FAKEOUT") && attacker.pokeTurn > 1) { // fake out
+                else if(attackerMove.hasName("FAKEOUT") && attacker.pokeTurn > 1) { // fake out
+                    System.out.println("But it failed!");
+                } else if(attackerMove.hasName("SPITUP") && attacker.stockpile == 0) { // spit up
                     System.out.println("But it failed!");
                 } else if(attackerMove.getCode() == 82 && attacker != firstAttacker) {
                     System.out.println("But it failed!"); // me first
                 } else if(attackerMove.getCode() == 83 && !attacker.canUseLastResort()) { // last resort
                     System.out.println("But it failed!");
-                } else if(attackerMove.getCode() == 79 && ((defenderMove.getCategory().equals(Category.STATUS) && !defenderMove.getInternalName().equals("MEFIRST")) || attacker != firstAttacker)) {
+                } else if(attackerMove.getCode() == 79 && ((defenderMove.getCategory().equals(Category.STATUS) && !defenderMove.hasName("MEFIRST")) || attacker != firstAttacker)) {
                     System.out.println("But it failed!"); // sucker punch
+                } else if(defender.effectMoves.get(18) > 0 && attackerMove.getFlags().contains("e")) {
+                    System.out.println(defender.nickname + " snatched the move!"); // snatch
+                    useMove(defender,attacker,attackerMove,defenderMove,false,false,true);
+                } else if(attackerMove == attacker.disabledMove && attacker.effectMoves.get(17) > 0) {
+                    System.out.println(attackerMove.name + " is disabled!"); // disabled move
                 } else {
                     int hits = 1;
                     ArrayList<Pokemon> beatUp = new ArrayList<Pokemon>();
@@ -506,7 +545,7 @@ public class Battle {
                 attacker.effectMoves.set(11, 0);
                 defender.lastMoveReceived = attackerMove;
             }
-            if(reducePP) { attacker.reducePP(attackerMove); }
+            if(reducePP) { attacker.reducePP(attackerMove,1); }
             System.out.println(defender.nickname + " HP: " + defender.getPsActuales() + "/" + defender.getHP());
         }
 
@@ -516,7 +555,7 @@ public class Battle {
         boolean notAttack = false;
         if(attackerMove.getCode() == 37 && attacker.effectMoves.get(14) == 0) { // focus punch
             System.out.println(attacker.nickname + " lost its concentration!");
-            attacker.reducePP(attackerMove);
+            attacker.reducePP(attackerMove,1);
             notAttack = true;
             // flinched
         } else if(attacker.hasTemporalStatus(TemporalStatus.FLINCHED)) {
@@ -562,10 +601,10 @@ public class Battle {
     }
 
     private void moveEffectsAfterAttack(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove) {
-        if(attackerMove.getInternalName().equals("RAPIDSPIN") && !attacker.isFainted()) { // rapid spin
+        if(attackerMove.hasName("RAPIDSPIN") && !attacker.isFainted()) { // rapid spin
             attacker.rapidSpin();
         }
-        if(attackerMove.getInternalName().equals("UPROAR") && effectFieldMoves.get(1) == 1) { // uproar wake up all
+        if(attackerMove.hasName("UPROAR") && effectFieldMoves.get(1) == 1) { // uproar wake up all
             if(attacker.hasStatus(Status.ASLEEP)) attacker.healPermanentStatus();
             if(defender.hasStatus(Status.ASLEEP)) defender.healPermanentStatus();
         }
@@ -578,7 +617,7 @@ public class Battle {
         }
     }
 
-    private void startTurn(Pokemon target, Pokemon other) {
+    private void startMove(Pokemon target, Pokemon other) {
 
         // thaw
         double posibility = 0.2;
@@ -598,7 +637,7 @@ public class Battle {
             target.healPermanentStatus();
         }
 
-        // fire spin, etc
+        // fire spin
         if(0.5 >= Math.random() && target.effectMoves.get(4) == 4) {
             target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
             System.out.println(target.nickname + " was freed from Fire Spin!");
@@ -607,6 +646,16 @@ public class Battle {
             target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
             System.out.println(target.nickname + " was freed from Fire Spin!");
             target.effectMoves.set(4, 0);
+        }
+        // wrap
+        if(0.5 >= Math.random() && target.effectMoves.get(16) == 4) {
+            target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
+            System.out.println(target.nickname + " was freed from Wrap!");
+            target.effectMoves.set(16, 0);
+        } else if(target.effectMoves.get(16) >= 5) {
+            target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
+            System.out.println(target.nickname + " was freed from Wrap!");
+            target.effectMoves.set(16, 0);
         }
     }
 
@@ -779,6 +828,9 @@ public class Battle {
         if(move.getCode() == 84 && attacker.previousDamage > 0) { // revenge
             p = move.getPower()*2;
         }
+        if(move.getCode() == 91) { // spit up
+            p = 100*attacker.stockpile;
+        }
 
         return p;
     }
@@ -786,55 +838,55 @@ public class Battle {
     private int movePowerByExternalReasons(Pokemon attacker, Movement move, int p, boolean mefirst) {
         int power = p;
         // power change for move effects
-        if(effectFieldMoves.get(0) > 0 && move.type.getInternalName().equals("ELECTRIC")) { // mud sport
+        if(effectFieldMoves.get(0) > 0 && move.type.is("ELECTRIC")) { // mud sport
             power *= 0.667;
         }
         if(mefirst) { // me first
             power *= 1.5;
         }
         // abilities
-        if(attacker.hasAbility("OVERGROW") && attacker.getPercentHP() < 33.33 && move.type.getInternalName().equals("GRASS")) {
+        if(attacker.hasAbility("OVERGROW") && attacker.getPercentHP() < 33.33 && move.type.is("GRASS")) {
             power *= 1.5;
         }
-        if(attacker.hasAbility("TORRENT") && attacker.getPercentHP() < 33.33 && move.type.getInternalName().equals("WATER")) {
+        if(attacker.hasAbility("TORRENT") && attacker.getPercentHP() < 33.33 && move.type.is("WATER")) {
             power *= 1.5;
         }
-        if(attacker.hasAbility("BLAZE") && attacker.getPercentHP() < 33.33 && move.type.getInternalName().equals("FIRE")) {
+        if(attacker.hasAbility("BLAZE") && attacker.getPercentHP() < 33.33 && move.type.is("FIRE")) {
             power *= 1.5;
         }
-        if(attacker.hasAbility("SWARM") && attacker.getPercentHP() < 33.33 && move.type.getInternalName().equals("BUG")) {
+        if(attacker.hasAbility("SWARM") && attacker.getPercentHP() < 33.33 && move.type.is("BUG")) {
             power *= 1.5;
         }
         // weather
         if(weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
-            if(move.type.getInternalName().equals("FIRE")) {
+            if(move.type.is("FIRE")) {
                 power *= 1.5;
-            } else if(move.type.getInternalName().equals("WATER")) {
+            } else if(move.type.is("WATER")) {
                 power *= 0.5;
             }
         }
         if(weather.hasWeather(Weathers.RAIN) || weather.hasWeather(Weathers.HEAVYRAIN)) {
-            if(move.type.getInternalName().equals("FIRE")) {
+            if(move.type.is("FIRE")) {
                 power *= 0.5;
-            } else if(move.type.getInternalName().equals("WATER")) {
+            } else if(move.type.is("WATER")) {
                 power *= 1.5;
             }
-            if(move.getInternalName().equals("SOLARBEAM") || move.getInternalName().equals("SOLARBLADE")) {
+            if(move.hasName("SOLARBEAM") || move.hasName("SOLARBLADE")) {
                 power *= 0.5;
             }
         }
         if(weather.hasWeather(Weathers.HAIL)) {
-            if(move.getInternalName().equals("SOLARBEAM") || move.getInternalName().equals("SOLARBLADE")) {
+            if(move.hasName("SOLARBEAM") || move.hasName("SOLARBLADE")) {
                 power *= 0.5;
             }
         }
         if(weather.hasWeather(Weathers.SANDSTORM)) {
-            if(move.getInternalName().equals("SOLARBEAM") || move.getInternalName().equals("SOLARBLADE")) {
+            if(move.hasName("SOLARBEAM") || move.hasName("SOLARBLADE")) {
                 power *= 0.5;
             }
         }
         if(weather.hasWeather(Weathers.FOG)) {
-            if(move.getInternalName().equals("SOLARBEAM") || move.getInternalName().equals("SOLARBLADE")) {
+            if(move.hasName("SOLARBEAM") || move.hasName("SOLARBLADE")) {
                 power *= 0.5;
             }
         }
@@ -867,7 +919,7 @@ public class Battle {
 
     private double changesInInmunities(Pokemon attacker, Pokemon defender, Movement move) {
         if(defender.effectMoves.get(5) > 0 && defender.hasType("GHOST") && // foresight
-                (move.type.getInternalName().equals("NORMAL") || move.type.getInternalName().equals("FIGHTING"))) {
+                (move.type.is("NORMAL") || move.type.is("FIGHTING"))) {
             return 1.0;
         }
         return 0.0;
@@ -993,9 +1045,10 @@ public class Battle {
             target.healHP(target.getHP()/16, true, true);
         }
 
-        // remove endure, protect, detect...
+        // remove endure, protect, detect, snatch...
         target.effectMoves.set(1, 0); // endure
         target.effectMoves.set(2, 0); // protect
+        target.effectMoves.set(18, 0); // snatch
 
         // count and remove individual effects
         if(target.effectMoves.get(6) > 0) { // yawn
@@ -1005,6 +1058,14 @@ public class Battle {
                     target.causeStatus(Status.ASLEEP);
                 }
                 target.effectMoves.set(6, 0);
+            }
+        }
+        if(target.effectMoves.get(17) > 0) { // disable
+            target.increaseEffectMove(17); // increase turn
+            if(target.effectMoves.get(17) > 5) {
+                System.out.println("Disable of " + target.nickname + " finished!");
+                target.effectMoves.set(17, 0);
+                target.disabledMove = null;
             }
         }
 
@@ -1076,11 +1137,11 @@ public class Battle {
         if(battleResult == 1) {
             // get experience
             userTeam.gainTeamExperience(rival,trainer);
-            userTeam.battleEnded();
         } else if(battleResult == 2) {
             System.out.println("You lose!");
             // heal team
             userTeam.healTeam();
         }
+        userTeam.battleEnded();
     }
 }

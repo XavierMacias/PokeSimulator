@@ -12,6 +12,10 @@ public class Type {
         this.internalName = internalName;
         this.name = name;
     }
+
+    public boolean is(String t) {
+        return internalName.equals(t);
+    }
     public void setWeaknesses(List<String> w) { weaknesses = w; }
     public void setResistances(List<String> r) { resistances = r; }
     public void setImmunities(List<String> i) { immunities = i; }
