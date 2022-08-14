@@ -11,6 +11,7 @@ import java.util.Scanner;
 public class Team {
     private ArrayList<Pokemon> pokemonTeam;
     public List<Integer> effectTeamMoves;
+    public int wishRecover;
     private Scanner in;
 
     public Team() {
@@ -21,8 +22,12 @@ public class Team {
            1 -> safeguard
            2 -> tailwind
            3 -> toxic spikes
+           4 -> light screen
+           5 -> reflect
+           6 -> lucky chant
+           7 -> wish
         */
-        for(int i=0;i<5;i++) {
+        for(int i=0;i<8;i++) {
             effectTeamMoves.add(0);
         }
     }
@@ -145,6 +150,17 @@ public class Team {
         }
         else if(index == 3) {
             System.out.println("The Toxic Spikes of " + target.nickname + "'s team are gone!");
+        }
+        else if(index == 4) {
+            System.out.println("The Light Screen of " + target.nickname + "'s team is gone!");
+        }
+        else if(index == 5) {
+            System.out.println("The Reflect of " + target.nickname + "'s team is gone!");
+        }
+        else if(index == 6) {
+            System.out.println("The Lucky Chant of " + target.nickname + "'s team is gone!");
+        } else if(index == 7) {
+            wishRecover = 0;
         }
     }
 

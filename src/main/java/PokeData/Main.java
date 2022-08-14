@@ -12,6 +12,7 @@ public class Main {
         utils.addTypes(); // types added
         utils.addAbilities(); // abilities added
         utils.addMoves(); // moves added
+        utils.addItems(); // moves items
         utils.addSpecies(); // species added
 
         Pokemon starter = null;
@@ -39,7 +40,7 @@ public class Main {
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("RATTATA"),11, utils));
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIDGEY"),11, utils));
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils));
-        //starter.setMove("GASTROACID");
+        //starter.setMove("YAWN");
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");
@@ -48,12 +49,12 @@ public class Main {
                 case "1":
                     // battle
                     Battle battle = new Battle();
-                    System.out.println("Choose the Pokemon number");
+                    System.out.println("Choose the Pokemon name");
                     String pkmnIndex = "0";
                     pkmnIndex = in.nextLine();
-                    if(utils.getPokemonByNumber(Integer.valueOf(pkmnIndex)) != null) {
+                    if(utils.getPokemon(pkmnIndex) != null) {
                         Team rivalTeam = new Team();
-                        rivalTeam.addPokemon(new Pokemon(utils.getPokemonByNumber(Integer.valueOf(pkmnIndex)),12,utils));
+                        rivalTeam.addPokemon(new Pokemon(utils.getPokemon(pkmnIndex),12,utils));
                         battle.WildSingleBattle(player.getTeam(),rivalTeam);
                     }
                     break;

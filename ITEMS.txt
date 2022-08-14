@@ -1,0 +1,4 @@
+WATERSTONE,Piedra agua,ITEMS,2100,ONPOKEMON,NOBATTLEUSE,true,e,Una piedra que hace evolucionar a ciertas especies, 
+POTION,Poción,MEDICINE,200,ONPOKEMON,INPOKEMON,true,,Medicina en spray que recupera 20 PS al Pokémon, 
+SUPERPOTION,Superpoción,MEDICINE,700,ONPOKEMON,INPOKEMON,true,,Medicina en spray que recupera 60 PS al Pokémon, 
+TM35,MT35,TMS,0,ONPOKEMON,NOBATTLEUSE,false,,Un chorro de llamas que puede quemar al rival,FLAMETHROWER

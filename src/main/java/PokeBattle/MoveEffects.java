@@ -13,7 +13,7 @@ public class MoveEffects {
 
     public MoveEffects(Battle battle) {
         this.battle = battle;
-        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 92, 97, 101, 102));
+        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 92, 97, 101, 102, 118));
     }
 
     public boolean moveEffects(Movement move, Pokemon attacker, Pokemon defender, Movement defenderMove, int damage) {
@@ -64,10 +64,12 @@ public class MoveEffects {
             attacker.changeStat(0, quantity, true, move.getAddEffect() == 0);
             attacker.changeStat(2, quantity, true, move.getAddEffect() == 0);
         } else if (effect == 8) {
-            // more recoil damage - DOUBLE EDGE, BRAVE BIRD, FLARE BLITZ
+            // more recoil damage - DOUBLE EDGE, BRAVE BIRD, FLARE BLITZ, VOLT TACKLE
             attacker.reduceHP(damage / 3);
             if (0.1 >= Math.random() && defender.canBurn(false) && move.hasName("FLAREBLITZ")) {
                 defender.causeStatus(Status.BURNED);
+            } else if (0.1 >= Math.random() && defender.canParalyze(false) && move.hasName("VOLTTACKLE")) {
+                defender.causeStatus(Status.PARALYZED);
             }
         } else if (effect == 9) {
             // change ability to Insomnia - WORRY SEED
@@ -132,7 +134,7 @@ public class MoveEffects {
                         defender.causeTemporalStatus(TemporalStatus.FLINCHED);
                     }
                 }
-            }
+            } //TODO: dig
         } else if (effect == 12) {
             // decreases a lot target attack - CHARM, FEATHER DANCE...
             defender.changeStat(0, -2, false, move.getAddEffect() == 0);
@@ -227,6 +229,8 @@ public class MoveEffects {
                 defender.effectMoves.set(4, 1);
             } else if(defender.effectMoves.get(16) == 0 && move.hasName("WRAP")) {
                 defender.effectMoves.set(16, 1);
+            } else if(defender.effectMoves.get(21) == 0 && move.hasName("SANDTOMB")) {
+                defender.effectMoves.set(21, 1);
             }
             defender.causeTemporalStatus(TemporalStatus.PARTIALLYTRAPPED);
             System.out.println(defender.nickname + " was trapped by " + move.name);
@@ -283,6 +287,9 @@ public class MoveEffects {
         } else if (effect == 38) {
             // increase user defense - WITHDRAW, HARDEN, STEEL WING...
             attacker.changeStat(1, 1, true, move.getAddEffect() == 0);
+            if(move.hasName("DEFENSECURL")) {
+                attacker.effectMoves.set(20, 1);
+            }
         } else if (effect == 39) {
             // decreases target speed - BUBBLE
             defender.changeStat(4, -1, false, move.getAddEffect() == 0);
@@ -325,7 +332,9 @@ public class MoveEffects {
             }
         } else if (effect == 48) {
             // restore all stat changes to 0 - HAZE
+            //TODO: restore to 0 ALL pokemon in battle
             attacker.getStatChanges().replaceAll(ignored -> 0);
+            defender.getStatChanges().replaceAll(ignored -> 0);
             System.out.println("The stat changes were removed!");
         } else if (effect == 49) {
             // ignores enemy's evasion and user's accuracy and Ghost type can be damaged by Normal/Fighting moves - FORE SIGHT
@@ -507,7 +516,13 @@ public class MoveEffects {
             if (defender.getTeam().effectTeamMoves.get(1) > 0) {
                 defender.getTeam().removeTeamEffects(defender, 1); // remove rival safeguard
             }
-            //TODO: wipe out team enemy reflect, light screen and aurora veil
+            if (defender.getTeam().effectTeamMoves.get(4) > 0) {
+                defender.getTeam().removeTeamEffects(defender, 4); // remove rival light screen
+            }
+            if (defender.getTeam().effectTeamMoves.get(5) > 0) {
+                defender.getTeam().removeTeamEffects(defender, 5); // remove rival reflect
+            }
+            //TODO: wipe out team enemy aurora veil
             if(battle.weather.hasWeather(Weathers.FOG)) { // delete fog weather
                 battle.weather.endWeather();
             }
@@ -664,6 +679,142 @@ public class MoveEffects {
             if (defender.canFlinch() && Math.random() <= 0.1) {
                 defender.causeTemporalStatus(TemporalStatus.FLINCHED);
             }
+        }
+        if (effect == 104) {
+            // breaks protect moves - FEINT
+            if(defender.effectMoves.get(2) > 0) {
+                defender.effectMoves.set(2, 0);
+                System.out.println(defender.nickname + " lost its protection!");
+            }
+            //TODO: break detection, quick guard, wide guard, spiky shield, kings shield, mat block, baneful bunker and crafty shield
+        } else if (effect == 105) {
+            // increase user evasion - DOUBLE TEAM
+            attacker.changeStat(6, 1, true, move.getAddEffect() == 0);
+        } else if (effect == 106) {
+            // increase team special defense - LIGHT SCREEN
+            if(attacker.getTeam().effectTeamMoves.get(4) > 0) {
+                return false;
+            }
+            attacker.getTeam().effectTeamMoves.set(4, 1);
+            System.out.println(attacker.nickname + " team has a " + move.name);
+        } else if (effect == 107) {
+            // increase team defense - REFLECT
+            if(attacker.getTeam().effectTeamMoves.get(5) > 0) {
+                return false;
+            }
+            attacker.getTeam().effectTeamMoves.set(5, 1);
+            System.out.println(attacker.nickname + " team has a " + move.name);
+        } else if (effect == 108) {
+            // give its item to target - BESTOW
+            //TODO: bestow effect
+        } else if (effect == 109) {
+            // charge for 2 turns and liberate energy - BIDE
+            if(attacker.effectMoves.get(22) < 2) {
+                attacker.increaseEffectMove(22);
+                System.out.println(attacker.nickname + " is accumulating energy!");
+                attacker.recover1PP(move);
+            } else {
+                System.out.println(attacker.nickname + " liberated energy!");
+                attacker.effectMoves.set(22, 0);
+                if(attacker.bideDamage == 0) {
+                    return false;
+                }
+                defender.reduceHP(attacker.bideDamage*2);
+                attacker.bideDamage = 0;
+
+            }
+        } else if (effect == 110) {
+            // powers the next electric move and increase special defense - CHARGE
+            attacker.effectMoves.set(23, 1);
+            System.out.println(attacker.nickname + " is charging energy!");
+            attacker.changeStat(3, 1, true, move.getAddEffect() == 0);
+        } else if (effect == 111) {
+            // create electric terrain - ELECTRIC TERRAIN
+            //TODO: electric terrain effect
+        } else if (effect == 112) {
+            // create psychic terrain - PSYCHIC TERRAIN
+            //TODO: psychic terrain effect
+        } else if (effect == 113) {
+            // create misty terrain - MISTY TERRAIN
+            //TODO: misty terrain effect
+        } else if (effect == 114) {
+            // create grassy terrain - GRASSY TERRAIN
+            //TODO: grassy terrain effect
+        } else if (effect == 115) {
+            // rival must use the last movement from 3 turns - ENCORE
+            if(defender.effectMoves.get(26) > 0 || defender.previousMove == null) {
+                return false;
+            }
+            if(!defender.hasPP(defender.previousMove)) {
+                return false;
+            }
+            if(defender.previousMove.hasName("ENCORE") || defender.previousMove.hasName("SKETCH")
+                    ||defender.previousMove.hasName("MIMIC") || defender.previousMove.hasName("MIRRORMOVE")
+                    || defender.previousMove.hasName("TRANSFORM") || defender.previousMove.hasName("STRUGGLE")) {
+                return false;
+            }
+            defender.effectMoves.set(26, 1);
+            defender.encoreMove = defender.previousMove;
+            System.out.println(defender.nickname + " was trapped by " + move.name + "!");
+
+        } else if (effect == 116) {
+            // protect team from critical hits - LUCKY CHANT
+            if(attacker.getTeam().effectTeamMoves.get(6) > 0) {
+                return false;
+            }
+            attacker.getTeam().effectTeamMoves.set(6, 1);
+            System.out.println(attacker.nickname + " team has a " + move.name);
+        } else if (effect == 118) {
+            // decrease rival attack and defense - TICKLE
+            defender.changeStat(0, -1, false, move.getAddEffect() == 0);
+            defender.changeStat(1, -1, false, move.getAddEffect() == 0);
+        } else if (effect == 119) {
+            // heals in the next turn - WISH
+            if(attacker.getTeam().effectTeamMoves.get(7) > 0) {
+                return false;
+            }
+            attacker.getTeam().effectTeamMoves.set(7, 1);
+            System.out.println(attacker.nickname + " take a wish!");
+            attacker.getTeam().wishRecover = attacker.getHP()/2;
+        } else if (effect == 120) {
+            // attacks while 5 turns increasing power - ROLLOUT
+            if (attacker.effectMoves.get(25) < 5) {
+                if(attacker.effectMoves.get(25) > 0) {
+                    attacker.recover1PP(move);
+                }
+                attacker.increaseEffectMove(25);
+            } else {
+                attacker.effectMoves.set(25, 0);
+            }
+        } else if (effect == 121) {
+            // for every consecutive turn make it powerful - FURY CUTTER
+            if (attacker.effectMoves.get(24) < 2) {
+                attacker.increaseEffectMove(24);
+            } else {
+                attacker.effectMoves.set(24, 0);
+            }
+        } else if (effect == 124) {
+            // invokes a sandstorm weather - SAND STORM
+            //TODO: check if attacker has roca suave
+            return battle.weather.changeWeather(Weathers.SANDSTORM, false);
+        } else if (effect == 126) {
+            // increase user attack and accuracy - HONE CLAWS
+            attacker.changeStat(0, 1, true, move.getAddEffect() == 0);
+            attacker.changeStat(5, 1, true, move.getAddEffect() == 0);
+        } else if (effect == 127) {
+            // increase attack and special attack of Grass Pokemon - ROTOTILLER
+            int nGrass = 0;
+            if(attacker.hasType("GRASS") && !attacker.isLevitating()) {
+                attacker.changeStat(0, 1, false, move.getAddEffect() == 0);
+                attacker.changeStat(2, 1, false, move.getAddEffect() == 0);
+                nGrass++;
+            }
+            if(defender.hasType("GRASS") && !defender.isLevitating()) {
+                defender.changeStat(0, 1, false, move.getAddEffect() == 0);
+                defender.changeStat(2, 1, false, move.getAddEffect() == 0);
+                nGrass++;
+            }
+            return nGrass != 0;
         }
         return true;
     }

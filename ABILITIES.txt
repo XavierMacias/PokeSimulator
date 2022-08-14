@@ -17,4 +17,8 @@ BIGPECKS,Sacapecho,Evita que disminuya la defensa.
 GUTS,Agallas,Aumenta el Ataque si tiene problemas de estado.
 HUSTLE,Entusiasmo,Aumenta el Ataque pero baja la precisión.
 INTIMIDATE,Intimidación,Reduce el Ataque del rival al entrar al campo.
-UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes
+STATIC,Electricidad estática,Puede paralizar al contacto.
+LIGHTNINGROD,Pararrayos,Atrae los ataques eléctricos hacia él.
+SANDVEIL,Velo arena,Disminuye la precisión del enemigo cuando hay tormenta de arena.
+SANDRUSH,Ímpetu arena,Aumenta la velocidad cuando hay tormenta de arena.
+UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.

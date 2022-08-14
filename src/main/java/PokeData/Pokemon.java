@@ -52,6 +52,7 @@ public class Pokemon {
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
     Status status;
     List<TemporalStatus> tempStatus;
+    public Item item;
     public int criticalIndex = 0;
     boolean participate;
     private Team team;
@@ -63,8 +64,9 @@ public class Pokemon {
     public Movement previousMove;
     public Movement lastMoveInThisTurn;
     public Movement lastMoveReceived;
-    public Movement disabledMove;
+    public Movement disabledMove, encoreMove;
     public int previousDamage;
+    public int bideDamage;
     public List<Integer> effectMoves;
     public int stockpile = 0;
     private Scanner in;
@@ -154,8 +156,16 @@ public class Pokemon {
            16 -> wrap
            17 -> disable
            18 -> snatch
-           19 -> intimidate  */
-        for(int i=0;i<20;i++) {
+           19 -> intimidate
+           20 -> defense curl
+           21 -> sand tomb
+           22 -> bide
+           23 -> charge
+           24 -> fury cutter
+           25 -> rollout
+           26 -> encore
+        */
+        for(int i=0;i<27;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -163,6 +173,7 @@ public class Pokemon {
         participate = false;
         battle = null;
         disabledMove = null;
+        encoreMove = null;
     }
 
     public void setMove(String m) { // ONLY FOR DEBUG
@@ -226,23 +237,35 @@ public class Pokemon {
         return attack;
     }
 
-    public int getDefense(boolean critic) {
-        if (critic && getStatChange(1) > 1.0) {
-            return stats.get(2);
+    public int getDefense(boolean critic, boolean chipaway) {
+        int defense = stats.get(2);
+        if ((!(critic && getStatChange(1) > 1.0)) && !chipaway) {
+            defense = (int) (stats.get(2)*getStatChange(1));
         }
-        return (int) (stats.get(2)*getStatChange(1));
+
+        return defense;
     }
     public int getSpecialAttack(boolean critic) {
-        if (critic && getStatChange(2) < 1.0) {
-            return stats.get(3);
+        int spatk = stats.get(3);;
+        if (!(critic && getStatChange(2) < 1.0)) {
+            spatk = (int) (stats.get(3)*getStatChange(2));
         }
-        return (int) (stats.get(3)*getStatChange(2));
+        // solar power
+        if(hasAbility("SOLARPOWER") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+            spatk *= 1.5;
+        }
+        return spatk;
     }
     public int getSpecialDefense(boolean critic) {
-        if (critic && getStatChange(3) > 1.0) {
-            return stats.get(4);
+        int spdef = stats.get(3);
+        if (!(critic && getStatChange(3) > 1.0)) {
+            spdef = (int) (stats.get(4)*getStatChange(3));
         }
-        return (int) (stats.get(4)*getStatChange(3));
+        // rock type with sandstorm
+        if(hasType("ROCK") && battle.weather.hasWeather(Weathers.SANDSTORM)) {
+            spdef *= 1.5;
+        }
+        return spdef;
     }
     public int getVelocity() {
         int speed = (int) (stats.get(5)*getStatChange(4));
@@ -262,7 +285,10 @@ public class Pokemon {
     public double getAccuracy() {
         return getStatChange(5);
     }
-    public double getEvasion() {
+    public double getEvasion(boolean chipaway) {
+        if(chipaway) {
+            return 1.0;
+        }
         return getStatChange(6); }
 
     public int getLevel() {
@@ -792,7 +818,10 @@ public class Pokemon {
         previousMove = null;
         lastMoveInThisTurn = null;
         lastMoveReceived = null;
+        disabledMove = null;
+        encoreMove = null;
         previousDamage = 0;
+        bideDamage = 0;
 
         criticalIndex = 0;
 

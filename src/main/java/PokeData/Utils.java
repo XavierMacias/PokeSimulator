@@ -16,11 +16,13 @@ public class Utils {
     private ArrayList<Type> types;
     private ArrayList<Movement> moves;
     private ArrayList<Ability> abilities;
+    private ArrayList<Item> items;
     private ArrayList<Specie> species;
     public Utils() {
         types = new ArrayList<Type>();
         moves = new ArrayList<Movement>();
         abilities = new ArrayList<Ability>();
+        items = new ArrayList<Item>();
         species = new ArrayList<Specie>();
     }
 
@@ -82,6 +84,22 @@ public class Utils {
                 String[] data = myReader.nextLine().split(",");
                 Ability ability = new Ability(data[0], data[1], data[2]);
                 abilities.add(ability);
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+    public void addItems() {
+        try {
+            File myObj = new File("ITEMS.txt");
+            Scanner myReader = new Scanner(myObj,"iso-8859-1");
+            while (myReader.hasNextLine()) {
+                String[] data = myReader.nextLine().split(",");
+                Item item = new Item(data[0], data[1], Pocket.valueOf(data[2]),Double.valueOf(data[3]),FieldUse.valueOf(data[4]),
+                        BattleUse.valueOf(data[5]), Boolean.valueOf(data[6]), data[7], data[8], getMove(data[9]));
+                items.add(item);
             }
             myReader.close();
         } catch (FileNotFoundException e) {
@@ -192,6 +210,9 @@ public class Utils {
     }
 
     public Movement getMove(String m) {
+        if(m == null) {
+            return null;
+        }
         for(int i=0;i<moves.size();i++) {
             if(moves.get(i).getInternalName().equals(m)) {
                 return moves.get(i);
