@@ -229,6 +229,14 @@ public class Utils {
         }
         return null;
     }
+    public Item getItem(String it) {
+        for(int i=0;i<items.size();i++) {
+            if(items.get(i).getInternalName().equals(it)) {
+                return items.get(i);
+            }
+        }
+        return null;
+    }
 
     public Specie getPokemonByNumber(int n) {
         for(int i=0;i<species.size();i++) {
@@ -258,5 +266,8 @@ public class Utils {
 
     public ArrayList<Specie> getSpecies() {
         return species;
+    }
+    public ArrayList<Item> getItems() {
+        return items;
     }
 }

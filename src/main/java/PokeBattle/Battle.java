@@ -1115,6 +1115,10 @@ public class Battle {
         target.lastMoveInThisTurn = null;
         target.previousDamage = 0;
         target.effectMoves.set(9, 0);
+        int bindDamage = 8;
+        if(other.hasItem("BINDINGBAND")) {
+            bindDamage = 6;
+        }
 
         // remove flinch
         target.healTempStatus(TemporalStatus.FLINCHED,false);
@@ -1160,9 +1164,19 @@ public class Battle {
             other.healHP(target.getHP()/8, true, false);
         }
         if(target.hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED) && target.effectMoves.get(4) >= 1) {
-            System.out.println(target.nickname + " is hurt by Fire Spin!");
-            target.reduceHP(target.getHP()/8);
+            System.out.println(target.nickname + " is hurt by Fire Spin!"); // fire spin
+            target.reduceHP(target.getHP()/bindDamage);
             target.effectMoves.set(4, target.effectMoves.get(4)+1);
+        }
+        if(target.hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED) && target.effectMoves.get(16) >= 1) {
+            System.out.println(target.nickname + " is hurt by Wrap!"); // wrap
+            target.reduceHP(target.getHP()/bindDamage);
+            target.effectMoves.set(4, target.effectMoves.get(16)+1);
+        }
+        if(target.hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED) && target.effectMoves.get(21) >= 1) {
+            System.out.println(target.nickname + " is hurt by Sand Tomb!"); // sand tomb
+            target.reduceHP(target.getHP()/bindDamage);
+            target.effectMoves.set(4, target.effectMoves.get(21)+1);
         }
         // solar power
         if(target.hasAbility("SOLARPOWER") && (weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {

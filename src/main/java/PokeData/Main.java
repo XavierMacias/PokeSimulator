@@ -41,6 +41,10 @@ public class Main {
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIDGEY"),11, utils));
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils));
         //starter.setMove("YAWN");
+        player.getBag().addItem(utils.getItem("POTION"));
+        player.getBag().addItem(utils.getItem("SUPERPOTION"));
+        player.getBag().addItem(utils.getItem("ORANBERRY"));
+        player.getBag().addItem(utils.getItem("THUNDERSTONE"));
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");
@@ -60,6 +64,7 @@ public class Main {
                     break;
                 case "2":
                     // bag
+                    player.getBag().openBag();
                     break;
                 case "3":
                     // pokedex

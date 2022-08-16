@@ -219,6 +219,12 @@ public class Pokemon {
     }
 
     public List<Integer> getStats() { return stats; }
+    public boolean hasItem(String it) {
+        if(item == null) {
+            return false;
+        }
+        return item.getInternalName().equals(it);
+    }
     public List<Integer> getStatChanges() { return statChanges; }
 
     public int getAttack(boolean critic) {
@@ -662,6 +668,9 @@ public class Pokemon {
     }
 
     public void modifyHappiness(int hap) {
+        if(hap > 0 && hasItem("SOOTHEBELL")) {
+            hap *= 1.5;
+        }
         if(happiness < 255) {
             happiness += hap;
             if(happiness < 0) {
@@ -730,7 +739,7 @@ public class Pokemon {
             }
             // check new moves
             setMoves(true,false);
-            checkEvolution();
+            if(!hasItem("EVERSTONE")) checkEvolution();
         }
     }
 
