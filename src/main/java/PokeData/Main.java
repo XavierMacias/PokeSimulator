@@ -43,8 +43,13 @@ public class Main {
         //starter.setMove("YAWN");
         player.getBag().addItem(utils.getItem("POTION"));
         player.getBag().addItem(utils.getItem("SUPERPOTION"));
+        player.getBag().addItem(utils.getItem("WATERSTONE"));
         player.getBag().addItem(utils.getItem("ORANBERRY"));
+        player.getBag().addItem(utils.getItem("ORANBERRY"));
+        player.getBag().addItem(utils.getItem("CHERIBERRY"));
         player.getBag().addItem(utils.getItem("THUNDERSTONE"));
+        player.getBag().addItem(utils.getItem("POTION"));
+        player.getBag().addItem(utils.getItem("BINDINGBAND"));
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");
@@ -64,7 +69,7 @@ public class Main {
                     break;
                 case "2":
                     // bag
-                    player.getBag().openBag();
+                    player.getBag().openBag(true);
                     break;
                 case "3":
                     // pokedex

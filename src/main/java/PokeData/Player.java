@@ -22,7 +22,7 @@ public class Player {
         // initialize team
         team = new Team();
         // initialize bag
-        bag = new Bag();
+        bag = new Bag(this);
     }
 
     public int getId() {

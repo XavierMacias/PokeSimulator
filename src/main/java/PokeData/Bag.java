@@ -1,6 +1,7 @@
 package PokeData;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class Bag {
@@ -13,9 +14,10 @@ public class Bag {
     private ArrayList<Item> mail;
     private ArrayList<Item> keyitems;
     private ArrayList<Item> mts;
+    private Player player;
     Scanner in;
 
-    public Bag() {
+    public Bag(Player pl) {
         items = new ArrayList<>();
         medicine = new ArrayList<>();
         pokeballs = new ArrayList<>();
@@ -24,11 +26,12 @@ public class Bag {
         mts = new ArrayList<>();
         mail = new ArrayList<>();
         keyitems = new ArrayList<>();
+        player = pl;
 
         in = new Scanner(System.in);
     }
 
-    public void openBag() {
+    public void openBag(boolean outsideBattle) {
         System.out.println("Choose the Pocket");
         String pocketIndex = "-1";
         System.out.println("0: Back");
@@ -42,13 +45,16 @@ public class Bag {
         System.out.println("8: Key items");
 
         pocketIndex = in.nextLine();
+
         if(Integer.parseInt(pocketIndex) > 0 && Integer.parseInt(pocketIndex) <= 8) {
-            openPocket(Integer.parseInt(pocketIndex));
+            openPocket(Integer.parseInt(pocketIndex),outsideBattle);
+        } else if(Integer.parseInt(pocketIndex) != 0) {
+            openBag(outsideBattle);
         }
 
     }
 
-    public void openPocket(int pocket) {
+    public void openPocket(int pocket, boolean outsideBattle) {
         ArrayList<Item> listItems;
         switch(pocket) {
             case 1:
@@ -85,13 +91,97 @@ public class Bag {
                 break;
         }
         String itemIndex = "-1";
+        String itemsNames = "";
         System.out.println("0: Exit");
+        int ind = 1;
         for(int i=0;i<listItems.size();i++) {
-            System.out.println((i+1) + ": " + listItems.get(i).name);
+            Item it = listItems.get(i);
+            if(!itemsNames.contains(it.name)) {
+                System.out.println(ind + ": " + it.name + " x" + Collections.frequency(listItems, it));
+                ind++;
+                itemsNames += it.name;
+            }
         }
         itemIndex = in.nextLine();
         if(Integer.parseInt(itemIndex) > 0 && Integer.parseInt(itemIndex) <= listItems.size()) {
-            // interact item
+            Item it = listItems.get(Integer.parseInt(itemIndex)-1);
+            interactItem(it, outsideBattle, pocket);
+        } else if(Integer.parseInt(itemIndex) != 0) {
+            openPocket(pocket,outsideBattle);
+        } else {
+            openBag(outsideBattle);
+        }
+    }
+
+    private void interactItem(Item it, boolean outsideBattle, int pocket) {
+        String itemIndex = "-1";
+        int i = 1;
+        if(outsideBattle) {
+            System.out.println("0: Exit");
+            System.out.println(i+": Give");
+            i++;
+            System.out.println(i+": Toss");
+            i++;
+            if(!it.getFieldUse().toString().equals("NOFIELDUSE")) {
+                System.out.println(i+": Use");
+                i++;
+            }
+            itemIndex = in.nextLine();
+            if(Integer.parseInt(itemIndex) > 0 && Integer.parseInt(itemIndex) < i) {
+                switch(itemIndex) {
+                    case "1":
+                        // give
+                        giveItem(it, pocket);
+                        break;
+                    case "2":
+                        // toss
+                        tossItem(it, pocket);
+                        break;
+                    case "3":
+                        // use
+                        break;
+                }
+                openPocket(pocket,outsideBattle);
+            } else if(Integer.parseInt(itemIndex) != 0) {
+                interactItem(it, outsideBattle, pocket);
+            } else {
+                openPocket(pocket,outsideBattle);
+            }
+
+
+        } else {
+            // inside battle
+        }
+    }
+
+    private void giveItem(Item newItem, int pocket) {
+        System.out.println("Which do you want to give the " + newItem.name + " to? ");
+        Pokemon poke = player.getTeam().selectPokemon();
+        if(poke != null) {
+            if(poke.item != null) {
+                System.out.println(poke.nickname + " already has "+ poke.item.name + "!");
+                System.out.println("Do you want switch the items?");
+                System.out.println("1: Yes\n2: No");
+                if(in.nextLine().equals("1")) {
+                    System.out.println("You switched "+poke.item.name+" by " + newItem.name + "!");
+                    addItem(poke.item);
+                    poke.item = newItem;
+                    getPocket(pocket).remove(newItem);
+                }
+            } else {
+                poke.item = newItem;
+                getPocket(pocket).remove(newItem);
+                System.out.println("You gave "+newItem.name+" to " + poke.nickname + "!");
+            }
+        }
+
+    }
+    private void tossItem(Item item, int pocket) {
+        System.out.println("Would you like to toss "+item.name+"?");
+        System.out.println("1: Yes\n2: No");
+        if(in.nextLine().equals("1") && getPocket(pocket).contains(item)) {
+            System.out.println("You tossed "+item.name+"!");
+            getPocket(pocket).remove(item);
         }
     }
 
@@ -130,5 +220,36 @@ public class Bag {
                 keyitems.add(item);
                 break;
         }
+    }
+
+    private ArrayList<Item> getPocket(int pocket) {
+        ArrayList<Item> pock;
+        switch(pocket) {
+            case 1:
+                pock = items;
+                break;
+            case 2:
+                pock = medicine;
+                break;
+            case 3:
+                pock = pokeballs;
+                break;
+            case 4:
+                pock = mts;
+                break;
+            case 5:
+                pock = berries;
+                break;
+            case 6:
+                pock = mail;
+                break;
+            case 7:
+                pock = battleitems;
+                break;
+            default:
+                pock = keyitems;
+                break;
+        }
+        return pock;
     }
 }

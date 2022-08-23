@@ -60,6 +60,20 @@ public class Team {
         }
     }
 
+    public Pokemon selectPokemon() {
+        int chosenIndex = -1;
+        do {
+            System.out.println("0: Exit");
+            showTeam();
+            chosenIndex = Integer.parseInt(in.nextLine());
+            if(chosenIndex == 0) {
+                return null;
+            }
+        } while(chosenIndex < 0 || chosenIndex > getPokemonTeam().size());
+
+        return getPokemon(chosenIndex-1);
+    }
+
     public boolean isTeamDefeated() {
         return alivePokemon() == 0;
     }
