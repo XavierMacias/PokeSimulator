@@ -6,6 +6,7 @@ import org.checkerframework.checker.units.qual.A;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Team {
@@ -72,6 +73,57 @@ public class Team {
         } while(chosenIndex < 0 || chosenIndex > getPokemonTeam().size());
 
         return getPokemon(chosenIndex-1);
+    }
+
+    public int choseRandomAliveMember(Pokemon currentPoke) {
+        ArrayList<Integer> indexes = new ArrayList<Integer>();
+        Random random = new Random();
+        for(int i=0;i<pokemonTeam.size();i++) {
+            if(!pokemonTeam.get(i).status.equals(Status.FAINTED) && pokemonTeam.get(i) != currentPoke) {
+                indexes.add(i+1);
+            }
+        }
+
+        return indexes.get(random.nextInt(indexes.size()));
+    }
+
+    public void pokeOptions() {
+        Pokemon poke = selectPokemon();
+        int chosenIndex = -1;
+        if(poke != null) {
+            do {
+                System.out.println("0: Exit");
+                System.out.println("1: Info");
+                System.out.println("2: Item");
+                System.out.println("3: Move");
+                chosenIndex = Integer.parseInt(in.nextLine());
+
+            } while(chosenIndex < 0 || chosenIndex > 3);
+            switch (chosenIndex) {
+                case 1:
+                    //TODO: pokemon info
+                    break;
+                case 2:
+                    //TODO: pokemon item
+                    String chosenIndex2 = "-1";
+                    System.out.println("0: Exit");
+                    System.out.println("1: Give");
+                    if(poke.item != null) {
+                        System.out.println("2: Take");
+                    }
+                    chosenIndex2 = in.nextLine();
+                    if(chosenIndex2.equals("1")) {
+                        // give item
+                    } else if(chosenIndex2.equals("2") && poke.item != null) {
+                        // take item
+                    }
+                    break;
+                case 3:
+                    //TODO: move pokemon
+                    break;
+            }
+        }
+
     }
 
     public boolean isTeamDefeated() {

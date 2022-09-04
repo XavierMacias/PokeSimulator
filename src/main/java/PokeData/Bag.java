@@ -139,6 +139,7 @@ public class Bag {
                         break;
                     case "3":
                         // use
+                        //TODO: use item
                         break;
                 }
                 openPocket(pocket,outsideBattle);
@@ -150,7 +151,7 @@ public class Bag {
 
 
         } else {
-            // inside battle
+            //TODO: items inside battle
         }
     }
 
@@ -164,7 +165,7 @@ public class Bag {
                 System.out.println("1: Yes\n2: No");
                 if(in.nextLine().equals("1")) {
                     System.out.println("You switched "+poke.item.name+" by " + newItem.name + "!");
-                    addItem(poke.item);
+                    addItem(poke.item, false);
                     poke.item = newItem;
                     getPocket(pocket).remove(newItem);
                 }
@@ -185,39 +186,39 @@ public class Bag {
         }
     }
 
-    public void addItem(Item item) {
+    public void addItem(Item item, boolean message) {
         switch(item.pocket.toString()) {
             case "ITEMS":
                 items.add(item);
-                System.out.println(item.name + " was saved in Items Pocket");
+                if(message) System.out.println(item.name + " was saved in Items Pocket");
                 break;
             case "MEDICINE":
                 medicine.add(item);
-                System.out.println(item.name + " was saved in Medicine Pocket");
+                if(message) System.out.println(item.name + " was saved in Medicine Pocket");
                 break;
             case "POKEBALLS":
-                System.out.println(item.name + " was saved in Poké Balls Pocket");
                 pokeballs.add(item);
+                if(message) System.out.println(item.name + " was saved in Poké Balls Pocket");
                 break;
             case "TMS":
-                System.out.println(item.name + " was saved in TM/HMs Pocket");
                 mts.add(item);
+                if(message) System.out.println(item.name + " was saved in TM/HMs Pocket");
                 break;
             case "BERRIES":
-                System.out.println(item.name + " was saved in Berries Pocket");
                 berries.add(item);
+                if(message) System.out.println(item.name + " was saved in Berries Pocket");
                 break;
             case "MAIL":
-                System.out.println(item.name + " was saved in Mail Pocket");
                 mail.add(item);
+                if(message) System.out.println(item.name + " was saved in Mail Pocket");
                 break;
             case "BATTLEITEMS":
-                System.out.println(item.name + " was saved in Battle Items Pocket");
                 battleitems.add(item);
+                if(message) System.out.println(item.name + " was saved in Battle Items Pocket");
                 break;
             default:
-                System.out.println(item.name + " was saved in Key Items Pocket");
                 keyitems.add(item);
+                if(message) System.out.println(item.name + " was saved in Key Items Pocket");
                 break;
         }
     }

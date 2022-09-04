@@ -39,20 +39,29 @@ public class Main {
         player.getTeam().obtainPokemon(starter);
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("RATTATA"),11, utils));
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIDGEY"),11, utils));
+        player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIKACHU"),11, utils));
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils));
         //starter.setMove("YAWN");
-        player.getBag().addItem(utils.getItem("POTION"));
-        player.getBag().addItem(utils.getItem("SUPERPOTION"));
-        player.getBag().addItem(utils.getItem("WATERSTONE"));
-        player.getBag().addItem(utils.getItem("ORANBERRY"));
-        player.getBag().addItem(utils.getItem("ORANBERRY"));
-        player.getBag().addItem(utils.getItem("CHERIBERRY"));
-        player.getBag().addItem(utils.getItem("THUNDERSTONE"));
-        player.getBag().addItem(utils.getItem("POTION"));
-        player.getBag().addItem(utils.getItem("BINDINGBAND"));
+        player.getBag().addItem(utils.getItem("POTION"), true);
+        player.getBag().addItem(utils.getItem("SUPERPOTION"), true);
+        player.getBag().addItem(utils.getItem("WATERSTONE"), true);
+        player.getBag().addItem(utils.getItem("ORANBERRY"), true);
+        player.getBag().addItem(utils.getItem("ORANBERRY"), true);
+        player.getBag().addItem(utils.getItem("REPEL"), true);
+        player.getBag().addItem(utils.getItem("REPEL"), true);
+        player.getBag().addItem(utils.getItem("REPEL"), true);
+        player.getBag().addItem(utils.getItem("CHERIBERRY"), true);
+        player.getBag().addItem(utils.getItem("THUNDERSTONE"), true);
+        player.getBag().addItem(utils.getItem("POTION"), true);
+        player.getBag().addItem(utils.getItem("MAXREPEL"), true);
+        player.getBag().addItem(utils.getItem("MAXREPEL"), true);
+        player.getBag().addItem(utils.getItem("PEARL"), true);
+        player.getBag().addItem(utils.getItem("BIGPEARL"), true);
+        player.getBag().addItem(utils.getItem("BIGPEARL"), true);
+        player.getBag().addItem(utils.getItem("BINDINGBAND"), true);
 
         while(!menu.equals("-1")) {
-            System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Pokedex\n-1: Exit");
+            System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Party\n4: Pokedex\n-1: Exit");
             menu = in.nextLine();
             switch(menu) {
                 case "1":
@@ -72,9 +81,13 @@ public class Main {
                     player.getBag().openBag(true);
                     break;
                 case "3":
-                    // pokedex
+                    // party
+                    player.getTeam().pokeOptions();
                     break;
                 case "4":
+                    // pokedex
+                    break;
+                case "5":
                     starter.participate = true;
                     starter.gainExperience(starter,1,true);
             }

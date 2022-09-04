@@ -119,7 +119,6 @@ ASSAULTVEST,Chaleco asalto,ITEMS,1000,NOFIELDUSE,NOBATTLEUSE,false,,Aumenta la D
 EXPERTBELT,Cinta experto,ITEMS,4000,NOFIELDUSE,NOBATTLEUSE,false,,Aumenta el daño de los ataques súper efectivos del portador, 
 METRONOME,Metrónomo,ITEMS,200,NOFIELDUSE,NOBATTLEUSE,false,,Incrementa la potencia de un movimiento si se usa consecutivamente, 
 EVIOLITE,Mineral evolutivo,ITEMS,4000,NOFIELDUSE,NOBATTLEUSE,false,,Aumenta las defensas del portador si éste aún puede evolucionar, 
-LIFEORB,Vidasfera,ITEMS,4000,NOFIELDUSE,NOBATTLEUSE,false,,Aumenta la potencia de los movimientos pero baja PS en cada turno, 
 MUSCLEBAND,Cinta fuerte,ITEMS,200,NOFIELDUSE,NOBATTLEUSE,false,,Aumenta el Ataque del portador, 
 WISEGLASSES,Gafas especiales,ITEMS,200,NOFIELDUSE,NOBATTLEUSE,false,,Aumenta el Ataque Especial del portador, 
 CHOICEBAND,Cinta elección,ITEMS,4000,NOFIELDUSE,NOBATTLEUSE,false,,Aumenta el Ataque pero sólo se puede usar un movimiento, 

@@ -31,7 +31,7 @@ public class MoveEffects {
         } else if (effect == 2) {
             // seed the target - LEECH SEED
             if (defender.canSeed()) {
-                defender.causeTemporalStatus(TemporalStatus.SEEDED);
+                defender.causeTemporalStatus(TemporalStatus.SEEDED, attacker);
             } else {
                 return false;
             }
@@ -131,7 +131,7 @@ public class MoveEffects {
                     // sky attack can flinch enemy
                     attacker.effectMoves.set(3, 0);
                     if (Math.random() <= 0.3 && attacker.canFlinch()) {
-                        defender.causeTemporalStatus(TemporalStatus.FLINCHED);
+                        defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
                     }
                 }
             } //TODO: dig
@@ -146,7 +146,7 @@ public class MoveEffects {
                 }
                 System.out.println(attacker.nickname + " lost some of its HP and cursed " + defender.nickname + "!");
                 attacker.reduceHP(attacker.getHP() / 2);
-                defender.causeTemporalStatus(TemporalStatus.CURSED);
+                defender.causeTemporalStatus(TemporalStatus.CURSED, attacker);
             } else {
                 attacker.changeStat(0, 1, true, move.getAddEffect() == 0);
                 attacker.changeStat(1, 1, true, move.getAddEffect() == 0);
@@ -184,13 +184,13 @@ public class MoveEffects {
                 attacker.effectMoves.set(11, 0);
                 attacker.recover1PP(move);
                 if (attacker.canConfuse(true)) {
-                    attacker.causeTemporalStatus(TemporalStatus.CONFUSED);
+                    attacker.causeTemporalStatus(TemporalStatus.CONFUSED, defender);
                 }
             } else if (attacker.effectMoves.get(11) == 2) {
                 attacker.effectMoves.set(11, 0);
                 attacker.recover1PP(move);
                 if (attacker.canConfuse(true)) {
-                    attacker.causeTemporalStatus(TemporalStatus.CONFUSED);
+                    attacker.causeTemporalStatus(TemporalStatus.CONFUSED, defender);
                 }
             } else {
                 attacker.effectMoves.set(11, 2);
@@ -213,10 +213,10 @@ public class MoveEffects {
         if (effect == 24) {
             // decreases a lot target speed - SCARY FACE, STRING SHOT
             defender.changeStat(4, -2, false, move.getAddEffect() == 0);
-        } else if (effect == 25 && !defender.isFainted()) {
+        } else if ((effect == 25 && !defender.isFainted()) || ((attacker.hasItem("KINGSROCK") || attacker.hasItem("RAZORFANG")) && Math.random() < 0.1)) {
             // flinched target - BITE, HYPER FANG, AIR SLASH, TWISTER, FAKE OUT...
             if (defender.canFlinch()) {
-                defender.causeTemporalStatus(TemporalStatus.FLINCHED);
+                defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
             } else {
                 return false;
             }
@@ -232,7 +232,7 @@ public class MoveEffects {
             } else if(defender.effectMoves.get(21) == 0 && move.hasName("SANDTOMB")) {
                 defender.effectMoves.set(21, 1);
             }
-            defender.causeTemporalStatus(TemporalStatus.PARTIALLYTRAPPED);
+            defender.causeTemporalStatus(TemporalStatus.PARTIALLYTRAPPED, attacker);
             System.out.println(defender.nickname + " was trapped by " + move.name);
         } else if (effect == 28) {
             // reduces HP but maximizes attack - BELLY DRUM
@@ -255,7 +255,7 @@ public class MoveEffects {
                 defender.causeStatus(Status.BURNED);
             }
             if (defender.canFlinch() && Math.random() <= 0.1) {
-                defender.causeTemporalStatus(TemporalStatus.FLINCHED);
+                defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
             }
         } else if (effect == 32) {
             // increase user attack and speed - DRAGON DANCE
@@ -304,7 +304,7 @@ public class MoveEffects {
         } else if (effect == 42) {
             // confuse target - SUPERSONIC, CONFUSION, CONFUSE RAY, SIGNAL BEAM, WATER PULSE...
             if (defender.canConfuse(false)) {
-                defender.causeTemporalStatus(TemporalStatus.CONFUSED);
+                defender.causeTemporalStatus(TemporalStatus.CONFUSED, attacker);
             } else {
                 return false;
             }
@@ -313,8 +313,7 @@ public class MoveEffects {
             attacker.changeStat(1, 2, true, move.getAddEffect() == 0);
         } else if (effect == 44) {
             // starts to rain - RAIN DANCE
-            //TODO: check if attacker has roca lluvia
-            return battle.weather.changeWeather(Weathers.RAIN, false);
+            return battle.weather.changeWeather(Weathers.RAIN, attacker.hasItem("DAMPROCK"));
         } else if (effect == 46) {
             // returns the double of special damage - MIRROR COAT
             if (attacker.previousDamage > 0 && attacker.lastMoveInThisTurn.getCategory().equals(Category.SPECIAL) && defender.hasType("DARK")) {
@@ -431,7 +430,7 @@ public class MoveEffects {
             // increase the critical move index - FOCUS ENERGY
             System.out.println(attacker.nickname + " is focusing to battle!");
             attacker.criticalIndex += 2;
-            if (attacker.criticalIndex > 4) {
+            if (attacker.getCriticalIndex() > 4) {
                 attacker.criticalIndex = 4;
             }
         } else if (effect == 72) {
@@ -669,7 +668,7 @@ public class MoveEffects {
                 defender.causeStatus(Status.FROZEN);
             }
             if (defender.canFlinch() && Math.random() <= 0.1) {
-                defender.causeTemporalStatus(TemporalStatus.FLINCHED);
+                defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
             }
         } else if (effect == 102) {
             // paralyze or flinches the target - THUNDER FANG
@@ -677,7 +676,7 @@ public class MoveEffects {
                 defender.causeStatus(Status.PARALYZED);
             }
             if (defender.canFlinch() && Math.random() <= 0.1) {
-                defender.causeTemporalStatus(TemporalStatus.FLINCHED);
+                defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
             }
         }
         if (effect == 104) {
@@ -795,8 +794,7 @@ public class MoveEffects {
             }
         } else if (effect == 124) {
             // invokes a sandstorm weather - SAND STORM
-            //TODO: check if attacker has roca suave
-            return battle.weather.changeWeather(Weathers.SANDSTORM, false);
+            return battle.weather.changeWeather(Weathers.SANDSTORM, attacker.hasItem("SMOOTHROCK"));
         } else if (effect == 126) {
             // increase user attack and accuracy - HONE CLAWS
             attacker.changeStat(0, 1, true, move.getAddEffect() == 0);
