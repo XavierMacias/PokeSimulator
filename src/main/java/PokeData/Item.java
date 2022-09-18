@@ -47,6 +47,8 @@ public class Item {
      i: is a repel item
      j: is a mega stone
      k: is a mega ring
+     l: is a plate
+     m: is a memory
     */
     String flags;
     Movement move; // only for TMs/HMs

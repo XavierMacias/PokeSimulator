@@ -21,4 +21,7 @@ STATIC,Electricidad estática,Puede paralizar al contacto.
 LIGHTNINGROD,Pararrayos,Atrae los ataques eléctricos hacia él.
 SANDVEIL,Velo arena,Disminuye la precisión del enemigo cuando hay tormenta de arena.
 SANDRUSH,Ímpetu arena,Aumenta la velocidad cuando hay tormenta de arena.
+POISONPOINT,Punto tóxico,Envenena al mínimo contacto.
+RIVALRY,Rivalidad,Quita más vida a rivales del mismo sexo.
 UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.
+SHEERFORCE,Potencia bruta,Potencia los ataques con efecto secundario pero elimina el efecto.

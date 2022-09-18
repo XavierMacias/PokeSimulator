@@ -16,6 +16,7 @@ public class Battle {
     int battleResult;
     MoveEffects moveEffects;
     public Weather weather;
+    public Terrain terrain;
     public List<Integer> effectFieldMoves;
     Scanner in;
     Random random;
@@ -30,12 +31,13 @@ public class Battle {
         in = new Scanner(System.in);
         moveEffects = new MoveEffects(this);
         weather = new Weather();
+        terrain = new Terrain();
 
         effectFieldMoves = new ArrayList<Integer>();
         /* 0 -> mud sport
            1 -> uproar
         */
-        for(int i=0;i<5;i++) {
+        for(int i=0;i<6;i++) {
             effectFieldMoves.add(0);
         }
     }
@@ -59,8 +61,8 @@ public class Battle {
         rival.pokeTurn = 1;
         String battleChoose = "0";
         //user.setAbility("INTIMIDATE");
-        //user.setItem("CHOICESPECS");
-        //rival.setMove("ENCORE");
+        //user.setItem("ROCKYHELMET");
+        user.setMove("GRASSYTERRAIN");
         //weather.changeWeather(Weathers.HAIL, false);
 
         // battle loop
@@ -295,7 +297,7 @@ public class Battle {
                 System.out.println("0: Exit");
                 // moves list
                 for(int i=0;i<user.getMoves().size();i++) {
-                    System.out.println((i+1)+": "+user.getMoves().get(i).getMove().name+" - "+user.getRemainPPs().get(i)+"/"+user.getMoves().get(i).getPP());
+                    System.out.println((i+1)+": "+user.getMoves().get(i).getMove().name+" - "+user.getRemainPPs().get(i)+"/"+user.getMoves().get(i).getPP() + " - " + user.getMoves().get(i).getMove().type.name);
                 }
                 chosenIndex = Integer.parseInt(in.nextLine());
                 // can't use this move
@@ -431,10 +433,10 @@ public class Battle {
     }
 
     private boolean twoTurnAttacks(Pokemon attacker, Movement attackerMove) {
-        if ((attackerMove.getPower() != 0 && attackerMove.getCode() != 11)) { // if it is damaging move and is not two turn attack
+        if ((!attackerMove.getCategory().equals(Category.STATUS) && attackerMove.getCode() != 11)) { // if it is damaging move and is not two turn attack
             return true;
         }
-        if (attackerMove.getCode() == 11 && attacker.effectMoves.get(3) == 1) { // if it is two turn attack and is charged
+        if (attackerMove.getCode() == 11 && (attacker.effectMoves.get(3) == 1 || attacker.hasItem("POWERHERB"))) { // if it is two turn attack and is charged
             return true;
         }
         if (attackerMove.hasName("SOLARBEAM") && (weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
@@ -449,6 +451,10 @@ public class Battle {
         // protect moves reduce accuracy depending on turns
         if(attackerMove.getCode() == 19 || attackerMove.getCode() == 41) {
             moveAccuracy = (int) (100.0/(Math.pow(2,attacker.protectTurns)));
+        }
+        // One Hit KO moves accuracy
+        if(attackerMove.getCode() == 133) {
+            moveAccuracy = (attacker.getLevel() - defender.getLevel()) + 30;
         }
         // HURRICANE and THUNDER low accuracy with sun
         if((attackerMove.hasName("HURRICANE") || attackerMove.hasName("THUNDER")) &&
@@ -475,6 +481,10 @@ public class Battle {
         if(attacker.hasAbility("HUSTLE") && attackerMove.getCategory().equals(Category.PHYSICAL)) {
             moveAccuracy *= 0.8;
         }
+        // sand veil
+        if(defender.hasAbility("SANDVEIL") && weather.hasWeather(Weathers.SANDSTORM)) {
+            moveAccuracy *= 0.8;
+        }
         if(moveAccuracy == 0 && attackerMove.getAccuracy() != 0) moveAccuracy = 1;
 
         // BLIZZARD never will fail with hail
@@ -495,7 +505,7 @@ public class Battle {
         return moveAccuracy;
     }
 
-    public boolean inmunityToAttack(Pokemon defender, Movement attackerMove) {
+    public boolean inmunityToAttack(Pokemon attacker, Pokemon defender, Movement attackerMove) {
         // heavy rain and heavy sun prevents fire/water attacks
         if(weather.hasWeather(Weathers.HEAVYSUNLIGHT) && attackerMove.type.is("WATER") && !attackerMove.getCategory().equals(Category.STATUS)) {
             System.out.println("Heavy sunlight prevents Water-Type attacks!");
@@ -503,8 +513,25 @@ public class Battle {
         } else if(weather.hasWeather(Weathers.HEAVYRAIN) && attackerMove.type.is("FIRE") && !attackerMove.getCategory().equals(Category.STATUS)) {
             System.out.println("Heavy rain prevents Fire-Type attacks!");
             return true;
-        } else if(defender.hasItem("SAFETYGOOGLES") && attackerMove.getFlags().contains("l")) {
+        }
+        // items
+        if(defender.hasItem("SAFETYGOOGLES") && attackerMove.getFlags().contains("l")) {
             System.out.println(defender.item.name + " prevents " + defender.nickname + " from " + attackerMove.name + "!");
+            return true;
+        }
+        // abilities
+        if(defender.hasAbility("LIGHTNINGROD") && attackerMove.type.is("ELECTRIC")) {
+            System.out.println(defender.getAbility().name + " from " + defender.nickname + " prevents " + attackerMove.name + "!");
+            defender.changeStat(2,1,false,true);
+            return true;
+        }
+        // moves inmunities
+        if(attackerMove.getCode() == 133 && (attacker.getLevel() < defender.getLevel())) { // One Hit KO moves fails for level
+            return true;
+        }
+        // terrains
+        if(terrain.hasTerrain(TerrainTypes.PSYCHIC) && !defender.isLevitating() && attackerMove.getPriority() > 0) {
+            System.out.println("Psychic Terrain protect from " + attackerMove.name + "!");
             return true;
         }
 
@@ -561,7 +588,7 @@ public class Battle {
                 evasion = 1.0;
             }
             // fore sight
-            if(defender.effectMoves.get(5) > 0) {
+            if(defender.effectMoves.get(5) > 0 || attackerMove.getCode() == 133) {
                 accuracy = 1.0;
                 evasion = 1.0;
             }
@@ -571,7 +598,7 @@ public class Battle {
             if (a >= Math.random() || moveAccuracy == 0 || !twoTurnAttacks(attacker,attackerMove)) {
                 defender.lastMoveReceived = attackerMove;
                 // immunity caused by abilities, weather, items, etc...
-                if(inmunityToAttack(defender, attackerMove) && twoTurnAttacks(attacker,attackerMove)) {
+                if(inmunityToAttack(attacker, defender, attackerMove) && twoTurnAttacks(attacker,attackerMove)) {
                     removeMultiTurnAttackEffects(attacker, attackerMove);
                 }
                 // rival is protecting
@@ -602,7 +629,7 @@ public class Battle {
                     if(attackerMove.getCode() == 31) {
                         beatUp = attacker.getTeam().getBeatUpTeam(attacker);
                         hits = beatUp.size();
-                    } else if(attackerMove.getCode() == 65) { // twin needle
+                    } else if(attackerMove.getCode() == 65 || attackerMove.getCode() == 128) { // twin needle, double kick
                         hits = 2;
                     } else if(attackerMove.getCode() == 66) { // fury attack, pin missile
                         double prob = Math.random();
@@ -623,7 +650,7 @@ public class Battle {
                             attacker = beatUp.get(i);
                         }
 
-                        if (twoTurnAttacks(attacker,attackerMove)) {
+                        if (twoTurnAttacks(attacker,attackerMove) && attackerMove.getPower() != 0) {
                             dmg = CalcDamage(attacker, defender, attackerMove, mefirst);
                             if(dmg > 0) {
                                 defender.reduceHP(dmg);
@@ -651,12 +678,11 @@ public class Battle {
                                 defender.changeStat(0,1,false, false);
                             }
                             itemEffectsAfterAttack(attacker,defender,attackerMove,defenderMove, dmg);
+                            abilityEffectsAfterAttack(attacker,defender,attackerMove,defenderMove, dmg);
+                            moveEffectsAfterAttack(attacker,defender,attackerMove,defenderMove);
                         }
                     }
 
-                    if(dmg > 0) {
-                        moveEffectsAfterAttack(attacker,defender,attackerMove,defenderMove);
-                    }
                     if(hits > 1 && attackerMove.getCode() != 31) System.out.println("Number of hits: " + hits + "!");
                 }
 
@@ -666,10 +692,14 @@ public class Battle {
                 attacker.protectTurns = 0;
                 removeMultiTurnAttackEffects(attacker, attackerMove);
                 defender.lastMoveReceived = attackerMove;
+                if(!attacker.isFainted() && attacker.hasItem("BLUNDERPOLICY")) { // blunder policy
+                    if(attacker.changeStat(4,2,false,true)) attacker.loseItem(true);
+                }
             }
             if(reducePP) { attacker.reducePP(attackerMove,1); }
             if(defender.effectMoves.get(22) > 0 && defenderMove.hasName("BIDE")) defender.bideDamage += dmg; // bide damage increases
             System.out.println(defender.nickname + " HP: " + defender.getPsActuales() + "/" + defender.getHP());
+            attackerMove.recoverType();
         }
 
     }
@@ -755,6 +785,24 @@ public class Battle {
             if(d == 0) d = 1;
             attacker.healHP(d, true, true);
         }
+        if(!defender.isFainted() && ((defender.hasItem("CELLBATTERY") && attackerMove.type.is("ELECTRIC"))
+            || (defender.hasItem("SNOWBALL") && attackerMove.type.is("ICE")))) { // cell battery and snow ball actives
+            if(defender.changeStat(0,1,false,true)) defender.loseItem(true);
+        }
+        if(!defender.isFainted() && defender.hasItem("ABSORBBULB") && attackerMove.type.is("WATER")) { // absorb bulb actives
+            if(defender.changeStat(2,1,false,true)) defender.loseItem(true);
+        }
+        if(!defender.isFainted() && defender.hasItem("LUMINOUSMOSS") && attackerMove.type.is("WATER")) { // luminous moss actives
+            if(defender.changeStat(3,1,false,true)) defender.loseItem(true);
+        }
+        if(!defender.isFainted() && defender.hasItem("WEAKNESSPOLICY") && getEffectiveness(attacker,defender,attackerMove) >= 2.0) { // weakness policy
+            boolean inc1 = defender.changeStat(0,2,false,true);
+            boolean inc2 = defender.changeStat(2,2,false,true);
+            if(!inc1 && !inc2) defender.loseItem(true);
+        }
+        if(!attacker.isFainted() && attacker.hasItem("THROATSPRAY") && attackerMove.getFlags().contains("j")) { // throat spray actives
+            if(attacker.changeStat(2,1,false,true)) attacker.loseItem(true);
+        }
         // contact item effects
         if(attackerMove.getFlags().contains("a") && !attacker.hasItem("PROTECTIVEPADS")) {
             if(defender.hasItem("ROCKYHELMET") && !attacker.isFainted()) { // rocky helmet
@@ -765,6 +813,18 @@ public class Battle {
                 System.out.println(attacker.nickname + " received a " + defender.item.name + " from " + defender.nickname + "!");
                 attacker.item = defender.item;
                 defender.item = null;
+            }
+        }
+    }
+
+    private void abilityEffectsAfterAttack(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove, int damage) {
+        // contact ability effects
+        if(attackerMove.getFlags().contains("a") && !attacker.hasItem("PROTECTIVEPADS")) {
+            if(defender.hasAbility("STATIC") && attacker.canParalyze(false) && Math.random() <= 0.3) { // static
+                attacker.causeStatus(Status.PARALYZED);
+            }
+            if(defender.hasAbility("POISONPOINT") && attacker.canPoison(false) && Math.random() <= 0.3) { // poison point
+                attacker.causeStatus(Status.POISONED);
             }
         }
     }
@@ -907,6 +967,15 @@ public class Battle {
         }
     }
 
+    private void changeMoveType(Pokemon attacker,Pokemon defender,Movement attackerMove) {
+        if(attackerMove.hasName("TECHNOBLAST") && attacker.specieNameIs("GENESECT")) {
+            if(attacker.hasItem("DOUSEDRIVE")) attackerMove.changeType(attacker.utils.getType("WATER"));
+            if(attacker.hasItem("SHOCKDRIVE")) attackerMove.changeType(attacker.utils.getType("ELECTRIC"));
+            if(attacker.hasItem("BURNDRIVE")) attackerMove.changeType(attacker.utils.getType("FIRE"));
+            if(attacker.hasItem("CHILLDRIVE")) attackerMove.changeType(attacker.utils.getType("ICE"));
+        }
+    }
+
     private int CalcDamage(Pokemon attacker, Pokemon defender, Movement move, boolean mefirst) {
         int damage = 0;
         int attack = 0;
@@ -914,6 +983,8 @@ public class Battle {
         double stab = 1.0;
         int variation = attacker.utils.getRandomNumberBetween(85,101);
         boolean critical = isCriticalHit(attacker,defender,move);
+        // change move type
+        changeMoveType(attacker,defender,move);
         // move power
         int power = move.getPower();
 
@@ -965,22 +1036,29 @@ public class Battle {
             return 0;
         }
 
-        // resists with 1 HP
+        if(resistsWith1HP(defender, damage)) {
+            damage = defender.getPsActuales()-1;
+        }
+
+        return damage;
+    }
+
+    public boolean resistsWith1HP(Pokemon defender, int damage) {
         if(defender.getPsActuales()-damage <= 0) {
             if(defender.effectMoves.get(1) == 1) { // endure
-                damage = defender.getPsActuales()-1;
+                return true;
             }
             if(defender.hasAllHP() && defender.hasItem("FOCUSSASH")) { // focus sash
-                damage = defender.getPsActuales()-1;
                 defender.loseItem(true);
+                return true;
             }
             if(defender.hasItem("FOCUSBAND") && Math.random() <= 0.1) { // focus band
-                damage = defender.getPsActuales()-1;
+                return true;
             }
             //TODO: false swipe, etc...
         }
 
-        return damage;
+        return false;
     }
 
     private int moveChangingPower(Pokemon attacker, Pokemon defender, Movement move) {
@@ -1125,16 +1203,54 @@ public class Battle {
         if(attacker.hasAbility("SWARM") && attacker.getPercentHP() < 33.33 && move.type.is("BUG")) {
             power *= 1.5;
         }
+        if(attacker.hasAbility("RIVALRY")) {
+            if((defender.getGender() == attacker.getGender()) && attacker.getGender() != 2) {
+                power *= 1.25;
+            } else if((defender.getGender() != attacker.getGender()) && (attacker.getGender() != 2 && defender.getGender() != 2)) {
+                power *= 0.75;
+            }
+        }
         // items
-        if(attacker.hasItem("LIFEORB")) {
+        if(attacker.hasItem("LIFEORB")) power *= 1.3;
+        if(attacker.hasItem("METRONOME")) power *= 1.0+(attacker.effectMoves.get(27)*0.2);
+
+        if((attacker.hasItem("METALCOAT") || attacker.hasItem("IRONPLATE")) && move.type.is("STEEL")) power *= 1.2;
+        if((attacker.hasItem("MYSTICWATER") || attacker.hasItem("WAVEINCENSE") || attacker.hasItem("SEAINCENSE") || attacker.hasItem("SPLASHPLATE")) && move.type.is("WATER")) power *= 1.2;
+        if((attacker.hasItem("SILVERPOWDER") || attacker.hasItem("INSECTPLATE")) && move.type.is("BUG")) power *= 1.2;
+        if((attacker.hasItem("DRAGONFANG") || attacker.hasItem("DRACOPLATE")) && move.type.is("DRAGON")) power *= 1.2;
+        if((attacker.hasItem("MAGNET") || attacker.hasItem("ZAPPLATE")) && move.type.is("ELECTRIC")) power *= 1.2;
+        if((attacker.hasItem("SPELLTAG") || attacker.hasItem("SPOOKYPLATE")) && move.type.is("GHOST")) power *= 1.2;
+        if((attacker.hasItem("CHARCOAL") || attacker.hasItem("FLAMEPLATE")) && move.type.is("FIRE")) power *= 1.2;
+        if(attacker.hasItem("PIXIEPLATE") && move.type.is("FAIRY")) power *= 1.2;
+        if((attacker.hasItem("NEVERMELTICE") || attacker.hasItem("ICICLEPLATE")) && move.type.is("ICE")) power *= 1.2;
+        if((attacker.hasItem("BLACKBELT") || attacker.hasItem("FISTPLATE")) && move.type.is("FIGHTING")) power *= 1.2;
+        if((attacker.hasItem("SILKSCARF") || attacker.hasItem("BLANKPLATE")) && move.type.is("NORMAL")) power *= 1.2;
+        if((attacker.hasItem("MIRACLESEED") || attacker.hasItem("ROSEINCENSE") || attacker.hasItem("MEADOWPLATE")) && move.type.is("GRASS")) power *= 1.2;
+        if((attacker.hasItem("TWISTEDSPOON") || attacker.hasItem("ODDINCENSE") || attacker.hasItem("MINDPLATE")) && move.type.is("PSYCHIC")) power *= 1.2;
+        if((attacker.hasItem("HARDSTONE") || attacker.hasItem("ROCKINCENSE") || attacker.hasItem("STONEPLATE")) && move.type.is("ROCK")) power *= 1.2;
+        if((attacker.hasItem("BLACKGLASSES") || attacker.hasItem("DREADPLATE")) && move.type.is("DARK")) power *= 1.2;
+        if((attacker.hasItem("SOFTSAND") || attacker.hasItem("EARTHPLATE")) && move.type.is("GROUND")) power *= 1.2;
+        if((attacker.hasItem("POISONBARB") || attacker.hasItem("TOXICPLATE")) && move.type.is("POISON")) power *= 1.2;
+        if((attacker.hasItem("SHARPBEAK") || attacker.hasItem("SKYPLATE")) && move.type.is("FLYING")) power *= 1.2;
+
+        // gems
+        if(attacker.hasItem("STEELGEM") && move.type.is("STEEL") || (attacker.hasItem("WATERGEM") && move.type.is("WATER")) ||
+                (attacker.hasItem("DRAGONGEM") && move.type.is("DRAGON")) || (attacker.hasItem("BUGGEM") && move.type.is("BUG")) ||
+                (attacker.hasItem("ELECTRICGEM") && move.type.is("ELECTRIC")) || (attacker.hasItem("FAIRYGEM") && move.type.is("FAIRY")) ||
+                (attacker.hasItem("GHOSTGEM") && move.type.is("GHOST")) || (attacker.hasItem("ICEGEM") && move.type.is("ICE")) ||
+                (attacker.hasItem("FIREGEM") && move.type.is("FIRE")) || (attacker.hasItem("ROCKGEM") && move.type.is("ROCK")) ||
+                (attacker.hasItem("FIGHTINGGEM") && move.type.is("FIGHTING")) || (attacker.hasItem("DARKGEM") && move.type.is("DARK")) ||
+                (attacker.hasItem("NORMALGEM") && move.type.is("NORMAL")) || (attacker.hasItem("GROUNDGEM") && move.type.is("GROUND")) ||
+                (attacker.hasItem("GRASSGEM") && move.type.is("GRASS")) || (attacker.hasItem("POISONGEM") && move.type.is("POISON")) ||
+                (attacker.hasItem("PSYCHICGEM") && move.type.is("PSYCHIC")) || (attacker.hasItem("FLYINGGEM") && move.type.is("FLYING"))) {
             power *= 1.3;
+            attacker.loseItem(true);
         }
-        if(attacker.hasItem("METRONOME")) {
-            power *= 1.0+(attacker.effectMoves.get(27)*0.2);
-        }
-        if(attacker.hasItem("METALCOAT") && move.type.is("STEEL")) {
-            power *= 1.2;
-        }
+
+        if(attacker.hasItem("SOULDEW") && (move.type.is("DRAGON") || move.type.is("PSYCHIC")) && (attacker.specieNameIs("LATIAS") || attacker.specieNameIs("LATIOS"))) power *= 1.2;
+        if(attacker.hasItem("ADAMANTORB") && (move.type.is("DRAGON") || move.type.is("STEEL")) && attacker.specieNameIs("DIALGA")) power *= 1.2;
+        if(attacker.hasItem("LUSTROUSORB") && (move.type.is("DRAGON") || move.type.is("WATER")) && attacker.specieNameIs("PALKIA")) power *= 1.2;
+        if(attacker.hasItem("GRISEOUSORB") && (move.type.is("DRAGON") || move.type.is("GHOST")) && attacker.specieNameIs("GIRATINA")) power *= 1.2;
 
         // weather
         if(weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
@@ -1176,7 +1292,24 @@ public class Battle {
         if(defender.getTeam().effectTeamMoves.get(5) > 0 && !critical && move.getCategory().equals(Category.PHYSICAL)) { // reflect
             power /= 2.0;
         }
-
+        // terrains
+        if(terrain.hasTerrain(TerrainTypes.GRASSY)) {
+            if(!attacker.isLevitating() && move.type.is("GRASS")) {
+                power *= 1.3;
+            }
+            if(move.hasName("EARTHQUAKE") && move.hasName("MAGNITUDE") && move.hasName("BULLDOZE")) {
+                power *= 0.5;
+            }
+        }
+        if(terrain.hasTerrain(TerrainTypes.ELECTRIC) && !attacker.isLevitating() && move.type.is("ELECTRIC")) {
+            power *= 1.3;
+        }
+        if(terrain.hasTerrain(TerrainTypes.MISTY) && !defender.isLevitating() && move.type.is("DRAGON")) {
+            power *= 0.5;
+        }
+        if(terrain.hasTerrain(TerrainTypes.PSYCHIC) && !attacker.isLevitating() && move.type.is("PSYCHIC")) {
+            power *= 1.3;
+        }
         return power;
     }
 
@@ -1291,6 +1424,10 @@ public class Battle {
         if(weather.hasWeather(Weathers.SANDSTORM) && target.affectSandstorm()) {
             System.out.println(target.nickname + " is buffeted by the sandstorm!!");
             target.reduceHP(target.getHP()/16);
+        }
+        // grassy terrain
+        if(terrain.hasTerrain(TerrainTypes.GRASSY) && !target.isLevitating()) {
+            target.healHP(target.getHP()/16, true, false);
         }
         // shed skin
         if(target.hasAbility("SHEDSKIN") && (target.hasStatus(Status.ASLEEP) || target.hasStatus(Status.PARALYZED)
@@ -1507,6 +1644,11 @@ public class Battle {
         // count and end weather
         if(weather.hasWeather(Weathers.RAIN) || weather.hasWeather(Weathers.SUNLIGHT) || weather.hasWeather(Weathers.SANDSTORM) || weather.hasWeather(Weathers.HAIL)) {
             weather.increaseTurn();
+        }
+
+        // count and end terrains
+        if(!terrain.hasTerrain(TerrainTypes.NONE)) {
+            terrain.increaseTurn();
         }
     }
 

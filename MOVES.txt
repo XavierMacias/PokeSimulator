@@ -1,3 +1,4 @@
+MEGAHORN,Megacuerno,BUG,120,85,PHYSICAL,10,0,FOE,0,abcf,0,Golpea al enemigo con un poderoso cuerno
 TACKLE,Placaje,NORMAL,40,100,PHYSICAL,35,0,FOE,0,abcf,0,Golpea al enemigo con el cuerpo
 SCRATCH,Arañazo,NORMAL,40,100,PHYSICAL,35,0,FOE,0,abcf,0,Araña al enemigo con una garra o uña afilada
 QUICKATTACK,Ataque rápido,NORMAL,40,100,PHYSICAL,30,1,FOE,0,abcf,0,Golpea al enemigo rápidamente. Siempre ataca primero
@@ -66,6 +67,7 @@ GIGADRAIN,Gigadrenado,GRASS,75,100,SPECIAL,10,0,FOE,0,bc,18,Absorbe PS al enemig
 ENDURE,Aguante,NORMAL,0,0,STATUS,10,4,USER,0,,19,Aguanta un golpe que normalmente lo debilitaría en ese turno
 PETALDANCE,Danza pétalo,GRASS,120,100,SPECIAL,10,0,RANDOMFOE,0,abcfo,20,Ataca de 2 a 3 turnos consecutivos y después se confunde
 OUTRAGE,Enfado,DRAGON,120,100,PHYSICAL,10,0,RANDOMFOE,0,abcf,20,Ataca de 2 a 3 turnos consecutivos y después se confunde
+THRASH,Golpe,NORMAL,120,100,PHYSICAL,10,0,RANDOMFOE,0,abcf,20,Ataca de 2 a 3 turnos consecutivos y después se confunde
 EMBER,Ascuas,FIRE,40,100,SPECIAL,25,0,FOE,10,bc,21,Una pequeña llama que puede quemar al rival
 FLAMEWHEEL,Rueda fuego,FIRE,60,100,PHYSICAL,25,0,FOE,10,abcg,21,Se envuelve y carga contra el enemigo rodando. Puede quemar
 FLAMETHROWER,Lanzallamas,FIRE,90,100,SPECIAL,15,0,FOE,10,bc,21,Un chorro de llamas que puede quemar al rival
@@ -107,6 +109,7 @@ THUNDERSHOCK,Impactrueno,ELECTRIC,40,100,SPECIAL,30,0,FOE,10,bcf,36,Una descarga
 SPARK,Chispa,ELECTRIC,65,100,PHYSICAL,20,0,FOE,30,abcf,36,Una embestida eléctrica que puede paralizar al enemigo
 THUNDERPUNCH,Puño trueno,ELECTRIC,75,100,PHYSICAL,15,0,FOE,10,abcfk,36,Un puño electrificado que puede paralizar al enemigo
 DISCHARGE,Chispazo,ELECTRIC,80,100,SPECIAL,15,0,ALLBATTLERS,30,bcf,36,Una descarga eléctrica que ataca a todos los Pokémon adyacentes
+BODYSLAM,Golpe cuerpo,NORMAL,85,100,PHYSICAL,15,0,FOE,30,abcf,36,Ataca con el cuerpo y puede paralizar al enemigo
 THUNDERBOLT,Rayo,ELECTRIC,90,100,SPECIAL,15,0,FOE,10,bcf,36,Un rayo que puede paralizar al enemigo
 THUNDER,Trueno,ELECTRIC,110,70,SPECIAL,10,0,FOE,30,bcf,36,Un poderoso trueno que puede paralizar al enemigo
 THUNDERWAVE,Onda trueno,ELECTRIC,0,90,STATUS,20,0,FOE,0,bcd,36,Paraliza al enemigo
@@ -142,6 +145,7 @@ AQUARING,Acua aro,WATER,0,0,STATUS,20,0,USER,0,e,53,Un aro de agua que cura un p
 WATERSPOUT,Salpicar,WATER,150,100,SPECIAL,5,0,ALLFOES,0,bc,54,Cuantos menos PS tenga el usuario menos daño causa
 BRINE,Salmuera,WATER,65,100,SPECIAL,10,0,FOE,0,bcf,55,Su poder se duplica si el objetivo tiene menos de la mitad de sus PS
 FLASHCANNON,Foco resplandor,STEEL,80,100,SPECIAL,10,0,FOE,10,bcf,56,Un cañón de luz que puede bajar la defensa especial del objetivo
+EARTHPOWER,Tierra viva,GROUND,90,100,SPECIAL,10,0,FOE,10,bcf,56,Una erupción que puede bajar la defensa especial del objetivo
 ACID,Ácido,POISON,40,100,SPECIAL,30,0,ALLFOES,10,bc,56,Un ácido que puede bajar la defensa especial del objetivo
 BUGBUZZ,Zumbido,BUG,90,100,SPECIAL,10,0,FOE,10,bcfjq,56,Un zumbido que puede bajar la defensa especial del objetivo
 BUGBITE,Picadura,BUG,60,100,PHYSICAL,20,0,FOE,0,abcf,57,Causa daño y roba la baya equipada al rival beneficiándose de sus efectos
@@ -219,3 +223,10 @@ SANDSTORM,Tormenta arena,ROCK,0,0,STATUS,10,0,BOTHSIDES,0,,124,Provoca el clima 
 CHIPAWAY,Guardia baja,NORMAL,70,100,PHYSICAL,20,0,FOE,0,abcf,125,Golpea ignorando la evasión y la defensa del enemigo
 HONECLAWS,Afilagarras,DARK,0,0,STATUS,15,0,USER,0,e,126,Aumenta el Ataque y la precisión del usuario
 ROTOTILLER,Fertilizante,GROUND,0,0,STATUS,10,0,BOTHSIDES,0,,127,Aumenta el ataque de los Pokémon Planta presentes en combate
+DOUBLEKICK,Doble patada,FIGHTING,30,100,PHYSICAL,30,0,FOE,0,abcf,128,Golpea dos veces seguidas al oponente con patadas
+HELPINGHAND,Refuerzo,NORMAL,0,0,STATUS,20,5,ALLY,0,q,129,Potencia el ataque de un compañero en ese turno
+FLATTER,Camelo,DARK,0,100,STATUS,15,0,FOE,0,bcd,130,Confunde al rival pero aumenta su Ataque Especial.
+VENOMDRENCH,Trampa venenosa,POISON,0,100,STATUS,20,0,ALLFOES,0,bc,131,Reduce el Ataque Ataque Especial y Velocidad de los rivales envenenados
+SUPERPOWER,Fuerza bruta,FIGHTING,120,100,PHYSICAL,5,0,FOE,0,abc,132,Ataca pero reduce el Ataque y la Defensa del usuario
+HORNDRILL,Perforador,NORMAL,0,30,PHYSICAL,5,0,FOE,0,ab,133,Si acierta debilita al enemigo de un golpe
+HEADSMASH,Testarazo,ROCK,150,80,PHYSICAL,5,0,FOE,0,abcf,134,Un potente cabezazo que daña mucho al usuario

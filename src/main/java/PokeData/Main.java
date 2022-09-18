@@ -29,11 +29,11 @@ public class Main {
         } while(!choose.equals("1") && !choose.equals("2")  && !choose.equals("3"));
 
         if(choose.equals("1")) {
-            starter = new Pokemon(utils.getPokemon("BULBASAUR"),13, utils);
+            starter = new Pokemon(utils.getPokemon("BULBASAUR"),14, utils);
         } else if(choose.equals("2")) {
-            starter = new Pokemon(utils.getPokemon("CHARMANDER"),13, utils);
+            starter = new Pokemon(utils.getPokemon("CHARMANDER"),14, utils);
         } else if(choose.equals("3")) {
-            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils);
+            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),14, utils);
         }
 
         player.getTeam().obtainPokemon(starter);
@@ -72,7 +72,7 @@ public class Main {
                     pkmnIndex = in.nextLine();
                     if(utils.getPokemon(pkmnIndex) != null) {
                         Team rivalTeam = new Team();
-                        rivalTeam.addPokemon(new Pokemon(utils.getPokemon(pkmnIndex),12,utils));
+                        rivalTeam.addPokemon(new Pokemon(utils.getPokemon(pkmnIndex),13,utils));
                         battle.WildSingleBattle(player.getTeam(),rivalTeam);
                     }
                     break;

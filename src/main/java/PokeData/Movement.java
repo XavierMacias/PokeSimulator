@@ -28,6 +28,7 @@ public class Movement {
      q: affect substitute
     */
     private String flags;
+    private Type originalType;
 
     public Movement(String internalName, String name, Type type, int power, int accuracy, Category category, int pp, int priority,
                     Target target, int addEffect, String flags, int code, String description) {
@@ -44,6 +45,7 @@ public class Movement {
         this.flags = flags;
         this.code = code;
         this.description = description;
+        originalType = type;
     }
 
     public String getInternalName() { return internalName; }
@@ -86,5 +88,11 @@ public class Movement {
 
     public String getFlags() {
         return flags;
+    }
+    public void changeType(Type t) {
+        type = t;
+    }
+    public void recoverType() {
+        type = originalType;
     }
 }
