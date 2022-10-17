@@ -71,7 +71,7 @@ public class Main {
                     String pkmnIndex = "0";
                     pkmnIndex = in.nextLine();
                     if(utils.getPokemon(pkmnIndex) != null) {
-                        Team rivalTeam = new Team();
+                        Team rivalTeam = new Team(null);
                         rivalTeam.addPokemon(new Pokemon(utils.getPokemon(pkmnIndex),13,utils));
                         battle.WildSingleBattle(player.getTeam(),rivalTeam);
                     }

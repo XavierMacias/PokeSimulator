@@ -13,9 +13,12 @@ public class Team {
     private ArrayList<Pokemon> pokemonTeam;
     public List<Integer> effectTeamMoves;
     public int wishRecover;
+    public Pokemon futureAttackerPoke;
+    public int futureAttackId;
     private Scanner in;
+    Player player;
 
-    public Team() {
+    public Team(Player trainer) {
         in = new Scanner(System.in);
         pokemonTeam = new ArrayList<Pokemon>();
         effectTeamMoves = new ArrayList<Integer>();
@@ -27,10 +30,22 @@ public class Team {
            5 -> reflect
            6 -> lucky chant
            7 -> wish
+           8 -> healing wish
+           9 -> quick guard
+           10 -> wide guard
+           11 -> pay day
+           12 -> future sight
+           13 -> retaliate
+           14 -> stealth rock
+           15 -> spikes
+           16 -> sticky web
         */
-        for(int i=0;i<8;i++) {
+        for(int i=0;i<17;i++) {
             effectTeamMoves.add(0);
         }
+        player = trainer;
+        futureAttackerPoke = null;
+        futureAttackId = 0; // 1: future sight, 2: doom desire
     }
 
     public ArrayList<Pokemon> getPokemonTeam() {
@@ -146,6 +161,16 @@ public class Team {
         return total;
     }
 
+    public void gainBattleMoney(boolean trainer) {
+        if(trainer) {
+            // TODO: trainer money
+        }
+        if(effectTeamMoves.get(11) > 0 && player != null) { // pay day
+            System.out.println(player.name + " picked Pay Day coins!");
+            player.addMoney(effectTeamMoves.get(11));
+        }
+    }
+
     public void gainTeamExperience(Pokemon rival, boolean trainer) {
         for(int i=0;i<pokemonTeam.size();i++) {
             pokemonTeam.get(i).gainExperience(rival,getParticipants(),trainer);
@@ -227,6 +252,12 @@ public class Team {
             System.out.println("The Lucky Chant of " + target.nickname + "'s team is gone!");
         } else if(index == 7) {
             wishRecover = 0;
+        } else if(index == 14) {
+            System.out.println("The Stealth Rocks of " + target.nickname + "'s team are gone!");
+        } else if(index == 15) {
+            System.out.println("The Spikes of " + target.nickname + "'s team are gone!");
+        } else if(index == 16) {
+            System.out.println("The Sticky Web of " + target.nickname + "'s team is gone!");
         }
     }
 

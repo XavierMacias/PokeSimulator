@@ -6,10 +6,12 @@ public class Weather {
     boolean natural;
     private int turnCount = 0;
     private int maxTurns = -1;
+    private Battle battle;
 
-    public Weather() {
+    public Weather(Battle b) {
         weather = Weathers.CLEARSKIES;
         natural = false;
+        battle = b;
     }
 
     public Weathers getWeather() {
@@ -17,6 +19,9 @@ public class Weather {
     }
 
     public boolean hasWeather(Weathers w) {
+        if(battle.hasCloudNine() && !w.equals(Weathers.CLEARSKIES)) {
+            return false;
+        }
         return weather == w;
     }
 

@@ -102,4 +102,12 @@ public class Item {
     public Movement getMove() {
         return move;
     }
+
+    public boolean hasName(String n) {
+        return internalName.equals(n);
+    }
+
+    public boolean nameContains(String n) {
+        return internalName.contains(n);
+    }
 }

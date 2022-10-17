@@ -20,7 +20,7 @@ public class Player {
         id = utils.getRandomNumberBetween(0,65536);
         money = 0;
         // initialize team
-        team = new Team();
+        team = new Team(this);
         // initialize bag
         bag = new Bag(this);
     }
@@ -38,4 +38,12 @@ public class Player {
     }
 
     public Bag getBag() { return bag; }
+
+    public void addMoney(int quantity) {
+        money += quantity;
+        System.out.println(name + " gains " + quantity + "$!");
+        if(money > 999999) {
+            money = 999999;
+        }
+    }
 }

@@ -47,6 +47,7 @@ REDSHARD,Parte roja,ITEMS,1000,NOFIELDUSE,NOBATTLEUSE,false,,Un antiguo fragment
 YELLOWSHARD,Parte amarilla,ITEMS,1000,NOFIELDUSE,NOBATTLEUSE,false,,Un antiguo fragmento de color amarillo, 
 GREENSHARD,Parte verde,ITEMS,1000,NOFIELDUSE,NOBATTLEUSE,false,,Un antiguo fragmento de color verde, 
 BLUESHARD,Parte azul,ITEMS,1000,NOFIELDUSE,NOBATTLEUSE,false,,Un antiguo fragmento de color azul, 
+BIGROOT,Raíz grande,ITEMS,300,NOFIELDUSE,NOBATTLEUSE,false,,Recupera más PS al usar movimientos de absorción de PS, 
 NUGGET,Pepita,ITEMS,10000,NOFIELDUSE,NOBATTLEUSE,false,,Una pepita de oro que puede venderse a buen precio, 
 SLOWPOKETAIL,Cola Slowpoke,ITEMS,9800,NOFIELDUSE,NOBATTLEUSE,false,,Una cola de Slowpoke que puede venderse a buen precio, 
 TINYMUSHROOM,Miniseta,ITEMS,500,NOFIELDUSE,NOBATTLEUSE,false,,Una pequeña seta muy apreciada por coleccionistas, 

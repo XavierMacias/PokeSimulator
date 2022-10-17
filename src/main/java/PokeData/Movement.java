@@ -82,6 +82,14 @@ public class Movement {
         return target;
     }
 
+    public boolean targetIsEnemy() {
+        return target.equals(Target.FOE) || target.equals(Target.RANDOMFOE) || target.equals(Target.ALLFOES) || target.equals(Target.ALLBATTLERS);
+    }
+
+    public boolean multiTarget() {
+        return target.equals(Target.ALLFOES) || target.equals(Target.ALLBATTLERS) || target.equals(Target.ALLALLIES) || target.equals(Target.USERANDALLIES);
+    }
+
     public Category getCategory() {
         return category;
     }

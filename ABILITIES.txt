@@ -23,5 +23,40 @@ SANDVEIL,Velo arena,Disminuye la precisión del enemigo cuando hay tormenta de a
 SANDRUSH,Ímpetu arena,Aumenta la velocidad cuando hay tormenta de arena.
 POISONPOINT,Punto tóxico,Envenena al mínimo contacto.
 RIVALRY,Rivalidad,Quita más vida a rivales del mismo sexo.
+CUTECHARM,Gran encanto,Enamora al mínimo contacto.
+FLASHFIRE,Absorbe fuego,Absorbe los ataques de tipo Fuego.
+DROUGHT,Sequía,Provoca sol al salir al campo de batalla.
+UNAWARE,Ignorante,Ignora el cambio de características.
+MAGICGUARD,Muro mágico,Evita recibir daño indirecto.
+COMPETITIVE,Tenacidad,Aumenta el Ataque Especial cuando le bajan alguna característica
+INNERFOCUS,Foco interno,Evita el retroceso
+INFILTRATOR,Allanamiento,Ignora las pantallas o sustituto del enemigo
+FRISK,Cacheo,Revela el objeto equipado del enemigo
+EFFECTSPORE,Efecto espora,Puede dormir paralizar o envenenar al contacto
+DRYSKIN,Piel seca,Pierde PS con el sol y los recupera con la lluvia y movimientos agua
+WONDERSKIN,Piel milagro,Reduce la precisión de los movimientos de estado del oponente
+STENCH,Hedor,El oponente puede retroceder al recibir un movimiento de daño directo
+SANDFORCE,Poder arena,Potencia los ataques Tierra Roca y Acero cuando hay tormenta de arena
+ARENATRAP,Trampa arena,Impide huir a los enemigos
+LIMBER,Flexibilidad,Evita la parálisis
+TECHNICIAN,Experto,Potencia los movimientos débiles
+SWIFTSWIM,Nado rápido,Duplica la velocidad con lluvia
+VITALSPIRIT,Espíritu vital,Evita el sueño
+ANGERPOINT,Irascible,Maximiza el Ataque al recibir un crítico
+DEFIANT,Competitivo,Aumenta mucho el Ataque cuando le reducen alguna característica
+JUSTIFIED,Justiciero,Aumenta el Ataque al recibir un movimiento Siniestro
+CLOUDNINE,Aclimatación,Anula los efectos del clima en el combate
+WATERABSORB,Absorbe agua,Absorbe los ataques de tipo Agua
+SYNCHRONIZE,Sincronía,Transmite al rival los problemas de estado
+NOGUARD,Indefenso,Todos los movimientos usados por o para el poseedor nunca fallan
+STEADFAST,Impasible,Aumenta la velocidad al retroceder
+CLEARBODY,Cuerpo puro,Evita que bajen las características
+LIQUIDOOZE,Lodo líquido,Los ataques de absorción de PS restan salud al oponente
+ROCKHEAD,Cabeza roca,Evita el daño de retroceso
+STURDY,Robustez,Evita debilitarse de un solo golpe
+DAMP,-------------------Humedad-------------------,Evita los movimientos de explosión
+GLUTTONY,Gula,Utiliza las bayas equipadas antes de lo normal
 UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.
-SHEERFORCE,Potencia bruta,Potencia los ataques con efecto secundario pero elimina el efecto.
+SHEERFORCE,Potencia bruta,Potencia los ataques con efecto secundario pero elimina el efecto
+FRIENDGUARD,Compiescolta,Reduce el daño causado a Pokémon aliados
+PICKUP,Recogida,Recoge objetos mientras caminas
