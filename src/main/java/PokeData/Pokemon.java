@@ -65,7 +65,7 @@ public class Pokemon {
     public int badPoisonTurns = 0;
     public int protectTurns = 0;
     public Movement previousMove;
-    public Movement lastMoveInThisTurn;
+    public Movement lastMoveInThisTurn, lastMoveUsedInTurn;
     public Movement lastMoveReceived;
     public Movement disabledMove, encoreMove, chosenMove;
     public int previousDamage;
@@ -188,8 +188,11 @@ public class Pokemon {
            41 -> miracle eye
            42 -> telekinesis
            43 -> smack down
+           44 -> bounce
+           45 -> magnet rise
+           46 -> dive
         */
-        for(int i=0;i<44;i++) {
+        for(int i=0;i<47;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -793,6 +796,13 @@ public class Pokemon {
         int ind = getIndexMove(move.getInternalName());
         return remainPPs.get(ind) > 0;
     }
+    public int remainPPOf(Movement move) {
+        int ind = getIndexMove(move.getInternalName());
+        if(ind < 0) {
+            return -1;
+        }
+        return remainPPs.get(ind);
+    }
     public int hasPPByIndex(int id) {
         if(id < 0 || id >= remainPPs.size()) {
             return -1;
@@ -803,6 +813,15 @@ public class Pokemon {
     public boolean isOutPP() {
         for (Integer remainPP : remainPPs) {
             if (remainPP > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean statsAreMaximum() {
+        for(int i=0;i<statChanges.size();i++) {
+            if(statChanges.get(i) < 6) {
                 return false;
             }
         }
@@ -1294,7 +1313,7 @@ public class Pokemon {
                 || hasAbility("SANDRUSH")) {
             return false;
         }
-        if(effectMoves.get(36) > 0) { // Pokemon underground are not affected
+        if(effectMoves.get(36) > 0 || effectMoves.get(46) > 0) { // Pokemon underground/undersea are not affected
             return false;
         }
         return true;
@@ -1304,10 +1323,10 @@ public class Pokemon {
         if(hasType("ICE") || hasItem("SAFETYGOOGLES")) {
             return false;
         }
-        if(hasAbility("SNOWCLOAK") || hasAbility("MAGICGUARD") || hasAbility("SLUSHRUSH") || hasAbility("OVERCOAT")) {
+        if(hasAbility("SNOWCLOAK") || hasAbility("ICEBODY") || hasAbility("MAGICGUARD") || hasAbility("SLUSHRUSH") || hasAbility("OVERCOAT")) {
             return false;
         }
-        if(effectMoves.get(36) > 0) { // Pokemon underground are not affected
+        if(effectMoves.get(36) > 0 || effectMoves.get(46) > 0) { // Pokemon underground/undersea are not affected
             return false;
         }
         return true;
@@ -1319,7 +1338,7 @@ public class Pokemon {
         if(effectMoves.get(43) > 0) { // smack down
             return false;
         }
-        if(effectMoves.get(42) > 0) { // telekinesis
+        if(effectMoves.get(42) > 0 || effectMoves.get(45) > 0) { // telekinesis, magnet rise
             return true;
         }
         if(hasType("FLYING") || hasItem("AIRBALLOON")) {

@@ -54,6 +54,18 @@ CLEARBODY,Cuerpo puro,Evita que bajen las características
 LIQUIDOOZE,Lodo líquido,Los ataques de absorción de PS restan salud al oponente
 ROCKHEAD,Cabeza roca,Evita el daño de retroceso
 STURDY,Robustez,Evita debilitarse de un solo golpe
+FLAMEBODY,Cuerpo llama,Puede quemar al contacto
+OBLIVIOUS,Despiste,Evita el enamoramiento
+OWNTEMPO,Ritmo propio,Evita la confusión
+REGENERATOR,Regeneración,Recupera PS al ser retirado
+MAGNETPULL,Imán,Atrapa a oponentes de tipo Acero
+ANALYTIC,Cálculo final,Daña más al oponente si ya atacó en ese turno
+ICEBODY,Gélido,Recupera PS cuando hay granizo
+HYDRATION,Hidratación,Cura problemas de estado si llueve
+THICKFAT,Sebo,Reduce el daño de ataques fuego y hielo
+POISONTOUCH,Toque tóxico,Puede envenenar al tocar al objetivo
+STICKYHOLD,Viscosidad,Evita el robo de objetos
+EARLYBIRD,Madrugar,Se despierta más pronto de lo habitual
 DAMP,-------------------Humedad-------------------,Evita los movimientos de explosión
 GLUTTONY,Gula,Utiliza las bayas equipadas antes de lo normal
 UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.

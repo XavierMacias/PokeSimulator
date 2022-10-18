@@ -147,6 +147,29 @@ public class MoveEffects {
                     attacker.effectMoves.set(3, 0);
                     attacker.effectMoves.set(36, 0);
                 }
+            } else if (move.hasName("BOUNCE")) {
+                if (!attacker.hasItem("POWERHERB") && attacker.effectMoves.get(3) == 0) {
+                    System.out.println(attacker.nickname + " jumped very high!");
+                    attacker.recover1PP(move);
+                    attacker.effectMoves.set(3, 1);
+                    attacker.effectMoves.set(44, 1);
+                } else {
+                    attacker.effectMoves.set(3, 0);
+                    attacker.effectMoves.set(44, 0);
+                    if (defender.canParalyze(false, attacker) && 0.3 >= Math.random()) {
+                        defender.causeStatus(Status.PARALYZED, attacker, false);
+                    }
+                }
+            } else if (move.hasName("DIVE")) {
+                if (!attacker.hasItem("POWERHERB") && attacker.effectMoves.get(3) == 0) {
+                    System.out.println(attacker.nickname + " dived underwater!");
+                    attacker.recover1PP(move);
+                    attacker.effectMoves.set(3, 1);
+                    attacker.effectMoves.set(46, 1);
+                } else {
+                    attacker.effectMoves.set(3, 0);
+                    attacker.effectMoves.set(46, 0);
+                }
             }
 
             if(attacker.hasItem("POWERHERB")) { // use power herb
@@ -191,6 +214,8 @@ public class MoveEffects {
                 return false;
             }
             attacker.effectMoves.set(0, 1);
+            attacker.effectMoves.set(45, 0); // no magnet rise
+            attacker.effectMoves.set(42, 0); // no telekinesis
             System.out.println(attacker.nickname + " gets ingrain!");
         } else if (effect == 17) {
             // decreases a lot the Special Attack of user - LEAF STORM, DRACO METEOR
@@ -241,13 +266,17 @@ public class MoveEffects {
             // decreases target accuracy - SMOKE SCREEN, SAND ATTACK
             defender.changeStat(5, -1, false, move.getAddEffect() == 0, attacker);
         } else if (effect == 23) {
-            // fix damage to 40 PS - DRAGON RAGE
-            defender.reduceHP(40);
+            // fix damage moves - DRAGON RAGE, SONIC BOOM
+            int ps = 20;
+            if(move.hasName("DRAGONRAGE")) {
+                ps = 40;
+            }
+            defender.reduceHP(ps);
         }
         if (effect == 24) {
             // decreases a lot target speed - SCARY FACE, STRING SHOT
             defender.changeStat(4, -2, false, move.getAddEffect() == 0, attacker);
-        } else if ((effect == 25 && !defender.isFainted()) || ((attacker.hasItem("KINGSROCK") || attacker.hasItem("RAZORFANG")) && Math.random() < 0.1)) {
+        } else if (((effect == 25 || effect == 211) && !defender.isFainted()) || ((attacker.hasItem("KINGSROCK") || attacker.hasItem("RAZORFANG")) && Math.random() < 0.1)) {
             // flinched target - BITE, HYPER FANG, AIR SLASH, TWISTER, FAKE OUT...
             if (defender.canFlinch()) {
                 defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
@@ -411,7 +440,9 @@ public class MoveEffects {
             defender.changeStat(3, -1, false, move.getAddEffect() == 0, attacker);
         } else if (effect == 57) {
             // steals the equipped berry of target - BUG BITE, PLUCK
-            //TODO: bug bite effect
+            if(defender.hasItemWithFlag("c") && !defender.hasAbility("STICKYHOLD")) {
+                //TODO: bug bite effect
+            }
         } else if (effect == 58) {
             // prevents status problems for all team - SAFEGUARD
             if (attacker.getTeam().effectTeamMoves.get(1) == 0) {
@@ -973,7 +1004,7 @@ public class MoveEffects {
         } else if(effect == 133) {
             // KO move - HORN DRILL, FISSURE, GUILLOTINE, SHEER COLD
             System.out.println("One hit KO!");
-            if(battle.resistsWith1HP(defender, defender.getPsActuales())) { // target can resist?
+            if(battle.resistsWith1HP(defender, defender.getPsActuales(),move)) { // target can resist?
                 defender.reduceHP(defender.getPsActuales()-1);
             } else {
                 defender.reduceHP(defender.getPsActuales());
@@ -1019,8 +1050,17 @@ public class MoveEffects {
             // telekinesis ends
             attacker.effectMoves.set(42, 0);
             defender.effectMoves.set(42, 0);
+            // magnet rise ends
+            attacker.effectMoves.set(45, 0);
+            defender.effectMoves.set(45, 0);
             System.out.println("Gravity incremented!");
-            // TODO: interrupt fly, bounce, sky drop
+            // TODO: interrupt fly, sky drop
+            if(defender.effectMoves.get(44) > 0) { // bounce
+                defender.effectMoves.set(44, 0);
+                defender.effectMoves.set(3, 0);
+                System.out.println(defender.nickname + " dropped to ground!");
+                defender.reducePP(defenderMove, 1);
+            }
         } else if (effect == 143) {
             // user sacrifices itself and the next Pokemon is healed - HEALING WISH
             if(attacker.getTeam().alivePokemon() == 1) {
@@ -1503,9 +1543,58 @@ public class MoveEffects {
             // throw the target to ground - SMACK DOWN
             defender.effectMoves.set(43, 1);
             System.out.println(defender.nickname + " was thrown to ground!");
+            defender.effectMoves.set(42, 0); // ends telekinesis
+            defender.effectMoves.set(45, 0); // ends magnet rise
+            // TODO: interrupt fly, sky drop
+            if(defender.effectMoves.get(44) > 0) { // bounce
+                defender.effectMoves.set(44, 0);
+                defender.effectMoves.set(3, 0);
+                defender.reducePP(defenderMove, 1);
+            }
         } else if (effect == 210) {
             // decreases user speed - HAMMER ARM
             attacker.changeStat(4, -1, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 212) {
+            // makes user levitate - MAGNET RISE
+            if(attacker.effectMoves.get(45) > 0 || attacker.effectMoves.get(0) > 0 || attacker.hasItem("IRONBALL")) {
+                return false;
+            }
+            attacker.effectMoves.set(45, 1);
+            System.out.println(attacker.nickname + " is levitating!");
+        } else if (effect == 216) {
+            // increases a lot a random stat of user - ACUPRESSURE
+            if(attacker.statsAreMaximum()) {
+                return false;
+            }
+            Random rand = new Random();
+            int randomStat = -1;
+            do {
+                randomStat = rand.nextInt(attacker.getStatChanges().size());
+            } while(attacker.getStatChanges().get(randomStat) == 6);
+
+            attacker.changeStat(randomStat, 2, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 218) {
+            // starts to hail - HAIL
+            return battle.weather.changeWeather(Weathers.HAIL, attacker.hasItem("ICYROCK"));
+        } else if (effect == 219) {
+            // change target ability to user ability - ENTRAINMENT
+            if(attacker.getAbility() == defender.getAbility()) {
+                return false;
+            }
+            if (defender.hasAbility("TRUANT") || defender.hasAbility("MULTITYPE") || defender.hasAbility("STANCECHANGE") ||
+                    defender.hasAbility("SCHOOLING") || defender.hasAbility("COMATOSE") || defender.hasAbility("SHIELDSDOWN") ||
+                    defender.hasAbility("DISGUISE") || defender.hasAbility("RKSSYSTEM") || defender.hasAbility("BATTLEBOND") ||
+                    defender.hasAbility("POWERCONSTRUCT") || defender.hasAbility("ICEFACE") || defender.hasAbility("GULPMISSILE")) {
+                return false;
+            }
+            if (attacker.hasAbility("FLOWERGIFT") || attacker.hasAbility("ILLUSION") || attacker.hasAbility("NEUTRALIZINGGAS") ||
+                    attacker.hasAbility("IMPOSTER") || attacker.hasAbility("ZENMODE") || attacker.hasAbility("HUNGERSWITCH") ||
+                    attacker.hasAbility("DISGUISE") || attacker.hasAbility("FORECAST") || attacker.hasAbility("TRACE") ||
+                    attacker.hasAbility("POWERCONSTRUCT") || attacker.hasAbility("ICEFACE") || attacker.hasAbility("GULPMISSILE") ||
+                    attacker.hasAbility("POWEROFALCHEMY") || attacker.hasAbility("RECEIVER")) {
+                return false;
+            }
+            defender.changeAbility(attacker.getAbility().getInternalName());
         }
 
         return true;
