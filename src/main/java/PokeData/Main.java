@@ -47,18 +47,14 @@ public class Main {
         player.getBag().addItem(utils.getItem("WATERSTONE"), true);
         player.getBag().addItem(utils.getItem("ORANBERRY"), true);
         player.getBag().addItem(utils.getItem("ORANBERRY"), true);
-        player.getBag().addItem(utils.getItem("REPEL"), true);
-        player.getBag().addItem(utils.getItem("REPEL"), true);
+        player.getBag().addItem(utils.getItem("PPUP"), true);
         player.getBag().addItem(utils.getItem("REPEL"), true);
         player.getBag().addItem(utils.getItem("CHERIBERRY"), true);
         player.getBag().addItem(utils.getItem("THUNDERSTONE"), true);
         player.getBag().addItem(utils.getItem("POTION"), true);
-        player.getBag().addItem(utils.getItem("MAXREPEL"), true);
-        player.getBag().addItem(utils.getItem("MAXREPEL"), true);
-        player.getBag().addItem(utils.getItem("PEARL"), true);
-        player.getBag().addItem(utils.getItem("BIGPEARL"), true);
-        player.getBag().addItem(utils.getItem("BIGPEARL"), true);
-        player.getBag().addItem(utils.getItem("BINDINGBAND"), true);
+        player.getBag().addItem(utils.getItem("PPUP"), true);
+        player.getBag().addItem(utils.getItem("PPMAX"), true);
+        player.getBag().addItem(utils.getItem("PPUP"), true);
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Party\n4: Pokedex\n-1: Exit");
@@ -78,7 +74,7 @@ public class Main {
                     break;
                 case "2":
                     // bag
-                    player.getBag().openBag(true);
+                    player.getBag().openBag(true, null);
                     break;
                 case "3":
                     // party

@@ -31,7 +31,7 @@ public class Bag {
         in = new Scanner(System.in);
     }
 
-    public void openBag(boolean outsideBattle) {
+    public boolean openBag(boolean outsideBattle, Pokemon poke) {
         System.out.println("Choose the Pocket");
         String pocketIndex = "-1";
         System.out.println("0: Back");
@@ -47,15 +47,16 @@ public class Bag {
         pocketIndex = in.nextLine();
 
         if(Integer.parseInt(pocketIndex) > 0 && Integer.parseInt(pocketIndex) <= 8) {
-            openPocket(Integer.parseInt(pocketIndex),outsideBattle);
+            return openPocket(Integer.parseInt(pocketIndex),outsideBattle, poke);
         } else if(Integer.parseInt(pocketIndex) != 0) {
-            openBag(outsideBattle);
+            return openBag(outsideBattle, poke);
         }
-
+        return false;
     }
 
-    public void openPocket(int pocket, boolean outsideBattle) {
+    public boolean openPocket(int pocket, boolean outsideBattle, Pokemon pokemon) {
         ArrayList<Item> listItems;
+        ArrayList<Item> itemPack = new ArrayList<>();
         switch(pocket) {
             case 1:
                 System.out.println("Items Pocket: ");
@@ -99,24 +100,30 @@ public class Bag {
             if(!itemsNames.contains(it.name)) {
                 System.out.println(ind + ": " + it.name + " x" + Collections.frequency(listItems, it));
                 ind++;
+                itemPack.add(it);
                 itemsNames += it.name;
             }
         }
         itemIndex = in.nextLine();
-        if(Integer.parseInt(itemIndex) > 0 && Integer.parseInt(itemIndex) <= listItems.size()) {
-            Item it = listItems.get(Integer.parseInt(itemIndex)-1);
-            interactItem(it, outsideBattle, pocket);
+        if(Integer.parseInt(itemIndex) > 0 && Integer.parseInt(itemIndex) <= itemPack.size()) {
+            Item it = itemPack.get(Integer.parseInt(itemIndex)-1);
+            return interactItem(it, outsideBattle, pocket, pokemon);
         } else if(Integer.parseInt(itemIndex) != 0) {
-            openPocket(pocket,outsideBattle);
+            return openPocket(pocket,outsideBattle, pokemon);
         } else {
-            openBag(outsideBattle);
+            return openBag(outsideBattle, pokemon);
         }
     }
 
-    private void interactItem(Item it, boolean outsideBattle, int pocket) {
+    private boolean interactItem(Item it, boolean outsideBattle, int pocket, Pokemon pokemon) {
         String itemIndex = "-1";
         int i = 1;
+        if(pokemon != null) {
+            giveItem(it, pocket, pokemon);
+            return true;
+        }
         if(outsideBattle) {
+            System.out.println(it.name + ": ");
             System.out.println("0: Exit");
             System.out.println(i+": Give");
             i++;
@@ -131,7 +138,7 @@ public class Bag {
                 switch(itemIndex) {
                     case "1":
                         // give
-                        giveItem(it, pocket);
+                        giveItem(it, pocket, pokemon);
                         break;
                     case "2":
                         // toss
@@ -139,51 +146,159 @@ public class Bag {
                         break;
                     case "3":
                         // use
-                        //TODO: use item
+                        if(useItemOutside(it, pocket)) {
+                            loseItem(it, pocket, false);
+                            return true;
+                        }
                         break;
                 }
-                openPocket(pocket,outsideBattle);
+                return openPocket(pocket,outsideBattle, pokemon);
             } else if(Integer.parseInt(itemIndex) != 0) {
-                interactItem(it, outsideBattle, pocket);
+                return interactItem(it, outsideBattle, pocket, pokemon);
             } else {
-                openPocket(pocket,outsideBattle);
+                return openPocket(pocket,outsideBattle, pokemon);
             }
-
-
         } else {
-            //TODO: items inside battle
-        }
-    }
-
-    private void giveItem(Item newItem, int pocket) {
-        System.out.println("Which do you want to give the " + newItem.name + " to? ");
-        Pokemon poke = player.getTeam().selectPokemon();
-        if(poke != null) {
-            if(poke.item != null) {
-                System.out.println(poke.nickname + " already has "+ poke.item.name + "!");
-                System.out.println("Do you want switch the items?");
-                System.out.println("1: Yes\n2: No");
-                if(in.nextLine().equals("1")) {
-                    System.out.println("You switched "+poke.item.name+" by " + newItem.name + "!");
-                    addItem(poke.item, false);
-                    poke.item = newItem;
-                    getPocket(pocket).remove(newItem);
+            System.out.println(it.name + ": ");
+            System.out.println("0: Exit");
+            if(!it.getFieldUse().toString().equals("NOBATTLEUSE")) {
+                System.out.println(i+": Use");
+                i++;
+            }
+            itemIndex = in.nextLine();
+            if(Integer.parseInt(itemIndex) > 0 && Integer.parseInt(itemIndex) < i) {
+                if (itemIndex.equals("1")) {// use
+                    if (useItemInside(it, pocket)) {
+                        loseItem(it, pocket, false);
+                        return true;
+                    }
                 }
+                return openPocket(pocket,outsideBattle, pokemon);
+            } else if(Integer.parseInt(itemIndex) != 0) {
+                return interactItem(it, outsideBattle, pocket, pokemon);
             } else {
-                poke.item = newItem;
-                getPocket(pocket).remove(newItem);
-                System.out.println("You gave "+newItem.name+" to " + poke.nickname + "!");
+                return openPocket(pocket,outsideBattle, pokemon);
             }
         }
-
     }
+
+    private boolean useItemInside(Item item, int pocket) {
+        if(item.getFlags().contains("b")) { // pokeballs
+            // TODO: pokeballs
+        } else if(item.getBattleUse().toString().equals("INPOKEMON")) {
+            System.out.println("Which do you want to use " + item.name + " to? ");
+            Pokemon poke = player.getTeam().selectPokemon();
+            if(poke != null) {
+                //System.out.println("You use "+ item.name+" to " + poke.nickname + "!");
+                if(item.getPocket().toString().equals("MEDICINE")) { // medicine
+                    return item.useMedicine(poke);
+                } else if(item.getFlags().contains("c")) { // berries
+                    return poke.battle.useBerry(poke,false);
+                }
+            }
+        } else if(item.getBattleUse().toString().equals("ONBATTLER")) {
+            // TODO: Battle items, use in actual poke
+        } else if(item.getBattleUse().toString().equals("NOTARGET")) {
+            // TODO: things like poke doll
+        }
+        return false;
+    }
+
+    private boolean useItemOutside(Item item, int pocket) {
+        if(item.getFieldUse().toString().equals("DIRECT")) {
+            if(item.getFlags().contains("i")) { // repels
+                // TODO: repel items
+            } else if(item.hasName("SACREDASH")) {
+                boolean used = false;
+                for(int i=0;i<player.getTeam().getPokemonTeam().size();i++) {
+                    if(player.getTeam().getPokemonTeam().get(i).isFainted()) {
+                        player.getTeam().getPokemonTeam().get(i).revivePokemon(-1);
+                        used = true;
+                    }
+                }
+                return used;
+            }
+            System.out.println("You use "+ item.name+" !");
+        } else if(item.getFieldUse().toString().equals("ONPOKEMON")) {
+            System.out.println("Which do you want to use " + item.name + " to? ");
+            Pokemon poke = player.getTeam().selectPokemon();
+            if(poke != null) {
+                if(item.getFlags().contains("e")) { // evolution stone
+                    boolean found = false;
+                    for(int i=0;i<poke.specie.evos.size();i++) {
+                        Evolution evos = poke.specie.evos.get(i);
+                        if(evos.complement.equals(item.internalName) && evos.method.equals("Item")) {
+                            poke.evolve(poke.utils.getPokemon(evos.evo));
+                            found = true;
+                        }
+                    }
+                    if(!found) {
+                        System.out.println(poke.nickname + " is not compatible with " + item.name);
+                        return false;
+                    }
+                } else if(item.getPocket().toString().equals("MEDICINE")) { // medicine
+                    return item.useMedicine(poke);
+                } else if(item.getFlags().contains("c")) { // berries
+                    return poke.battle.useBerry(poke,false);
+                } else if(item.getInternalName().contains("NECTAR")) { // nectars
+                    // TODO: nectars
+                } else if(item.hasName("GRACIDEA")) { // gracidea
+                    // TODO: gracidea
+                } else if(item.hasName("DNASPLICERS")) { // dna splicers
+                    // TODO: DNA splicers
+                } else if(item.hasName("REVEALGLASS")) { // reveal glass
+                    // TODO: reveal glass
+                }
+            }
+        } else if(item.getFieldUse().toString().equals("TM") || item.getFieldUse().toString().equals("HM")) {
+            System.out.println(item.name + " contains " + item.move.name + "!");
+            System.out.println("Which do you want to learn " + item.move.name + "? ");
+            Pokemon poke = player.getTeam().selectPokemon();
+            // TODO: learn MT or HM move
+        }
+        return false;
+    }
+
+    private void giveItem(Item newItem, int pocket, Pokemon pokemon) {
+        if(pokemon != null) {
+            addItemToPoke(newItem, pocket, pokemon);
+        } else {
+            System.out.println("Which do you want to give the " + newItem.name + " to? ");
+            Pokemon poke = player.getTeam().selectPokemon();
+            if(poke != null) {
+                addItemToPoke(newItem, pocket, poke);
+            }
+        }
+    }
+    private void addItemToPoke(Item newItem, int pocket, Pokemon pokemon) {
+        if(pokemon.item != null) {
+            System.out.println(pokemon.nickname + " already has "+ pokemon.item.name + "!");
+            System.out.println("Do you want switch the items?");
+            System.out.println("1: Yes\n2: No");
+            if(in.nextLine().equals("1")) {
+                System.out.println("You switched "+pokemon.item.name+" by " + newItem.name + "!");
+                addItem(pokemon.item, false);
+                pokemon.item = newItem;
+                loseItem(newItem, pocket, true);
+            }
+        } else {
+            pokemon.item = newItem;
+            loseItem(newItem, pocket, true);
+            System.out.println("You gave "+newItem.name+" to " + pokemon.nickname + "!");
+        }
+    }
+
     private void tossItem(Item item, int pocket) {
         System.out.println("Would you like to toss "+item.name+"?");
         System.out.println("1: Yes\n2: No");
         if(in.nextLine().equals("1") && getPocket(pocket).contains(item)) {
             System.out.println("You tossed "+item.name+"!");
-            getPocket(pocket).remove(item);
+            loseItem(item, pocket, true);
         }
+    }
+
+    private void loseItem(Item item, int pocket, boolean toss) {
+        if(item.consumable || toss) getPocket(pocket).remove(item);
     }
 
     public void addItem(Item item, boolean message) {

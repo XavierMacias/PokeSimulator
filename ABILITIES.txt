@@ -66,9 +66,9 @@ THICKFAT,Sebo,Reduce el daño de ataques fuego y hielo
 POISONTOUCH,Toque tóxico,Puede envenenar al tocar al objetivo
 STICKYHOLD,Viscosidad,Evita el robo de objetos
 EARLYBIRD,Madrugar,Se despierta más pronto de lo habitual
+UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.
 DAMP,-------------------Humedad-------------------,Evita los movimientos de explosión
 GLUTTONY,Gula,Utiliza las bayas equipadas antes de lo normal
-UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.
 SHEERFORCE,Potencia bruta,Potencia los ataques con efecto secundario pero elimina el efecto
 FRIENDGUARD,Compiescolta,Reduce el daño causado a Pokémon aliados
 PICKUP,Recogida,Recoge objetos mientras caminas

@@ -441,7 +441,11 @@ public class MoveEffects {
         } else if (effect == 57) {
             // steals the equipped berry of target - BUG BITE, PLUCK
             if(defender.hasItemWithFlag("c") && !defender.hasAbility("STICKYHOLD")) {
-                //TODO: bug bite effect
+                Item auxItem = attacker.item;
+                attacker.setItem(defender.item.getInternalName());
+                battle.useBerry(attacker,false);
+                attacker.setItem(auxItem.getInternalName());
+                defender.loseItem(false,false);
             }
         } else if (effect == 58) {
             // prevents status problems for all team - SAFEGUARD
@@ -1400,7 +1404,12 @@ public class MoveEffects {
                         defender.getStatChanges().set(i, 0);
                     }
                 }
-            } // TODO: berries effects
+            } else if(attacker.hasItemWithFlag("c")) { // has a berry
+                Item auxItem = defender.item;
+                defender.setItem(attacker.item.getInternalName());
+                battle.useBerry(defender,false);
+                defender.setItem(auxItem.getInternalName());
+            }
 
             attacker.loseItem(true, false);
         } else if (effect == 189) {

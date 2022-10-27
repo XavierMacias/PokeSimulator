@@ -68,7 +68,7 @@ public class Battle {
         //user.setItem("ROCKYHELMET");
         //user.setMove("RAGE");
         //rival.setUniqueMove("RAGE");
-        //rival.setItem("ROCKYHELMET");
+        //rival.setItem("ORANBERRY");
         //weather.changeWeather(Weathers.HAIL, false);
 
         // battle loop
@@ -93,6 +93,7 @@ public class Battle {
                     break;
                 case "2":
                     // bag
+                    decision = userTeam.getPlayer().getBag().openBag(false,null);
                     break;
                 case "3":
                     // pokemon
@@ -566,6 +567,10 @@ public class Battle {
         if(defender.hasAbility("SANDVEIL") && weather.hasWeather(Weathers.SANDSTORM)) {
             moveAccuracy *= 0.8;
         }
+        // micle berry
+        if(attacker.effectMoves.get(47) > 0) {
+            moveAccuracy *= 1.2;
+        }
         if(moveAccuracy == 0 && attackerMove.getAccuracy() != 0) moveAccuracy = 1;
 
         // BLIZZARD never will fail with hail
@@ -671,7 +676,7 @@ public class Battle {
         if(attacker.getTeam().effectTeamMoves.get(10) > 0 && attackerMove.multiTarget()) { // multi target attacks blocked by Wide Guard
             return true;
         }
-        if(attackerMove.getCode() == 164 && attacker.hasItemWithFlag("c")) { // if natural gift attacker doesnt have a berry, it fails
+        if(attackerMove.getCode() == 164 && (!attacker.hasItemWithFlag("c") || defender.hasAbility("UNNERVE"))) { // if natural gift attacker doesnt have a berry, it fails
             return true;
         }
         if(attackerMove.getCode() == 211 && !attacker.hasStatus(Status.ASLEEP)) { // if user is not slept, snore fails
@@ -805,7 +810,7 @@ public class Battle {
             if(weather.hasWeather(Weathers.FOG)) {
                 accuracy *= 0.6;
             }
-            if(defender.hasItem("BRIGHTPOWDER")) {
+            if(defender.hasItem("BRIGHTPOWDER") || defender.hasItem("LAXINCENSE")) {
                 accuracy *= 0.9;
             }
             //changes in defender evasion
@@ -939,6 +944,8 @@ public class Battle {
                 }
             }
             defender.effectMoves.set(31, 0);
+            useAutomatic(attacker,defender);
+            useAutomatic(defender,attacker);
             if(reducePP) { attacker.reducePP(attackerMove,1); }
             if(defender.effectMoves.get(22) > 0 && defenderMove.hasName("BIDE")) defender.bideDamage += dmg; // bide damage increases
             // self destruct, explosion
@@ -1049,14 +1056,37 @@ public class Battle {
         if(!defender.isFainted() && defender.hasItem("LUMINOUSMOSS") && attackerMove.type.is("WATER")) { // luminous moss actives
             if(defender.changeStat(3,1,false,true,attacker)) defender.loseItem(true, false);
         }
-        if(!defender.isFainted() && defender.hasItem("WEAKNESSPOLICY") && getEffectiveness(attacker,defender,attackerMove) >= 2.0) { // weakness policy
-            boolean inc1 = defender.changeStat(0,2,false,true, attacker);
-            boolean inc2 = defender.changeStat(2,2,false,true, attacker);
-            if(!inc1 && !inc2) defender.loseItem(true, false);
+        if(!defender.isFainted() && getEffectiveness(attacker,defender,attackerMove,false) >= 2.0) { // weakness policy
+            if(defender.hasItem("WEAKNESSPOLICY")) {
+                boolean inc1 = defender.changeStat(0,2,false,true, attacker);
+                boolean inc2 = defender.changeStat(2,2,false,true, attacker);
+                if(!inc1 && !inc2) defender.loseItem(true, false);
+            } else if(defender.hasItem("ENIGMABERRY") && !defender.hasAllHP()) {
+                defender.healHP(defender.getHP()/4,true,false,false);
+                defender.loseItem(true, false);
+            }
         }
         if(!attacker.isFainted() && attacker.hasItem("THROATSPRAY") && attackerMove.getFlags().contains("j")) { // throat spray actives
             if(attacker.changeStat(2,1,false,true, defender)) attacker.loseItem(true, false);
         }
+        // berries
+        if(attackerMove.getCategory().equals(Category.PHYSICAL) && !defender.isFainted()) {
+            if(defender.hasItem("JABOCABERRY")) {
+                attacker.reduceHP(attacker.getHP()/8);
+                defender.loseItem(true, false);
+            } else if(defender.hasItem("KEEBERRY")) {
+                if(defender.changeStat(1,1,false,true, attacker)) defender.loseItem(true, false);
+            }
+        }
+        if(attackerMove.getCategory().equals(Category.SPECIAL) && !defender.isFainted()) {
+            if(defender.hasItem("ROWAPBERRY")) {
+                attacker.reduceHP(attacker.getHP()/8);
+                defender.loseItem(true, false);
+            } else if(defender.hasItem("MARANGABERRY")) {
+                if(defender.changeStat(3,1,false,true, attacker)) defender.loseItem(true, false);
+            }
+        }
+
         // contact item effects
         if(attackerMove.getFlags().contains("a") && !attacker.hasItem("PROTECTIVEPADS")) {
             if(defender.hasItem("ROCKYHELMET") && !attacker.isFainted() && !attacker.hasAbility("MAGICGUARD")) { // rocky helmet
@@ -1130,6 +1160,191 @@ public class Battle {
             attacker.reducePP(attackerMove,-1);
             attacker.effectMoves.set(31, 0);
         }
+    }
+
+    public void useAutomatic(Pokemon target, Pokemon other) {
+        // mental herb
+        if(target.hasItem("MENTALHERB")) {
+            if(target.hasTemporalStatus(TemporalStatus.INFATUATED)) {
+                target.healTempStatus(TemporalStatus.INFATUATED, true);
+                target.loseItem(true, false);
+            }
+            if(target.effectMoves.get(37) > 0 || target.effectMoves.get(1) > 0 || target.effectMoves.get(17) > 0) { // TODO: torment, heal block, cursed body
+                target.effectMoves.set(37, 0);
+                target.effectMoves.set(1, 0);
+                target.effectMoves.set(17, 0);
+                target.disabledMove = null;
+                System.out.println(target.nickname + "'s status were reestablished!");
+                target.loseItem(true, false);
+            }
+        }
+        // white herb
+        if(target.hasItem("WHITEHERB")) {
+            boolean negativeStats = false;
+            for(int i=0;i<target.getStatChanges().size();i++) {
+                if(target.getStatChanges().get(i) < 0) {
+                    negativeStats = true;
+                    target.getStatChanges().set(i, 0);
+                    System.out.println(target.nickname + "'s stats changes were reestablished!");
+                }
+            }
+            if(negativeStats) target.loseItem(true, false);
+        }
+        // abilities heal
+        if((target.hasStatus(Status.POISONED) || target.hasStatus(Status.BADLYPOISONED)) && target.hasAbility("IMMUNITY") ||
+                (target.hasStatus(Status.PARALYZED) && target.hasAbility("LIMBER")) || (target.hasStatus(Status.FROZEN) && target.hasAbility("MAGMAARMOR")) ||
+                (target.hasStatus(Status.BURNED) && target.hasAbility("WATERVEIL")) ||
+                (target.hasStatus(Status.ASLEEP) && (target.hasAbility("INSOMNIA") || target.hasAbility("VITALSPIRIT")))) {
+            target.healPermanentStatus();
+        }
+        if(target.hasTemporalStatus(TemporalStatus.CONFUSED) && target.hasAbility("OWNTEMPO")) {
+            target.healTempStatus(TemporalStatus.CONFUSED, true);
+        }
+        useBerry(target,other.hasAbility("UNNERVE"));
+    }
+
+    public boolean useBerry(Pokemon target, boolean unnerve) {
+        // berries
+        if(!unnerve) {
+            if((target.hasItem("CHERIBERRY") && target.hasStatus(Status.PARALYZED)) || // berries that heal permanent status
+                    (target.hasItem("CHESTOBERRY") && target.hasStatus(Status.ASLEEP)) ||
+                    (target.hasItem("PECHABERRY") && (target.hasStatus(Status.POISONED) || target.hasStatus(Status.BADLYPOISONED))) ||
+                    (target.hasItem("RAWSTBERRY") && target.hasStatus(Status.BURNED)) ||
+                    (target.hasItem("ASPEARBERRY") && target.hasStatus(Status.FROZEN))) {
+                target.healPermanentStatus();
+                target.loseItem(true, false);
+                return true;
+            }
+            if(target.hasItem("LUMBERRY")) {
+                if(!target.hasStatus(Status.FINE) && !target.hasStatus(Status.FAINTED)) {
+                    target.healPermanentStatus(); // heal all permanent status
+                    target.loseItem(true, false);
+                }
+                if(target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+                    target.healTempStatus(TemporalStatus.CONFUSED, true); // heal confusion
+                    target.loseItem(true, false);
+                }
+                return true;
+            }
+            if(target.hasItem("PERSIMBERRY") && target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+                target.healTempStatus(TemporalStatus.CONFUSED, true); // heal confusion
+                target.loseItem(true, false);
+                return true;
+            }
+            if(target.getPercentHP() <= 50.0) { // berries that recover HP when HP are under 50%
+                if(target.hasItem("ORANBERRY")) {
+                    target.healHP(10,true,false,false);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("SITRUSBERRY")) {
+                    target.healHP(target.getHP()/4,true,false,false);
+                    target.loseItem(true, false);
+                    return true;
+                }
+            }
+            if(target.moveWithoutPP() != null && target.hasItem("LEPPABERRY")) { // berry restore PP
+                target.healPP(target.getIndexMove(target.moveWithoutPP().getInternalName()),10);
+                target.loseItem(true, false);
+                return true;
+            }
+            if(target.getPercentHP() <= 25.0) { // berries that actives when HP are under 25%
+                if(target.hasItem("FIGYBERRY")) {
+                    target.healHP(target.getHP()/3,true,false,false);
+                    target.loseItem(true, false);
+                    if(target.canConfuse(false,null) && (target.getNature("MODEST") || target.getNature("TIMID") || target.getNature("CALM") || target.getNature("BOLD"))) {
+                        target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+                    }
+                    return true;
+                }
+                if(target.hasItem("WIKIBERRY")) {
+                    target.healHP(target.getHP()/3,true,false,false);
+                    target.loseItem(true, false);
+                    if(target.canConfuse(false,null) && (target.getNature("ADAMANT") || target.getNature("IMPISH") || target.getNature("CAREFUL") || target.getNature("JOLLY"))) {
+                        target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+                    }
+                    return true;
+                }
+                if(target.hasItem("MAGOBERRY")) {
+                    target.healHP(target.getHP()/3,true,false,false);
+                    target.loseItem(true, false);
+                    if(target.canConfuse(false,null) && (target.getNature("BRAVE") || target.getNature("RELAXED") || target.getNature("QUIET") || target.getNature("SASSY"))) {
+                        target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+                    }
+                    return true;
+                }
+                if(target.hasItem("AGUAVBERRY")) {
+                    target.healHP(target.getHP()/3,true,false,false);
+                    target.loseItem(true, false);
+                    if(target.canConfuse(false,null) && (target.getNature("NAUGHTY") || target.getNature("LAX") || target.getNature("RASH") || target.getNature("NAIVE"))) {
+                        target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+                    }
+                    return true;
+                }
+                if(target.hasItem("IAPAPABERRY")) {
+                    target.healHP(target.getHP()/3,true,false,false);
+                    target.loseItem(true, false);
+                    if(target.canConfuse(false,null) && (target.getNature("LONELY") || target.getNature("MILD") || target.getNature("GENTLE") || target.getNature("HASTY"))) {
+                        target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+                    }
+                    return true;
+                }
+                if(target.hasItem("LIECHIBERRY")) { // increase attack
+                    target.changeStat(0,1,true,true,null);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("GANLONBERRY")) { // increase defense
+                    target.changeStat(1,1,true,true,null);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("SALACBERRY")) { // increase speed
+                    target.changeStat(4,1,true,true,null);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("PETAYABERRY")) { // increase special attack
+                    target.changeStat(2,1,true,true,null);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("APICOTBERRY")) { // increase special defense
+                    target.changeStat(3,1,true,true,null);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("LANSATBERRY")) { // critical index increase
+                    target.criticalIndex += 2;
+                    if(target.criticalIndex > 4) target.criticalIndex = 4;
+                    System.out.println(target.nickname + " critical index increased!");
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("STARFBERRY") && !target.statsAreMaximum()) { // increase random stat
+                    Random rand = new Random();
+                    int randomStat = -1;
+                    do {
+                        randomStat = rand.nextInt(target.getStatChanges().size());
+                    } while(target.getStatChanges().get(randomStat) == 6);
+                    target.changeStat(randomStat, 2, true, true, target);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("MICLEBERRY")) { // next move will increase accuracy
+                    target.effectMoves.set(47, 1);
+                    target.loseItem(true, false);
+                    return true;
+                }
+                if(target.hasItem("CUSTAPBERRY")) { // next move will attack first
+                    target.effectMoves.set(47, 1);
+                    target.loseItem(true, false);
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void startMove(Pokemon target, Pokemon other, Movement attackerMove) {
@@ -1235,6 +1450,11 @@ public class Battle {
             userFirst = true;
         } else if((user.hasItem("LAGGINGTAIL") || user.hasItem("FULLINCENSE") ) && (!rival.hasItem("LAGGINGTAIL") && !rival.hasItem("FULLINCENSE"))) {
             userFirst = false;
+            // quick claw and custap berry
+        } else if((rival.hasItem("QUICKCLAW") || rival.effectMoves.get(48) > 0) && (!user.hasItem("QUICKCLAW") && !(user.effectMoves.get(48) > 0))) {
+            userFirst = false;
+        } else if((user.hasItem("QUICKCLAW") || user.effectMoves.get(48) > 0) && (!rival.hasItem("QUICKCLAW") && !(rival.effectMoves.get(48) > 0))) {
+            userFirst = true;
         // pokemon speed
         } else if(user.getVelocity() > rival.getVelocity()) {
             userFirst = true;
@@ -1344,7 +1564,7 @@ public class Battle {
         power = movePowerByExternalReasons(attacker, defender, move, power, critical, mefirst);
 
         // get effectiveness
-        double effectiveness = getEffectiveness(attacker, defender, move);
+        double effectiveness = getEffectiveness(attacker, defender, move, true);
         // STAB
         if(attacker.hasType(move.type.getInternalName())) {
             stab = 1.5;
@@ -1800,6 +2020,25 @@ public class Battle {
             power *= 1.3;
             attacker.loseItem(true, false);
         }
+        // reductor berries
+        if(getEffectiveness(attacker,defender,move,false) >= 2.0) {
+            if(defender.hasItem("BABIRIBERRY") && move.type.is("STEEL") || (defender.hasItem("PASSHOBERRY") && move.type.is("WATER")) ||
+                    (defender.hasItem("HABANBERRY") && move.type.is("DRAGON")) || (defender.hasItem("TANGABERRY") && move.type.is("BUG")) ||
+                    (defender.hasItem("WACANBERRY") && move.type.is("ELECTRIC")) || (defender.hasItem("ROSELIBERRY") && move.type.is("FAIRY")) ||
+                    (defender.hasItem("KASIBBERRY") && move.type.is("GHOST")) || (defender.hasItem("YACHEBERRY") && move.type.is("ICE")) ||
+                    (defender.hasItem("OCCABERRY") && move.type.is("FIRE")) || (defender.hasItem("CHARTIBERRY") && move.type.is("ROCK")) ||
+                    (defender.hasItem("CHOPLEBERRY") && move.type.is("FIGHTING")) || (defender.hasItem("COLBURBERRY") && move.type.is("DARK")) ||
+                    (defender.hasItem("SHUCABERRY") && move.type.is("GROUND")) || (defender.hasItem("RINDOBERRY") && move.type.is("GRASS")) ||
+                    (defender.hasItem("KEBIABERRY") && move.type.is("POISON")) || (defender.hasItem("PAYAPABERRY") && move.type.is("PSYCHIC")) ||
+                    (defender.hasItem("COBABERRY") && move.type.is("FLYING"))) {
+                power *= 0.5;
+                attacker.loseItem(true, false);
+            }
+        }
+        if(defender.hasItem("CHILANBERRY") && move.type.is("NORMAL")) {
+            power *= 0.5;
+            attacker.loseItem(true, false);
+        }
 
         if(attacker.hasItem("SOULDEW") && (move.type.is("DRAGON") || move.type.is("PSYCHIC")) && (attacker.specieNameIs("LATIAS") || attacker.specieNameIs("LATIOS"))) power *= 1.2;
         if(attacker.hasItem("ADAMANTORB") && (move.type.is("DRAGON") || move.type.is("STEEL")) && attacker.specieNameIs("DIALGA")) power *= 1.2;
@@ -1922,7 +2161,7 @@ public class Battle {
         return 2.0;
     }
 
-    private double getEffectiveness(Pokemon attacker, Pokemon defender, Movement move) {
+    private double getEffectiveness(Pokemon attacker, Pokemon defender, Movement move, boolean message) {
         double effectiveness = 1.0;
         if(defender.battleType1 != null) {
             if(defender.battleType1.weaknesses.contains(move.type.getInternalName())) {
@@ -1950,14 +2189,14 @@ public class Battle {
         }
 
         if(effectiveness >= 2.0) {
-            System.out.println("It's very effective!");
+            if(message) System.out.println("It's very effective!");
         } else if(effectiveness <= 0.5 && effectiveness > 0.0) {
-            System.out.println("It's not very effective...");
+            if(message) System.out.println("It's not very effective...");
             if(attacker.hasAbility("TINTEDLENS")) {
                 effectiveness *= 2.0;
             }
         } else if(effectiveness <= 0.0) {
-            System.out.println("It doesn't affect " + defender.nickname + "...");
+            if(message) System.out.println("It doesn't affect " + defender.nickname + "...");
         }
 
         return effectiveness;
@@ -2268,6 +2507,20 @@ public class Battle {
             target.increaseEffectMove(38); // increase turn
             if(target.effectMoves.get(38) > 2) {
                 target.effectMoves.set(38, 0);
+            }
+        }
+        // end micle berry
+        if(target.effectMoves.get(47) > 0) {
+            target.increaseEffectMove(47); // increase turn
+            if(target.effectMoves.get(47) > 2) {
+                target.effectMoves.set(47, 0);
+            }
+        }
+        // end custap berry
+        if(target.effectMoves.get(48) > 0) {
+            target.increaseEffectMove(48); // increase turn
+            if(target.effectMoves.get(48) > 2) {
+                target.effectMoves.set(48, 0);
             }
         }
 

@@ -16,7 +16,7 @@ public class Team {
     public Pokemon futureAttackerPoke;
     public int futureAttackId;
     private Scanner in;
-    Player player;
+    private Player player;
 
     public Team(Player trainer) {
         in = new Scanner(System.in);
@@ -51,6 +51,7 @@ public class Team {
     public ArrayList<Pokemon> getPokemonTeam() {
         return pokemonTeam;
     }
+    public Player getPlayer() { return player; }
 
     public void obtainPokemon(Pokemon pkm) {
         //TODO: Check if there are more than 6 pokemon in the team
@@ -116,10 +117,9 @@ public class Team {
             } while(chosenIndex < 0 || chosenIndex > 3);
             switch (chosenIndex) {
                 case 1:
-                    //TODO: pokemon info
+                    poke.showInfo();
                     break;
                 case 2:
-                    //TODO: pokemon item
                     String chosenIndex2 = "-1";
                     System.out.println("0: Exit");
                     System.out.println("1: Give");
@@ -129,16 +129,39 @@ public class Team {
                     chosenIndex2 = in.nextLine();
                     if(chosenIndex2.equals("1")) {
                         // give item
+                        player.getBag().openBag(true,poke);
                     } else if(chosenIndex2.equals("2") && poke.item != null) {
                         // take item
+                        player.getBag().addItem(poke.item, true);
+                        poke.loseItem(false, false);
                     }
                     break;
                 case 3:
-                    //TODO: move pokemon
+                    System.out.println("Which Pokemon do you want to switch with " + poke.nickname + "?");
+                    movePokemon(poke);
                     break;
             }
         }
+    }
 
+    public void movePokemon(Pokemon target) {
+        int chosenIndex = -1;
+        do {
+            System.out.println("0: Exit");
+            for(int i=0;i<pokemonTeam.size();i++) {
+                System.out.println((i+1) + ": " + pokemonTeam.get(i).nickname);
+            }
+            chosenIndex = Integer.parseInt(in.nextLine());
+        } while(chosenIndex < 0 || chosenIndex > pokemonTeam.size());
+        if(chosenIndex == 0) return;
+        if(pokemonTeam.get(chosenIndex-1).equals(target)) {
+            System.out.println("This Pokemon is in this position yet");
+        } else {
+            int auxIndex = pokemonTeam.indexOf(target);
+            pokemonTeam.set(auxIndex, pokemonTeam.get(chosenIndex-1));
+            pokemonTeam.set(chosenIndex-1, target);
+            System.out.println(target.nickname + " changed position");
+        }
     }
 
     public boolean isTeamDefeated() {
