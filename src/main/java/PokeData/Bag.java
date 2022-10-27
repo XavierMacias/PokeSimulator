@@ -161,17 +161,15 @@ public class Bag {
         } else {
             System.out.println(it.name + ": ");
             System.out.println("0: Exit");
-            if(!it.getFieldUse().toString().equals("NOBATTLEUSE")) {
+            if(!it.getBattleUse().toString().equals("NOBATTLEUSE")) {
                 System.out.println(i+": Use");
-                i++;
+                //i++;
             }
             itemIndex = in.nextLine();
-            if(Integer.parseInt(itemIndex) > 0 && Integer.parseInt(itemIndex) < i) {
-                if (itemIndex.equals("1")) {// use
-                    if (useItemInside(it, pocket)) {
-                        loseItem(it, pocket, false);
-                        return true;
-                    }
+            if(itemIndex.equals("1")) {
+                if (useItemInside(it, pocket)) {
+                    loseItem(it, pocket, false);
+                    return true;
                 }
                 return openPocket(pocket,outsideBattle, pokemon);
             } else if(Integer.parseInt(itemIndex) != 0) {

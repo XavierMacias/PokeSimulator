@@ -960,6 +960,9 @@ public class Pokemon {
     }
 
     public boolean healHP(int hp, boolean message, boolean messageAll, boolean absorb) {
+        if(hp <= 0) {
+            return false;
+        }
         // hp -1 means all the HP will be restored
         if(hasAllHP()) {
             if(messageAll) { System.out.println(nickname + " already has all its HPs!"); }
@@ -1069,7 +1072,7 @@ public class Pokemon {
         }
 
         getMoves().get(ind).setPP(newPP);
-        System.out.println("PP of" + move.name + " increased!");
+        System.out.println("PP of " + move.name + " increased!");
         modifyHappiness(5, 3, 2);
         return true;
     }

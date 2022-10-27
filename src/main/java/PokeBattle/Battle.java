@@ -93,7 +93,7 @@ public class Battle {
                     break;
                 case "2":
                     // bag
-                    decision = userTeam.getPlayer().getBag().openBag(false,null);
+                    decision = useItem(false);
                     break;
                 case "3":
                     // pokemon
@@ -209,6 +209,19 @@ public class Battle {
         return false;
     }
 
+    private boolean useItem(boolean fainted) {
+        if(userTeam.getPlayer().getBag().openBag(false,null)) {
+            Movement rivalMove = chooseRivalMove();
+            rivalAttacksYou(fainted, rivalMove);
+            if(checkFaint() != 0) {
+                return true;
+            }
+
+            return true;
+        }
+        return false;
+    }
+
     private boolean changePokemon(boolean fainted) {
         int chosenIndex = -1;
         do {
@@ -254,19 +267,23 @@ public class Battle {
         }
 
         doChange(true, chosenIndex);
+        rivalAttacksYou(fainted, rivalMove);
+        if(checkFaint() != 0) {
+            return true;
+        }
+
+        return true;
+    }
+
+    private void rivalAttacksYou(boolean fainted, Movement rivalMove) {
         //rival attacks you
         if(!fainted) {
             firstAttacker = rival;
             secondAttacker = user;
             if(rivalMove.getCode() != 68) {
                 useMove(firstAttacker,secondAttacker,rivalMove,user.utils.getMove("STRUGGLE"),true,false, false);
-                if(checkFaint() != 0) {
-                    return true;
-                }
             }
         }
-
-        return true;
     }
 
     private void doChange(boolean isUser, int chosenIndex) {

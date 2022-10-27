@@ -132,7 +132,7 @@ public class Item {
         } else if(hasName("MAXPOTION")) {
             return target.healHP(-1,true,true,false);
         } else if(hasName("FULLRESTORE")) {
-            if(target.hasAllHP() && !target.hasSomeStatus() && !target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+            if(target.isFainted() || (target.hasAllHP() && !target.hasSomeStatus() && !target.hasTemporalStatus(TemporalStatus.CONFUSED))) {
                 return false;
             }
             target.healHP(-1,true,false,false);
@@ -146,12 +146,18 @@ public class Item {
                 (hasName("ANTIDOTE") && (target.hasStatus(Status.POISONED) || target.hasStatus(Status.BADLYPOISONED))) ||
                 (hasName("BURNHEAL") && target.hasStatus(Status.BURNED)) ||
                 (hasName("ICEHEAL") && target.hasStatus(Status.FROZEN))) {
+            if(target.isFainted()) {
+                return false;
+            }
             target.healPermanentStatus();
             return true;
         } else if(hasName("FULLHEAL") || hasName("RAGECANDYBAR") || hasName("LAVACOOKIE") || hasName("OLDGATEAU")
                 || hasName("CASTELIACONE") || hasName("LUMIOSEGALETTE") || hasName("SHALOURSABLE") || hasName("BIGMALASADA")
                 || hasName("PEWTERCRUNCHIES") || hasName("HEALPOWDER")) {
             if(!target.hasSomeStatus() && !target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+                return false;
+            }
+            if(target.isFainted()) {
                 return false;
             }
             target.healPermanentStatus();
