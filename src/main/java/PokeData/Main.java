@@ -47,14 +47,14 @@ public class Main {
         player.getBag().addItem(utils.getItem("WATERSTONE"), true);
         player.getBag().addItem(utils.getItem("ORANBERRY"), true);
         player.getBag().addItem(utils.getItem("ORANBERRY"), true);
-        player.getBag().addItem(utils.getItem("PPUP"), true);
-        player.getBag().addItem(utils.getItem("REPEL"), true);
+        player.getBag().addItem(utils.getItem("POKEBALL"), true);
+        player.getBag().addItem(utils.getItem("POKEBALL"), true);
         player.getBag().addItem(utils.getItem("CHERIBERRY"), true);
         player.getBag().addItem(utils.getItem("THUNDERSTONE"), true);
         player.getBag().addItem(utils.getItem("POTION"), true);
-        player.getBag().addItem(utils.getItem("PPUP"), true);
-        player.getBag().addItem(utils.getItem("PPMAX"), true);
-        player.getBag().addItem(utils.getItem("PPUP"), true);
+        player.getBag().addItem(utils.getItem("MASTERBALL"), true);
+        player.getBag().addItem(utils.getItem("POKEBALL"), true);
+        player.getBag().addItem(utils.getItem("NESTBALL"), true);
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Party\n4: Pokedex\n-1: Exit");

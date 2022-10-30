@@ -11,6 +11,7 @@ public class Player {
     private Team team;
     private Bag bag;
     // TODO: pokedex, PC boxes
+    private ArrayList<Pokemon> pokedex;
 
     public Player(int genre, String name, Utils utils) {
         this.utils = utils;
@@ -23,6 +24,7 @@ public class Player {
         team = new Team(this);
         // initialize bag
         bag = new Bag(this);
+        pokedex = new ArrayList<>();
     }
 
     public int getId() {
@@ -46,4 +48,9 @@ public class Player {
             money = 999999;
         }
     }
+
+    public void registerPokemon(Pokemon poke) { if(!pokedex.contains(poke)) pokedex.add(poke); }
+    public boolean isCaptured(Pokemon poke) { return pokedex.contains(poke); }
+    public int numCaptured() { return pokedex.size(); }
+
 }

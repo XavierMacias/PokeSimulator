@@ -146,7 +146,7 @@ public class Bag {
                         break;
                     case "3":
                         // use
-                        if(useItemOutside(it, pocket)) {
+                        if(useItemOutside(it)) {
                             loseItem(it, pocket, false);
                             return true;
                         }
@@ -167,7 +167,7 @@ public class Bag {
             }
             itemIndex = in.nextLine();
             if(itemIndex.equals("1")) {
-                if (useItemInside(it, pocket)) {
+                if (useItemInside(it)) {
                     loseItem(it, pocket, false);
                     return true;
                 }
@@ -180,9 +180,10 @@ public class Bag {
         }
     }
 
-    private boolean useItemInside(Item item, int pocket) {
+    private boolean useItemInside(Item item) {
         if(item.getFlags().contains("b")) { // pokeballs
-            // TODO: pokeballs
+            player.getTeam().getFirstAlivePokemon().battle.usePokeball(item);
+            return true;
         } else if(item.getBattleUse().toString().equals("INPOKEMON")) {
             System.out.println("Which do you want to use " + item.name + " to? ");
             Pokemon poke = player.getTeam().selectPokemon();
@@ -202,7 +203,7 @@ public class Bag {
         return false;
     }
 
-    private boolean useItemOutside(Item item, int pocket) {
+    private boolean useItemOutside(Item item) {
         if(item.getFieldUse().toString().equals("DIRECT")) {
             if(item.getFlags().contains("i")) { // repels
                 // TODO: repel items

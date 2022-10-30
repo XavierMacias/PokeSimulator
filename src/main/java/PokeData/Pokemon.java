@@ -54,6 +54,7 @@ public class Pokemon {
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
     Status status;
     List<TemporalStatus> tempStatus;
+    public Item pokeball;
     public Item item;
     public Item originalItem;
     public int criticalIndex = 0;
@@ -142,6 +143,7 @@ public class Pokemon {
             isShiny = true;
         }
         weight = specie.weight;
+        pokeball = utils.getItem("POKEBALL");
 
         effectMoves = new ArrayList<Integer>();
         /* 0 -> ingrain
@@ -997,6 +999,9 @@ public class Pokemon {
         } else if(happiness <= 200) {
             hap = hap3;
         }
+        if(hap > 0 && pokeball.hasName("LUXURYBALL")) {
+            hap += 1;
+        }
         if(hap > 0 && hasItem("SOOTHEBELL")) {
             hap *= 1.5;
         }
@@ -1008,6 +1013,10 @@ public class Pokemon {
                 happiness = 255;
             }
         }
+    }
+
+    public void setHappiness(int hap) {
+        happiness = hap;
     }
 
     public void increaseEffectMove(int index) {

@@ -17,6 +17,7 @@ public class Team {
     public int futureAttackId;
     private Scanner in;
     private Player player;
+    private PCBox pc;
 
     public Team(Player trainer) {
         in = new Scanner(System.in);
@@ -44,6 +45,7 @@ public class Team {
             effectTeamMoves.add(0);
         }
         player = trainer;
+        pc = new PCBox();
         futureAttackerPoke = null;
         futureAttackId = 0; // 1: future sight, 2: doom desire
     }
@@ -52,14 +54,22 @@ public class Team {
         return pokemonTeam;
     }
     public Player getPlayer() { return player; }
+    public PCBox getPCBox() { return pc; }
 
     public void obtainPokemon(Pokemon pkm) {
-        //TODO: Check if there are more than 6 pokemon in the team
-        pokemonTeam.add(pkm);
-        pkm.setTeam(this);
-        System.out.println("You received a "+pkm.specie.name+"!");
+        if(player != null) player.registerPokemon(pkm);
+        System.out.println("You received a " + pkm.specie.name + "!");
         giveNickname(pkm);
+        if(getNumPokemon() < 6) {
+            pokemonTeam.add(pkm);
+            pkm.setTeam(this);
+        } else {
+            System.out.println("You already have 6 Pokémon in your team!");
+            pc.addToBox(pkm);
+        }
+
     }
+    public int getNumPokemon() { return pokemonTeam.size(); }
 
     public int alivePokemon() {
         int total = 0;
@@ -234,6 +244,7 @@ public class Team {
     public void addPokemon(Pokemon pkm) {
         pokemonTeam.add(pkm);
         pkm.setTeam(this);
+        if(player != null) player.registerPokemon(pkm);
     }
 
     public Pokemon getFirstAlivePokemon() {

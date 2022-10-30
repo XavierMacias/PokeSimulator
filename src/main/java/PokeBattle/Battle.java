@@ -46,6 +46,9 @@ public class Battle {
         }
     }
 
+    public Pokemon getUser() { return user; }
+    public Pokemon getRival() { return rival; }
+
     public void WildSingleBattle(Team team1, Team team2) {
         team1.inBattle(this);
         team2.inBattle(this);
@@ -211,6 +214,11 @@ public class Battle {
 
     private boolean useItem(boolean fainted) {
         if(userTeam.getPlayer().getBag().openBag(false,null)) {
+            firstAttacker = rival;
+            secondAttacker = user;
+            if(checkFaint() != 0) {
+                return true;
+            }
             Movement rivalMove = chooseRivalMove();
             rivalAttacksYou(fainted, rivalMove);
             if(checkFaint() != 0) {
@@ -220,6 +228,146 @@ public class Battle {
             return true;
         }
         return false;
+    }
+
+    public void usePokeball(Item pokeball) {
+        // TODO: for trainers you cant capture
+        if(pokeball.hasName("MASTERBALL")) {
+            capturedPokemon(rival, pokeball); // master ball ALWAYS capture
+        } else {
+            boolean critic = false;
+            int psmax = rival.getHP();
+            int psactual = rival.getPsActuales();
+            double e = 1.0; // status modifier
+            if(rival.hasStatus(Status.FROZEN) || rival.hasStatus(Status.ASLEEP)) {
+                e = 2.5;
+            } else if(rival.hasStatus(Status.BURNED) || rival.hasStatus(Status.PARALYZED) || rival.hasStatus(Status.POISONED)
+                    || rival.hasStatus(Status.BADLYPOISONED)) {
+                e = 1.5;
+            }
+
+            // TODO: LUREBALL, DUSKBALL, DIVEBALL
+            int r = rival.getSpecie().ratio; // capture ratio
+            double b = 1.0; // bonus for pokeball type
+            if(pokeball.hasName("GREATBALL")) {
+                b = 1.5;
+            } else if(pokeball.hasName("ULTRABALL")) {
+                b = 2;
+            } else if(pokeball.hasName("ULTRABALL")) {
+                b = 2;
+            } else if(pokeball.hasName("RAPIDBALL") && rival.getSpecie().stats.get(5) >= 100) {
+                b = 4;
+            } else if(pokeball.hasName("LEVELBALL")) {
+                if(user.getLevel() >= 4*rival.getLevel()) {
+                    b = 8;
+                } else if(user.getLevel() >= 2*rival.getLevel()) {
+                    b = 4;
+                } else if(user.getLevel() > rival.getLevel()) {
+                    b = 2;
+                }
+            } else if(pokeball.hasName("HEAVYBALL")) {
+                if (rival.getWeight() > 300.0) {
+                    r += 30;
+                } else if (rival.getWeight() > 200.0) {
+                    r = 20;
+                } else if (rival.getWeight() < 100.0) {
+                    r -= 20;
+                    if (r <= 0) r = 1;
+                }
+            } else if(pokeball.hasName("LOVEBALL") && rival.getSpecie().equals(user.getSpecie()) && rival.getGender() != user.getGender()
+                    && rival.getGender() != 2 && user.getGender() != 2) {
+                b = 8;
+            } else if(pokeball.hasName("MOONBALL") && (rival.specieNameIs("NIDORANf") || rival.specieNameIs("NIDORINA") ||
+                    rival.specieNameIs("NIDOQUEEN") || rival.specieNameIs("NIDORANm") || rival.specieNameIs("NIDORINO") ||
+                    rival.specieNameIs("NIDOKING") || rival.specieNameIs("CLEFFA") || rival.specieNameIs("CLEFAIRY") ||
+                    rival.specieNameIs("CLEFABLE") || rival.specieNameIs("IGGLYBUFF") || rival.specieNameIs("JIGGLYPUFF") ||
+                    rival.specieNameIs("WIGGLYTUFF") || rival.specieNameIs("SKITTY") || rival.specieNameIs("DELCATTY") ||
+                    rival.specieNameIs("MUNNA") || rival.specieNameIs("MUSHARNA"))) {
+                b = 4;
+            } else if(pokeball.hasName("NETBALL") && (rival.hasType("BUG") || rival.hasType("WATER"))) {
+                b = 3.5;
+            } else if(pokeball.hasName("TIMERBALL")) {
+                b = 1 + turn*(1229.0/4096.0);
+                if(b >= 4) b = 4;
+            } else if(pokeball.hasName("NESTBALL")) {
+                if(rival.getLevel() <= 19) {
+                    b = 3.9;
+                } else if(rival.getLevel() <= 29) {
+                    b = 2;
+                }
+            } else if(pokeball.hasName("QUICKBALL") && turn <= 1) {
+                b = 5;
+            } else if(pokeball.hasName("BEASTBALL")) {
+                if((rival.specieNameIs("NIHILEGO") || rival.specieNameIs("BUZZWOLE") || rival.specieNameIs("PHEROMOSA") ||
+                        rival.specieNameIs("XURKITREE") || rival.specieNameIs("CELESTEELA") || rival.specieNameIs("KARTANA") ||
+                        rival.specieNameIs("GUZZLORD") || rival.specieNameIs("POIPOLE") || rival.specieNameIs("NAGANADEL") ||
+                        rival.specieNameIs("BLACEPHALON") || rival.specieNameIs("STAKATAKA"))) {
+                    b = 5;
+                } else {
+                    b = 0.1;
+                }
+            } else if(pokeball.hasName("REPEATBALL") && userTeam.getPlayer().isCaptured(rival)) {
+                b = 3.5;
+            }
+
+            double x = ((r*b*(psmax*3-psactual*2))/(psmax*3))*e;
+            // critic capture
+            double p = 0;
+            if(userTeam.getPlayer().numCaptured() >= 600) {
+                p = 2.5;
+            } else if(userTeam.getPlayer().numCaptured() >= 451) {
+                p = 2.0;
+            } else if(userTeam.getPlayer().numCaptured() >= 301) {
+                p = 1.5;
+            } else if(userTeam.getPlayer().numCaptured() >= 151) {
+                p = 1.0;
+            } else if(userTeam.getPlayer().numCaptured() >= 31) {
+                p = 0.5;
+            }
+            double cc = (Math.min(255, x)*p)/6.0;
+            int randcc = user.utils.getRandomNumberBetween(0,256);
+            if(randcc < cc) critic = true;
+            int ticks = 3; if(critic) ticks = 1;
+            if(x > 255) {
+                for(int i=0;i<ticks;i++) {
+                    System.out.println("Tick...");
+                }
+                capturedPokemon(rival, pokeball);
+            } else {
+                double y = 65536.0/(Math.pow((255.0/x),(3.0/16.0)));
+                for(int i=0;i<ticks+1;i++) {
+                    int rand = user.utils.getRandomNumberBetween(0,65537);
+                    if(y > rand) {
+                        if(i == 3 || (i==1 && critic)) {
+                            capturedPokemon(rival, pokeball);
+                        } else {
+                            System.out.println("Tick...");
+                        }
+                    } else {
+                        if(i == 0) System.out.println("Oh no! The Pokémon broke free!");
+                        if(i == 1) System.out.println("Aww! It appeared to be caught!");
+                        if(i == 2) System.out.println("Aargh! Almost had it!");
+                        if(i == 3) System.out.println("Gah! It was so close, too!");
+                        i = ticks+1;
+                    }
+                }
+            }
+        }
+    }
+
+    public void capturedPokemon(Pokemon captured, Item pokeball) {
+        System.out.println("Gotcha! " + captured.nickname + " was caught!");
+        if(pokeball.hasName("FRIENDBALL")) {
+            captured.setHappiness(200);
+        }
+        else if(pokeball.hasName("HEALBALL")) {
+            captured.healPokemon(false);
+        }
+        captured.pokeball = pokeball;
+        userTeam.obtainPokemon(captured);
+
+        battleResult = 4;
+        checkFaint();
     }
 
     private boolean changePokemon(boolean fainted) {
@@ -1438,6 +1586,9 @@ public class Battle {
             // win
             endBattle = true;
             battleResult = 1;
+        } else if(battleResult == 4) {
+            // caught
+            endBattle = true;
         } else if(battleResult == 5) { // force change
             battleResult = 0;
             return 5;
