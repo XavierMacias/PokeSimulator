@@ -167,6 +167,7 @@ public class Item {
             }
             return true;
         }
+
         // revive
         if(target.isFainted()) {
             if(hasName("REVIVE")) {
@@ -227,6 +228,50 @@ public class Item {
                 incr = 1.6;
             }
             return target.increaseMaxPP(move,incr);
+        }
+
+        return false;
+    }
+
+    public boolean useBattleItem(Pokemon target) {
+        // flutes
+        if(hasName("YELLOWFLUTE") && target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+            target.healTempStatus(TemporalStatus.CONFUSED, true); // heal confusion
+            return true;
+        }
+        if(hasName("REDFLUTE") && target.hasTemporalStatus(TemporalStatus.INFATUATED)) {
+            target.healTempStatus(TemporalStatus.INFATUATED, true); // heal infatuate
+            return true;
+        }
+        if(hasName("BLUEFLUTE") && target.hasStatus(Status.ASLEEP)) {
+            target.healPermanentStatus();
+            return true;
+        }
+        // X items
+        if(hasName("XATTACK")) {
+            return target.changeStat(0, 2, false, true, null);
+        } else if(hasName("XDEFENSE")) {
+            return target.changeStat(1, 2, false, true, null);
+        } else if(hasName("XSPATK")) {
+            return target.changeStat(2, 2, false, true, null);
+        } else if(hasName("XSPDEF")) {
+            return target.changeStat(3, 2, false, true, null);
+        } else if(hasName("XSPEED")) {
+            return target.changeStat(4, 2, false, true, null);
+        } else if(hasName("XACCURACY")) {
+            return target.changeStat(5, 2, false, true, null);
+        } else if(hasName("DIREHIT")) {
+            System.out.println(target + " is focusing on battle!");
+            if(target.getCriticalIndex() == 4) return false;
+            target.criticalIndex += 1;
+            if (target.getCriticalIndex() > 4) {
+                target.criticalIndex = 4;
+            }
+            return true;
+        } else if(hasName("GUARDSPEC")) {
+            System.out.println(target + "'s team is protected by " + name + "!");
+            target.getTeam().effectTeamMoves.set(17, 1);
+            return true;
         }
 
         return false;

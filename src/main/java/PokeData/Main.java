@@ -54,7 +54,7 @@ public class Main {
         player.getBag().addItem(utils.getItem("POTION"), true);
         player.getBag().addItem(utils.getItem("MASTERBALL"), true);
         player.getBag().addItem(utils.getItem("POKEBALL"), true);
-        player.getBag().addItem(utils.getItem("NESTBALL"), true);
+        player.getBag().addItem(utils.getItem("TM35"), true);
 
         while(!menu.equals("-1")) {
             System.out.println("1: Battle against wild Pokemon\n2: Bag\n3: Party\n4: Pokedex\n-1: Exit");

@@ -17,7 +17,6 @@ public class Team {
     public int futureAttackId;
     private Scanner in;
     private Player player;
-    private PCBox pc;
 
     public Team(Player trainer) {
         in = new Scanner(System.in);
@@ -40,12 +39,12 @@ public class Team {
            14 -> stealth rock
            15 -> spikes
            16 -> sticky web
+           17 -> guard spec
         */
-        for(int i=0;i<17;i++) {
+        for(int i=0;i<18;i++) {
             effectTeamMoves.add(0);
         }
         player = trainer;
-        pc = new PCBox();
         futureAttackerPoke = null;
         futureAttackId = 0; // 1: future sight, 2: doom desire
     }
@@ -54,10 +53,10 @@ public class Team {
         return pokemonTeam;
     }
     public Player getPlayer() { return player; }
-    public PCBox getPCBox() { return pc; }
+    public PCBox getPCBox() { return player.getPCBox(); }
 
     public void obtainPokemon(Pokemon pkm) {
-        if(player != null) player.registerPokemon(pkm);
+        if(player != null) player.getPokedex().registerPokemon(pkm);
         System.out.println("You received a " + pkm.specie.name + "!");
         giveNickname(pkm);
         if(getNumPokemon() < 6) {
@@ -65,7 +64,7 @@ public class Team {
             pkm.setTeam(this);
         } else {
             System.out.println("You already have 6 Pokémon in your team!");
-            pc.addToBox(pkm);
+            player.getPCBox().addToBox(pkm);
         }
 
     }
@@ -244,7 +243,7 @@ public class Team {
     public void addPokemon(Pokemon pkm) {
         pokemonTeam.add(pkm);
         pkm.setTeam(this);
-        if(player != null) player.registerPokemon(pkm);
+        if(player != null) player.getPokedex().registerPokemon(pkm);
     }
 
     public Pokemon getFirstAlivePokemon() {
@@ -292,6 +291,8 @@ public class Team {
             System.out.println("The Spikes of " + target.nickname + "'s team are gone!");
         } else if(index == 16) {
             System.out.println("The Sticky Web of " + target.nickname + "'s team is gone!");
+        } else if(index == 17) {
+            System.out.println("Guard Spec of " + target.nickname + "'s team is gone!");
         }
     }
 

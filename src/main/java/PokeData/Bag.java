@@ -196,7 +196,7 @@ public class Bag {
                 }
             }
         } else if(item.getBattleUse().toString().equals("ONBATTLER")) {
-            // TODO: Battle items, use in actual poke
+            return item.useBattleItem(player.getTeam().getFirstAlivePokemon().battle.getUser());
         } else if(item.getBattleUse().toString().equals("NOTARGET")) {
             // TODO: things like poke doll
         }
@@ -253,7 +253,9 @@ public class Bag {
             System.out.println(item.name + " contains " + item.move.name + "!");
             System.out.println("Which do you want to learn " + item.move.name + "? ");
             Pokemon poke = player.getTeam().selectPokemon();
-            // TODO: learn MT or HM move
+            if(poke != null) {
+                return poke.learnMove(item.move);
+            }
         }
         return false;
     }

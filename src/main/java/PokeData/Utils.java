@@ -189,6 +189,33 @@ public class Utils {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
+        addTMCompatibility();
+    }
+
+    private void addTMCompatibility() {
+        try {
+            File myObj = new File("COMPATIBLE.txt");
+            int i = 0;
+            Scanner myReader = new Scanner(myObj,"iso-8859-1");
+            Specie specie = null;
+            while (myReader.hasNextLine()) {
+                String[] data = myReader.nextLine().split(",");
+                if(i%2==0) {
+                    specie = getPokemon(data[0]);
+                } else if(i%2 == 1) {
+                    ArrayList<Movement> tms = new ArrayList<Movement>();
+                    for(int k=0;k<data.length;k++) {
+                        tms.add(getMove(data[k]));
+                    }
+                    if(specie != null) specie.setCompatibleTM(tms);
+                }
+                i++;
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
     }
 
     public Type getType(String t) {

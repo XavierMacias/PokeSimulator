@@ -625,37 +625,62 @@ public class Pokemon {
                                 }
                             } else {
                                 // if not, is decided by the player
-                                System.out.println(nickname + " wants to learn " + mv.name + "\nBut " + nickname + " already known 4 moves");
-                                System.out.println("Do you want to forget a move in order to learn " + mv.name + "?");
-                                System.out.println("1: Yes\n2: No");
-                                if(in.nextLine().equals("1")) {
-                                    System.out.println("What move do you want to remove?");
-                                    int chosenIndex = -1;
-                                    do {
-                                        System.out.println("0: Exit");
-                                        for(int i=0;i<moves.size();i++) {
-                                            System.out.println((i+1)+": "+moves.get(i).getMove().name);
-                                        }
-                                        chosenIndex = Integer.parseInt(in.nextLine());
-                                    } while(chosenIndex < 0 || chosenIndex > getMoves().size());
-                                    if(chosenIndex == 0) {
-                                        System.out.println(nickname + " didn't learn " + mv.name);
-                                    } else {
-                                        System.out.println("1, 2, 3... and... Poof!\n" + nickname +" forgot " + moves.get(chosenIndex-1).getMove().name + "!");
-                                        moves.set(chosenIndex-1, new Pair<>(mv, mv.getPP()));
-                                        remainPPs.set(chosenIndex-1, mv.getPP());
-                                        usedMoves.set(chosenIndex-1, false);
-                                        System.out.println("And...\n" + nickname +" learned " + moves.get(chosenIndex-1).getMove().name + "!");
-                                    }
-                                } else {
-                                    System.out.println(nickname + " didn't learn " + mv.name);
-                                }
+                                deleteMove(mv);
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    public boolean learnMove(Movement move) {
+        if(!specie.isCompatible(move)) {
+            System.out.println(nickname + " can't learn " + move.name + "!");
+            return false;
+        }
+        if(moves.size() < 4) {
+            // add move
+            moves.add(new Pair<>(move,move.getPP()));
+            remainPPs.add(move.getPP());
+            usedMoves.add(false);
+            System.out.println(nickname + " learned " + move.name + "!");
+            return true;
+        } else {
+            // delete move
+            return deleteMove(move);
+        }
+    }
+
+    private boolean deleteMove(Movement move) {
+        System.out.println(nickname + " wants to learn " + move.name + "\nBut " + nickname + " already known 4 moves");
+        System.out.println("Do you want to forget a move in order to learn " + move.name + "?");
+        System.out.println("1: Yes\n2: No");
+        if(in.nextLine().equals("1")) {
+            System.out.println("What move do you want to remove?");
+            int chosenIndex = -1;
+            do {
+                System.out.println("0: Exit");
+                for(int i=0;i<moves.size();i++) {
+                    System.out.println((i+1)+": "+moves.get(i).getMove().name);
+                }
+                chosenIndex = Integer.parseInt(in.nextLine());
+            } while(chosenIndex < 0 || chosenIndex > getMoves().size());
+            if(chosenIndex == 0) {
+                System.out.println(nickname + " didn't learn " + move.name);
+            } else {
+                System.out.println("1, 2, 3... and... Poof!\n" + nickname +" forgot " + moves.get(chosenIndex-1).getMove().name + "!");
+                moves.set(chosenIndex-1, new Pair<>(move, move.getPP()));
+                remainPPs.set(chosenIndex-1, move.getPP());
+                usedMoves.set(chosenIndex-1, false);
+                System.out.println("And...\n" + nickname +" learned " + moves.get(chosenIndex-1).getMove().name + "!");
+                return true;
+            }
+        } else {
+            System.out.println(nickname + " didn't learn " + move.name);
+        }
+
+        return false;
     }
 
     public boolean isFainted() {
@@ -810,7 +835,7 @@ public class Pokemon {
         }
 
         if(other != null) {
-            if(team.effectTeamMoves.get(0) > 0 && quantity < 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // MIST effect
+            if((team.effectTeamMoves.get(0) > 0 || team.effectTeamMoves.get(17) > 0) && quantity < 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // MIST effect
                 return false;
             }
         }
@@ -898,6 +923,7 @@ public class Pokemon {
     }
 
     public void healPokemon(boolean message) {
+        psActuales = 1;
         healHP(-1, message, message, false);
         healStatus(true, message);
         healPP(-1,-1);
@@ -962,7 +988,7 @@ public class Pokemon {
     }
 
     public boolean healHP(int hp, boolean message, boolean messageAll, boolean absorb) {
-        if(hp <= 0) {
+        if(psActuales <= 0) {
             return false;
         }
         // hp -1 means all the HP will be restored

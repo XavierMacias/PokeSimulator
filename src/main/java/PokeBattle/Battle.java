@@ -306,22 +306,22 @@ public class Battle {
                 } else {
                     b = 0.1;
                 }
-            } else if(pokeball.hasName("REPEATBALL") && userTeam.getPlayer().isCaptured(rival)) {
+            } else if(pokeball.hasName("REPEATBALL") && userTeam.getPlayer().getPokedex().isCaptured(rival)) {
                 b = 3.5;
             }
 
             double x = ((r*b*(psmax*3-psactual*2))/(psmax*3))*e;
             // critic capture
             double p = 0;
-            if(userTeam.getPlayer().numCaptured() >= 600) {
+            if(userTeam.getPlayer().getPokedex().numCaptured() >= 600) {
                 p = 2.5;
-            } else if(userTeam.getPlayer().numCaptured() >= 451) {
+            } else if(userTeam.getPlayer().getPokedex().numCaptured() >= 451) {
                 p = 2.0;
-            } else if(userTeam.getPlayer().numCaptured() >= 301) {
+            } else if(userTeam.getPlayer().getPokedex().numCaptured() >= 301) {
                 p = 1.5;
-            } else if(userTeam.getPlayer().numCaptured() >= 151) {
+            } else if(userTeam.getPlayer().getPokedex().numCaptured() >= 151) {
                 p = 1.0;
-            } else if(userTeam.getPlayer().numCaptured() >= 31) {
+            } else if(userTeam.getPlayer().getPokedex().numCaptured() >= 31) {
                 p = 0.5;
             }
             double cc = (Math.min(255, x)*p)/6.0;
@@ -2626,6 +2626,12 @@ public class Battle {
         }
         if(target.getTeam().effectTeamMoves.get(10) > 0) { // wide guard
             target.getTeam().effectTeamMoves.set(10, 0);
+        }
+        if(target.getTeam().effectTeamMoves.get(17) > 0) { // guard spec
+            target.getTeam().increaseEffectMove(17); // increase turn
+            if(target.getTeam().effectTeamMoves.get(17) > 5) {
+                target.getTeam().removeTeamEffects(target, 17);
+            }
         }
 
         // turn counter
