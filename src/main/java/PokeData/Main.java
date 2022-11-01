@@ -44,13 +44,13 @@ public class Main {
         //starter.setMove("YAWN");
         player.getBag().addItem(utils.getItem("POTION"), true);
         player.getBag().addItem(utils.getItem("SUPERPOTION"), true);
-        player.getBag().addItem(utils.getItem("WATERSTONE"), true);
+        player.getBag().addItem(utils.getItem("HONDEWBERRY"), true);
         player.getBag().addItem(utils.getItem("ORANBERRY"), true);
         player.getBag().addItem(utils.getItem("ORANBERRY"), true);
-        player.getBag().addItem(utils.getItem("POKEBALL"), true);
-        player.getBag().addItem(utils.getItem("POKEBALL"), true);
+        player.getBag().addItem(utils.getItem("HONDEWBERRY"), true);
+        player.getBag().addItem(utils.getItem("MAGOBERRY"), true);
         player.getBag().addItem(utils.getItem("CHERIBERRY"), true);
-        player.getBag().addItem(utils.getItem("THUNDERSTONE"), true);
+        player.getBag().addItem(utils.getItem("MAGOBERRY"), true);
         player.getBag().addItem(utils.getItem("POTION"), true);
         player.getBag().addItem(utils.getItem("MASTERBALL"), true);
         player.getBag().addItem(utils.getItem("POKEBALL"), true);

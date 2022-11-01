@@ -1,5 +1,7 @@
 package PokeData;
 
+import java.util.ArrayList;
+
 public class Movement {
     private String internalName;
     public String name, description;
@@ -29,6 +31,7 @@ public class Movement {
     */
     private String flags;
     private Type originalType;
+    private ArrayList<String> compatibleTM;
 
     public Movement(String internalName, String name, Type type, int power, int accuracy, Category category, int pp, int priority,
                     Target target, int addEffect, String flags, int code, String description) {
@@ -102,5 +105,10 @@ public class Movement {
     }
     public void recoverType() {
         type = originalType;
+    }
+    public void setCompatibleTM(ArrayList<String> ctm) { compatibleTM = ctm; }
+    public boolean isCompatible(String poke) {
+        if(compatibleTM == null) return false;
+        return compatibleTM.contains(poke);
     }
 }

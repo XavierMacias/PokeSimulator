@@ -124,6 +124,7 @@ public class Bag {
         }
         if(outsideBattle) {
             System.out.println(it.name + ": ");
+            System.out.println(it.description);
             System.out.println("0: Exit");
             System.out.println(i+": Give");
             i++;
@@ -189,10 +190,8 @@ public class Bag {
             Pokemon poke = player.getTeam().selectPokemon();
             if(poke != null) {
                 //System.out.println("You use "+ item.name+" to " + poke.nickname + "!");
-                if(item.getPocket().toString().equals("MEDICINE")) { // medicine
+                if(item.getPocket().toString().equals("MEDICINE") || item.getFlags().contains("c")) { // medicine, berries
                     return item.useMedicine(poke);
-                } else if(item.getFlags().contains("c")) { // berries
-                    return poke.battle.useBerry(poke,false);
                 }
             }
         } else if(item.getBattleUse().toString().equals("ONBATTLER")) {
@@ -235,10 +234,8 @@ public class Bag {
                         System.out.println(poke.nickname + " is not compatible with " + item.name);
                         return false;
                     }
-                } else if(item.getPocket().toString().equals("MEDICINE")) { // medicine
+                } else if(item.getPocket().toString().equals("MEDICINE") || item.getFlags().contains("c")) { // medicine and berries
                     return item.useMedicine(poke);
-                } else if(item.getFlags().contains("c")) { // berries
-                    return poke.battle.useBerry(poke,false);
                 } else if(item.getInternalName().contains("NECTAR")) { // nectars
                     // TODO: nectars
                 } else if(item.hasName("GRACIDEA")) { // gracidea

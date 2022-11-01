@@ -4,9 +4,15 @@ MEGAHORN,Megacuerno,BUG,120,85,PHYSICAL,10,0,FOE,0,abcf,0,Golpea al enemigo con 
 TACKLE,Placaje,NORMAL,40,100,PHYSICAL,35,0,FOE,0,abcf,0,Golpea al enemigo con el cuerpo
 SCRATCH,Arañazo,NORMAL,40,100,PHYSICAL,35,0,FOE,0,abcf,0,Araña al enemigo con una garra o uña afilada
 POUND,Destructor,NORMAL,40,100,PHYSICAL,35,0,FOE,0,abcf,0,Golpea al enemigo con el puño
+VICEGRIP,Agarre,NORMAL,55,100,PHYSICAL,30,0,FOE,0,abcf,0,Agarra al enemigo y lo golpea
+EGGBOMB,Bomba huevo,NORMAL,100,75,PHYSICAL,10,0,FOE,0,bcfn,0,Ataca al enemigo con bombas en forma de huevo
+MEGAKICK,Megapatada,NORMAL,120,75,PHYSICAL,5,0,FOE,0,abcf,0,Una potente patada que daña al enemigo
+SKYUPPERCUT,Gancho alto,FIGHTING,85,90,PHYSICAL,15,0,FOE,0,abcfk,0,Un golpe aéreo que puede golpear a los rivales que están en el aire
 QUICKATTACK,Ataque rápido,NORMAL,40,100,PHYSICAL,30,1,FOE,0,abcf,0,Golpea al enemigo rápidamente. Siempre ataca primero
 SHADOWSNEAK,Sombra vil,GHOST,40,100,PHYSICAL,30,1,FOE,0,abcf,0,Golpea al enemigo rápidamente. Siempre ataca primero
 ICESHARD,Canto helado,ICE,40,100,PHYSICAL,30,1,FOE,0,bcf,0,Unos trozos de hielo que siempre atacan primero
+MACHPUNCH,Ultrapuño,FIGHTING,40,100,PHYSICAL,30,1,FOE,0,abcfk,0,Un puñetazo muy rápido. Siempre ataca primero
+VACUUMWAVE,Onda vacío,FIGHTING,40,100,SPECIAL,30,1,FOE,0,bcf,0,Un onda de energía vital. Siempre ataca primero
 SWIFT,Rapidez,NORMAL,60,0,SPECIAL,20,0,ALLFOES,0,bcf,0,Un ataque muy veloz que nunca falla
 SLASH,Cuchillada,NORMAL,70,100,PHYSICAL,20,0,FOE,0,abcfh,0,Un poderoso ataque afilado que suele ser crítico
 STRENGTH,Fuerza,NORMAL,80,100,PHYSICAL,15,0,FOE,0,abcf,0,Golpea con fuerza al enemigo
@@ -43,6 +49,7 @@ AIRCUTTER,Aire afilado,FLYING,60,95,SPECIAL,25,0,ALLFOES,0,bcfh,0,Un aire cortan
 WATERGUN,Pistola agua,WATER,40,100,SPECIAL,25,0,FOE,0,bcf,0,Un chorro de agua que hiere al enemigo
 AQUAJET,Acua jet,WATER,40,100,PHYSICAL,20,1,FOE,0,abcf,0,Ataca al enemigo rápidamente con agua. Siempre ataca primero
 AQUATAIL,Acua cola,WATER,90,90,PHYSICAL,10,0,FOE,0,abcf,0,Ataca al enemigo embistiendo envuelto en agua
+CRABHAMMER,Martillazo,WATER,100,90,PHYSICAL,10,0,FOE,0,abcfh,0,Ataca al enemigo con un martillazo de agua
 HYDROPUMP,Hidrobomba,WATER,110,80,SPECIAL,5,0,FOE,0,bcf,0,Un chorro muy potente de agua que hiere al enemigo
 DRILLRUN,Taladradora,GROUND,80,95,PHYSICAL,10,0,FOE,0,abcfh,0,Taladra al enemigo y suele ser crítico
 HIGHHORSEPOWER,Fuerza equina,GROUND,95,95,PHYSICAL,10,0,FOE,0,abcf,0,Golpea al enemigo con mucha fuerza
@@ -58,6 +65,7 @@ PLAYNICE,Camaradería,NORMAL,0,0,STATUS,20,0,FOE,0,cdq,1,Reduce el ataque del ri
 BABYDOLLEYES,Ojitos tiernos,FAIRY,0,100,STATUS,20,1,FOE,0,bcd,1,Reduce el ataque del rival
 LEECHSEED,Drenadoras,GRASS,0,90,STATUS,10,0,FOE,0,bcd,2,Infecta al enemigo y le roba PS en cada turno
 POISONGAS,Gas venenoso,POISON,0,90,STATUS,40,0,ALLFOES,0,bcd,3,Un gas que envenena al rival
+SMOG,Polución,POISON,30,70,SPECIAL,20,0,FOE,40,bcf,3,Una niebla tóxica que puede envenenar al rival
 SLUDGE,Residuos,POISON,65,100,SPECIAL,20,0,FOE,30,bc,3,Un ataque con suciedad que puede envenenar al rival
 POISONSTING,Picotazo venenoso,POISON,15,100,PHYSICAL,35,0,FOE,30,bc,3,Un pin de veneno que puede envenenar al rival
 POISONTAIL,Cola veneno,POISON,50,100,PHYSICAL,25,0,FOE,10,abcfh,3,Una cola ponzoñosa que puede envenenar al rival
@@ -78,6 +86,7 @@ WILDCHARGE,Voltio cruel,ELECTRIC,90,100,PHYSICAL,15,0,FOE,0,abcf,5,Ataca embisti
 SWEETSCENT,Dulce aroma,NORMAL,0,100,STATUS,20,0,ALLFOES,0,bcd,6,Reduce la evasión de los enemigos
 GROWTH,Desarrollo,NORMAL,0,0,STATUS,20,0,USER,0,e,7,Aumenta el ataque y el ataque especial del usuario
 DOUBLEEDGE,Doble filo,NORMAL,120,100,PHYSICAL,15,0,FOE,0,abcf,8,Golpea al enemigo pero hiere mucho al usuario
+WOODHAMMER,Mazazo,GRASS,120,100,PHYSICAL,15,0,FOE,0,abcf,8,Golpea al enemigo pero hiere mucho al usuario
 BRAVEBIRD,Pájaro osado,FLYING,120,100,PHYSICAL,15,0,FOE,0,abcf,8,Ataca al enemigo en el aire pero hiere mucho al usuario
 FLAREBLITZ,Envite ígneo,FIRE,120,100,PHYSICAL,15,0,FOE,0,abcfg,8,Un ataque que puede quemar al rival y que daña al usuario
 VOLTTACKLE,Placaje eléctrico,ELECTRIC,120,100,PHYSICAL,15,0,FOE,0,abcf,8,Un ataque que puede paralizar al rival y que daña al usuario
@@ -103,6 +112,7 @@ ABSORB,Absorber,GRASS,20,100,SPECIAL,25,0,FOE,0,bc,18,Absorbe PS al enemigo y re
 MEGADRAIN,Megaagotar,GRASS,40,100,SPECIAL,15,0,FOE,0,bc,18,Absorbe PS al enemigo y recupera la mitad del daño causado
 GIGADRAIN,Gigadrenado,GRASS,75,100,SPECIAL,10,0,FOE,0,bc,18,Absorbe PS al enemigo y recupera la mitad del daño causado
 LEECHLIFE,Chupavidas,BUG,80,100,PHYSICAL,10,0,FOE,0,abc,18,Absorbe PS al enemigo y recupera la mitad del daño causado
+DREAMEATER,Comesueños,PSYCHIC,100,100,SPECIAL,15,0,FOE,0,bcf,18,Absorbe PS al objetivo si éste está dormido
 ENDURE,Aguante,NORMAL,0,0,STATUS,10,4,USER,0,p,19,Aguanta un golpe que normalmente lo debilitaría en ese turno
 PETALDANCE,Danza pétalo,GRASS,120,100,SPECIAL,10,0,RANDOMFOE,0,abcfo,20,Ataca de 2 a 3 turnos consecutivos y después se confunde
 OUTRAGE,Enfado,DRAGON,120,100,PHYSICAL,10,0,RANDOMFOE,0,abcf,20,Ataca de 2 a 3 turnos consecutivos y después se confunde
@@ -111,6 +121,7 @@ WILLOWISP,Fuego fatuo,FIRE,0,85,STATUS,15,0,FOE,0,bcd,21,Quema al objetivo con u
 EMBER,Ascuas,FIRE,40,100,SPECIAL,25,0,FOE,10,bc,21,Una pequeña llama que puede quemar al rival
 FLAMEWHEEL,Rueda fuego,FIRE,60,100,PHYSICAL,25,0,FOE,10,abcg,21,Se envuelve y carga contra el enemigo rodando. Puede quemar
 FIREPUNCH,Puño fuego,FIRE,75,100,PHYSICAL,15,0,FOE,10,abcfk,21,Un puño ígneo que puede quemar al enemigo
+BLAZEKICK,Patada ígnea,FIRE,85,90,PHYSICAL,10,0,FOE,10,abcfh,21,Una patada de fuego que puede quemar al enemigo
 FLAMETHROWER,Lanzallamas,FIRE,90,100,SPECIAL,15,0,FOE,10,bc,21,Un chorro de llamas que puede quemar al rival
 HEATWAVE,Onda ígnea,FIRE,95,90,SPECIAL,10,0,ALLFOES,10,bcf,21,Una onda de fuego que puede quemar al rival
 INFERNO,Infierno,FIRE,100,50,SPECIAL,5,0,FOE,100,bc,21,Un montón de llamas que dañan y siempre queman al enemigo
@@ -129,13 +140,18 @@ SCARYFACE,Cara susto,NORMAL,0,100,STATUS,10,0,FOE,0,bcd,24,Baja mucho la velocid
 STRINGSHOT,Disparo demora,BUG,0,95,STATUS,40,0,ALLFOES,0,bcd,24,Baja mucho la velocidad de los enemigos
 ASTONISH,Impresionar,GHOST,30,100,PHYSICAL,25,0,FOE,30,abci,25,Sorprende al rival y puede hacerle retroceder
 BITE,Mordisco,DARK,60,100,PHYSICAL,25,0,FOE,30,abci,25,Muerde al rival y puede hacerle retroceder
+BONECLUB,Hueso palo,GROUND,65,85,PHYSICAL,20,0,FOE,10,bc,25,Un ataque con un hueso que puede hacer retroceder
+DARKPULSE,Pulso umbrío,DARK,80,100,SPECIAL,15,0,FOE,20,bcm,25,Una ola de sentimientos negativos que ataca al rival y puede hacerle retroceder
+ICICLECRASH,Chuzos,ICE,85,90,PHYSICAL,10,0,FOE,30,bc,25,Un carámbano enorme cae sobre el rival y puede hacerle retroceder
+ROCKSLIDE,Avalancha,ROCK,75,90,PHYSICAL,10,0,FOE,30,bc,25,Una avalancha de rocas cae sobre el rival y puede hacerle retroceder
 ROLLINGKICK,Patada giro,FIGHTING,60,85,PHYSICAL,15,0,FOE,30,abc,25,Una patada giratoria que puede hacer retroceder
 STEAMROLLER,Rodillo púas,BUG,65,100,PHYSICAL,20,0,FOE,30,abc,25,Golpea al rival enroscándose y puede hacerle retroceder
-STOMP,Pisotón,NORMAL,65,100,PHYSICAL,20,0,FOE,30,abc,25,Un pistón al rival que puede hacerle retroceder
+STOMP,Pisotón,NORMAL,65,100,PHYSICAL,20,0,FOE,30,abc,25,Un pisotón al rival que puede hacerle retroceder
 HEADBUTT,Golpe cabeza,NORMAL,70,100,PHYSICAL,15,0,FOE,30,abc,25,Golpea al rival con la cabeza y puede hacerle retroceder
 EXTRASENSORY,Paranormal,PSYCHIC,80,100,SPECIAL,20,0,FOE,10,bc,25,Ataca con un poder extraño y puede hacer retroceder
 HYPERFANG,Hipercolmillo,NORMAL,80,90,PHYSICAL,15,0,FOE,10,abci,25,Muerde al rival fuertemente y puede hacerle retroceder
 ZENHEADBUTT,Cabezazo zen,PSYCHIC,80,90,PHYSICAL,15,0,FOE,20,abcf,25,Un cabezazo que puede hacer retroceder al enemigo
+IRONHEAD,Cabeza hierro,STEEL,80,100,PHYSICAL,15,0,FOE,30,abc,25,Un cabezazo de acero puede hacer retroceder
 AIRSLASH,Tajo aéreo,FLYING,75,95,SPECIAL,15,0,FOE,30,bcf,25,Un aire cortante que puede hacer retroceder
 TWISTER,Ciclón,DRAGON,40,100,SPECIAL,20,0,ALLFOES,20,bcf,25,Un ciclón que puede hacer retroceder
 FAKEOUT,Sorpresa,NORMAL,40,100,PHYSICAL,10,3,FOE,100,abc,25,Impresiona al enemigo y lo hace retroceder. Sólo funciona en el 1r turno
@@ -144,6 +160,9 @@ FLAMEBURST,Pirotecnia,FIRE,70,100,SPECIAL,15,0,FOE,0,bcf,26,Una llama que daña 
 FIRESPIN,Giro fuego,FIRE,35,85,SPECIAL,15,0,FOE,0,bcf,27,Un tornado de fuego que atrapa al rival durante 4-5 turnos
 SANDTOMB,Bucle arena,GROUND,35,85,PHYSICAL,15,0,FOE,0,bcf,27,Un remolino de arena que atrapa al rival durante 4-5 turnos
 WRAP,Constricción,NORMAL,15,90,PHYSICAL,20,0,FOE,0,abcf,27,Comprime al rival y lo atrapa durante 4-5 turnos
+BIND,Atadura,NORMAL,15,85,PHYSICAL,20,0,FOE,0,abcf,27,Comprime al rival y lo atrapa durante 4-5 turnos
+CLAMP,Tenaza,WATER,35,85,PHYSICAL,15,0,FOE,0,abcf,27,Unas tenazas que atrapan al rival durante 4-5 turnos
+WHIRLPOOL,Torbellino,WATER,35,85,SPECIAL,15,0,FOE,0,bcf,27,Un torbellino de agua que atrapa al rival durante 4-5 turnos
 BELLYDRUM,Tambor,NORMAL,0,0,STATUS,10,0,USER,0,e,28,Reduce mucho los PS del usuario pero maximiza su ataque
 ANCIENTPOWER,Poder pasado,ROCK,60,100,SPECIAL,5,0,FOE,10,bc,29,Ataca y puede subir todas las características del usuario
 SILVERWIND,Viento plata,BUG,60,100,SPECIAL,5,0,FOE,10,bcf,29,Un viento que puede subir todas las características del usuario
@@ -153,6 +172,7 @@ DRAGONDANCE,Danza dragón,DRAGON,0,0,STATUS,20,0,USER,0,eo,32,Una danza que aume
 CRUNCH,Triturar,DARK,80,100,PHYSICAL,15,0,FOE,20,abci,33,Un mordisco enorme que puede bajar la defensa del rival
 IRONTAIL,Cola férrea,STEEL,100,75,PHYSICAL,15,0,FOE,30,abc,33,Golpea con la cola endurecida y puede bajar la defensa del rival
 CRUSHCLAW,Garra brutal,NORMAL,75,95,PHYSICAL,10,0,FOE,50,abcf,33,Ataca con unas garras afiladas y puede bajar la defensa del rival
+RAZORSHELL,Concha filo,WATER,75,95,PHYSICAL,10,0,FOE,50,abcf,33,Ataca con una concha afilada y puede bajar la defensa del rival
 TAILWHIP,Látigo,NORMAL,0,100,STATUS,30,0,ALLFOES,0,bcd,33,Baja la defensa del enemigo
 LEER,Malicioso,NORMAL,0,100,STATUS,30,0,ALLFOES,0,bcd,33,Baja la defensa del enemigo
 MEDITATE,Meditación,PSYCHIC,0,0,STATUS,40,0,USER,0,e,34,Aumenta el Ataque del usuario
@@ -163,6 +183,7 @@ POWERUPPUNCH,Puño incremento,FIGHTING,40,100,PHYSICAL,20,0,FOE,100,abcfk,34,Un 
 COUNTER,Contraataque,FIGHTING,0,100,PHYSICAL,20,-5,USER,0,abp,35,Devuelve el doble de daño de un movimiento físico usado en ese turno
 NUZZLE,Moflete estático,ELECTRIC,20,100,PHYSICAL,20,0,FOE,100,abcf,36,Una descarga eléctrica que siempre paraliza
 LICK,Lengüetazo,GHOST,30,100,PHYSICAL,30,0,FOE,30,abcf,36,Un lengüetazo que puede paralizar al enemigo
+DRAGONBREATH,Dragoaliento,DRAGON,60,100,SPECIAL,20,0,FOE,30,bcf,36,Un aliento draconiano que puede paralizar al enemigo
 THUNDERSHOCK,Impactrueno,ELECTRIC,40,100,SPECIAL,30,0,FOE,10,bcf,36,Una descarga eléctrica que puede paralizar al enemigo
 SPARK,Chispa,ELECTRIC,65,100,PHYSICAL,20,0,FOE,30,abcf,36,Una embestida eléctrica que puede paralizar al enemigo
 THUNDERPUNCH,Puño trueno,ELECTRIC,75,100,PHYSICAL,15,0,FOE,10,abcfk,36,Un puño electrificado que puede paralizar al enemigo
@@ -185,6 +206,7 @@ BUBBLEBEAM,Rayo burbuja,WATER,65,100,SPECIAL,20,0,FOE,10,bc,39,Unas burbujas que
 BULLDOZE,Terratemblor,GROUND,60,100,PHYSICAL,20,0,ALLFOES,100,bcf,39,Un temblor que baja la velocidad del enemigo
 MUDSHOT,Disparo lodo,GROUND,55,95,SPECIAL,15,0,FOE,100,bcf,39,Un chorro de lodo baja la velocidad del enemigo
 LOWSWEEP,Puntapié,FIGHTING,65,100,PHYSICAL,20,0,FOE,100,abcf,39,Una patada que baja la velocidad del enemigo
+ROCKTOMB,Tumba rocas,ROCK,60,95,PHYSICAL,15,0,FOE,100,bcf,39,Unas rocas que bajan la velocidad del enemigo
 CONSTRICT,Restricción,NORMAL,10,100,PHYSICAL,35,0,FOE,10,abcf,39,Comprime al enemigo y puede bajar su velocidad
 RAPIDSPIN,Giro rápido,NORMAL,50,100,PHYSICAL,40,0,FOE,0,abcf,40,Se libra de movimientos que atrapan y sube la velocidad
 FLAMECHARGE,Nitrocarga,FIRE,50,100,PHYSICAL,20,0,FOE,100,abcf,40,Un ataque flamígero que sube la velocidad del usuario
@@ -219,6 +241,7 @@ BRINE,Salmuera,WATER,65,100,SPECIAL,10,0,FOE,0,bcf,55,Su poder se duplica si el 
 FLASHCANNON,Foco resplandor,STEEL,80,100,SPECIAL,10,0,FOE,10,bcf,56,Un cañón de luz que puede bajar la defensa especial del objetivo
 EARTHPOWER,Tierra viva,GROUND,90,100,SPECIAL,10,0,FOE,10,bcf,56,Una erupción que puede bajar la defensa especial del objetivo
 PSYCHIC,Psíquico,PSYCHIC,90,100,SPECIAL,10,0,FOE,10,bcf,56,Un ataque mental que puede bajar la defensa especial del objetivo
+SHADOWBALL,Bola sombra,GHOST,80,100,SPECIAL,15,0,FOE,20,bcfn,56,Una bola llena de sentimientos negativos que puede bajar la Def Esp del objetivo
 ACID,Ácido,POISON,40,100,SPECIAL,30,0,ALLFOES,10,bc,56,Un ácido que puede bajar la defensa especial del objetivo
 BUGBUZZ,Zumbido,BUG,90,100,SPECIAL,10,0,FOE,10,bcfjq,56,Un zumbido que puede bajar la defensa especial del objetivo
 BUGBITE,Picadura,BUG,60,100,PHYSICAL,20,0,FOE,0,abcf,57,Causa daño y roba la baya equipada al rival beneficiándose de sus efectos
@@ -237,11 +260,15 @@ TWINEEDLE,Doble ataque,BUG,25,100,PHYSICAL,20,0,FOE,20,bc,65,Ataca dos veces y p
 FURYATTACK,Ataque furia,NORMAL,15,85,PHYSICAL,20,0,FOE,0,abcf,66,Ataca de 2 a 5 veces en un turno
 FURYSWIPES,Golpes furia,NORMAL,18,80,PHYSICAL,15,0,FOE,0,abcf,66,Ataca de 2 a 5 veces en un turno
 DOUBLESLAP,Doble bofetón,NORMAL,15,85,PHYSICAL,10,0,FOE,0,abcf,66,Ataca de 2 a 5 veces en un turno
+BARRAGE,Bombardeo,NORMAL,15,85,PHYSICAL,20,0,FOE,0,bcfn,66,Ataca de 2 a 5 veces en un turno
+COMETPUNCH,Puño cometa,STEEL,18,85,PHYSICAL,15,0,FOE,0,abcfk,66,Ataca de 2 a 5 veces en un turno
+BONERUSH,Ataque óseo,GROUND,25,90,PHYSICAL,10,0,FOE,0,bcf,66,Ataca de 2 a 5 veces en un turno
 PINMISSILE,Pin misil,BUG,25,95,PHYSICAL,20,0,FOE,0,bcf,66,Ataca de 2 a 5 veces en un turno
 ICICLESPEAR,Carámbano,ICE,25,100,PHYSICAL,30,0,FOE,0,bcf,66,Ataca de 2 a 5 veces en un turno
 BULLETSEED,Recurrente,GRASS,25,100,PHYSICAL,30,0,FOE,0,bcfn,66,Ataca de 2 a 5 veces en un turno
 ROCKBLAST,Pedrada,ROCK,25,90,PHYSICAL,10,0,FOE,0,bcfn,66,Ataca de 2 a 5 veces en un turno
 TAILSLAP,Plumerazo,NORMAL,25,85,PHYSICAL,10,0,FOE,0,abcf,66,Ataca de 2 a 5 veces en un turno
+SPIKECANNON,Clavo cañón,NORMAL,20,100,PHYSICAL,15,0,FOE,0,bcf,66,Ataca de 2 a 5 veces en un turno
 RAGE,Furia,NORMAL,20,100,PHYSICAL,20,0,FOE,0,abcf,67,Aumenta el ataque cuando el usuario es golpeado
 PURSUIT,Persecución,DARK,40,100,PHYSICAL,20,0,FOE,0,abcf,68,Si el rival va a ser cambiado en ese turno hace el doble de daño
 FOCUSENERGY,Foco energía,NORMAL,0,0,STATUS,30,0,FOE,0,e,69,Aumenta el índice de golpe crítico
@@ -267,6 +294,7 @@ SCREECH,Chirrido,NORMAL,0,85,STATUS,40,0,FOE,0,bcdjq,81,Baja mucho la defensa de
 MEFIRST,Yo primero,NORMAL,0,0,STATUS,20,0,RANDOMFOE,0,bp,82,Usa el movimiento que iba a usar el rival
 LASTRESORT,Última baza,NORMAL,140,100,PHYSICAL,5,0,FOE,0,abcf,83,Falla si el usuario no ha usado antes todos sus otros movimientos
 REVENGE,Desquite,FIGHTING,60,100,PHYSICAL,10,-4,FOE,0,abcf,84,Su potencia se duplica si el usuario ha sido golpeado en ese turno
+AVALANCHE,Alud,ICE,60,100,PHYSICAL,10,-4,FOE,0,abcf,84,Su potencia se duplica si el usuario ha sido golpeado en ese turno
 PAYBACK,Vendetta,DARK,50,100,PHYSICAL,10,0,FOE,0,abcf,84,Su potencia se duplica si el usuario ha sido golpeado en ese turno
 FINALGAMBIT,Sacrificio,FIGHTING,0,100,SPECIAL,5,0,FOE,0,bf,85,Quita al rival tantos PS como tenga el usuario y se debilita
 SWORDSDANCE,Danza espada,NORMAL,0,0,STATUS,20,0,USER,0,eo,86,Aumenta mucho el ataque del usuario
@@ -321,11 +349,13 @@ ROTOTILLER,Fertilizante,GROUND,0,0,STATUS,10,0,BOTHSIDES,0,,127,Aumenta el ataqu
 DOUBLEKICK,Doble patada,FIGHTING,30,100,PHYSICAL,30,0,FOE,0,abcf,128,Golpea dos veces seguidas al oponente con patadas
 DOUBLEHIT,Doble golpe,NORMAL,35,90,PHYSICAL,10,0,FOE,0,abcf,128,Golpea dos veces seguidas al oponente
 DUALCHOP,Golpe bis,DRAGON,40,90,PHYSICAL,15,0,FOE,0,abcf,128,Golpea dos veces seguidas al oponente
+BONEMERANG,Huesomerang,GROUND,50,90,PHYSICAL,10,0,FOE,0,bcf,128,Golpea dos veces seguidas al oponente
 HELPINGHAND,Refuerzo,NORMAL,0,0,STATUS,20,5,ALLY,0,qp,129,Potencia el ataque de un compañero en ese turno
 FLATTER,Camelo,DARK,0,100,STATUS,15,0,FOE,0,bcd,130,Confunde al rival pero aumenta su Ataque Especial.
 VENOMDRENCH,Trampa venenosa,POISON,0,100,STATUS,20,0,ALLFOES,0,bc,131,Reduce el Ataque Ataque Especial y Velocidad de los rivales envenenados
 SUPERPOWER,Fuerza bruta,FIGHTING,120,100,PHYSICAL,5,0,FOE,0,abc,132,Ataca pero reduce el Ataque y la Defensa del usuario
 HORNDRILL,Perforador,NORMAL,0,30,PHYSICAL,5,0,FOE,0,ab,133,Si acierta debilita al enemigo de un golpe
+GUILLOTINE,Guillotina,NORMAL,0,30,PHYSICAL,5,0,FOE,0,ab,133,Si acierta debilita al enemigo de un golpe
 FISSURE,Fisura,GROUND,0,30,PHYSICAL,5,0,FOE,0,b,133,Si acierta debilita al enemigo de un golpe
 SHEERCOLD,Frío polar,ICE,0,30,SPECIAL,5,0,FOE,0,b,133,Si acierta debilita al enemigo de un golpe
 HEADSMASH,Testarazo,ROCK,150,80,PHYSICAL,5,0,FOE,0,abcf,134,Un potente cabezazo que daña mucho al usuario
@@ -379,6 +409,7 @@ SIMPLEBEAM,Onda simple,NORMAL,0,100,STATUS,15,0,FOE,0,bcd,180,Cambia la habilida
 SYNCHRONOISE,Sincrorruido,PSYCHIC,120,100,SPECIAL,10,0,ALLBATTLERS,0,bcd,181,Causa daño a los Pokémon que compartan algún tipo con el usuario
 LOWKICK,Patada baja,FIGHTING,-1,100,PHYSICAL,20,0,FOE,0,abcf,182,Cuanto más pesa el rival más daño causa
 SEISMICTOSS,Sísmico,FIGHTING,0,100,PHYSICAL,20,0,FOE,0,abcf,183,Resta una cantidad de PS equivalente al nivel del usuario
+NIGHTSHADE,Tinieblas,GHOST,0,100,PHYSICAL,20,0,FOE,0,bcf,183,Resta una cantidad de PS equivalente al nivel del usuario
 SWAGGER,Contoneo,NORMAL,0,85,STATUS,15,0,FOE,0,bcd,184,Confunde al rival pero aumenta su Ataque.
 CLOSECOMBAT,A bocajarro,FIGHTING,100,100,PHYSICAL,5,0,FOE,0,abcf,185,Ataca pero reduce la Defensa y la Def Esp del usuario
 STOMPINGTANTRUM,Pataleta,GROUND,75,100,PHYSICAL,10,0,FOE,0,abcf,186,Si el ataque falló en el anterior turno la potencia se duplica
@@ -415,5 +446,17 @@ FALSESWIPE,Falsotortazo,NORMAL,40,100,PHYSICAL,40,0,FOE,0,abcf,214,Si el movimie
 TRUMPCARD,As oculto,NORMAL,-1,0,SPECIAL,5,0,FOE,0,abcf,215,Cuanto menos PP quedan más daño causa
 ACUPRESSURE,Acupresión,NORMAL,0,0,STATUS,30,0,USER,0,,216,Aumenta una característica al azar del usuario
 JUMPKICK,Patada salto,FIGHTING,100,95,PHYSICAL,10,0,FOE,0,abcf,217,Si falla el usuario cae al suelo y pierde PS
+HIGHJUMPKICK,Patada salto alta,FIGHTING,130,90,PHYSICAL,10,0,FOE,0,abcf,217,Si falla el usuario cae al suelo y pierde PS
 HAIL,Granizo,ICE,0,0,STATUS,5,0,BOTHSIDES,0,,218,Provoca el clima de granizo en el campo
 ENTRAINMENT,Danza amiga,NORMAL,0,100,STATUS,15,0,FOE,0,bcd,219,Cambia la habilidad del objetivo por la del usuario
+SHELLSMASH,Rompecoraza,NORMAL,0,0,STATUS,15,0,USER,0,e,220,Aumenta el Ataque At Esp y Velocidad pero baja las Defensas del usuario
+DESTINYBOND,Mismo destino,GHOST,0,0,STATUS,5,0,USER,0,,221,Si el usuario se debilita por un ataque directo se lleva al rival con él
+NIGHTMARE,Pesadilla,GHOST,0,100,STATUS,15,0,FOE,0,bc,222,Si el rival está dormido le va quitando PS cada turno
+PSYWAVE,Psicoonda,PSYCHIC,-1,100,SPECIAL,15,0,FOE,0,bcf,223,Causa un daño variable al oponente
+PSYSHOCK,Psicocarga,PSYCHIC,80,100,SPECIAL,10,0,FOE,0,bcf,224,Ataque psíquico que golpea a la Defensa física del rival
+POWERSPLIT,Isofuerza,PSYCHIC,0,0,STATUS,10,0,FOE,0,b,225,Reparte el Ataque y Ataque Especial entre usuario y objetivo
+EERIEIMPULSE,Onda anómala,ELECTRIC,0,100,STATUS,15,0,FOE,0,bcd,226,Reduce mucho el Ataque Especial del rival
+CHARGEBEAM,Rayo carga,ELECTRIC,50,90,SPECIAL,10,0,FOE,70,bcf,227,Un rayo eléctrico que puede aumentar el Ataque Especial del usuario
+MAGNETICFLUX,Aura magnética,ELECTRIC,0,0,STATUS,20,0,USERANDALLIES,0,eq,228,Aumenta la Def y Def Esp de los aliados con la habilidad Más o Menos
+BRICKBREAK,Demolición,FIGHTING,75,100,PHYSICAL,15,0,FOE,0,abcf,229,Un golpe que rompe las pantallas como Reflejo o Pantalla Luz
+PAINSPLIT,Divide dolor,NORMAL,0,0,STATUS,20,0,FOE,0,bd,230,Suma los PS restantes del usuario y el rival y los divide a partes iguales

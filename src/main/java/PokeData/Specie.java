@@ -20,7 +20,6 @@ public class Specie {
     public GrowthRate growthRate;
     public EggGroups eggGroups1, eggGroups2;
     public Multimap<Integer, Movement> moveset;
-    private ArrayList<Movement> compatibleTM;
     public List<Movement> eggmoves;
     public List<Evolution> evos;
 
@@ -56,10 +55,5 @@ public class Specie {
 
     public void setMoveset(Multimap<Integer, Movement> m) { moveset = m; }
     public void setEggMoves(List<Movement> e) { eggmoves = e; }
-    public void setCompatibleTM(ArrayList<Movement> ctm) { compatibleTM = ctm; }
-    public boolean isCompatible(Movement move) {
-        if(compatibleTM == null) return false;
-        return compatibleTM.contains(move);
-    }
 
 }

@@ -12,7 +12,7 @@ public class MoveEffects {
 
     public MoveEffects(Battle battle) {
         this.battle = battle;
-        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 92, 97, 101, 102, 118, 141, 154));
+        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 92, 97, 101, 102, 118, 141, 154, 226));
         attacksForbiddenBySleepTalk = new ArrayList<>(Arrays.asList(11, 37, 76, 77, 82, 109, 139, 161, 172));
         // TODO: complete lists
     }
@@ -66,7 +66,7 @@ public class MoveEffects {
             attacker.changeStat(0, quantity, true, move.getAddEffect() == 0, defender);
             attacker.changeStat(2, quantity, true, move.getAddEffect() == 0, defender);
         } else if (effect == 8) {
-            // more recoil damage - DOUBLE EDGE, BRAVE BIRD, FLARE BLITZ, VOLT TACKLE
+            // more recoil damage - DOUBLE EDGE, WOOD HAMMER, BRAVE BIRD, FLARE BLITZ, VOLT TACKLE
             if(!attacker.hasAbility("ROCKHEAD") && !attacker.hasAbility("MAGICGUARD")) {
                 attacker.reduceHP(damage / 3);
             }
@@ -221,7 +221,7 @@ public class MoveEffects {
             // decreases a lot the Special Attack of user - LEAF STORM, DRACO METEOR
             attacker.changeStat(2, -2, true, move.getAddEffect() == 0, defender);
         } else if (effect == 18) {
-            // absorb HP to enemy and recovers 1/2 of the damage - ABSORB, MEGA DRAIN, GIGA DRAIN
+            // absorb HP to enemy and recovers 1/2 of the damage - ABSORB, MEGA DRAIN, GIGA DRAIN, DREAM EATER
             if(!defender.hasAbility("LIQUIDOOZE")) {
                 attacker.healHP(damage / 2, true, false, true);
             } else {
@@ -271,6 +271,9 @@ public class MoveEffects {
             if(move.hasName("DRAGONRAGE")) {
                 ps = 40;
             }
+            if(battle.resistsWith1HP(defender, ps, move)) {
+                ps = ps-1;
+            }
             defender.reduceHP(ps);
         }
         if (effect == 24) {
@@ -287,13 +290,19 @@ public class MoveEffects {
             // damages rival ally - FLAME BURST
             //TODO: flame burst residual damage
         } else if (effect == 27 && !defender.isFainted()) {
-            // partially trap enemy from 4-5 turns - FIRE SPIN, WHIRL POOL, SAND TOMB, WRAP...
+            // partially trap enemy from 4-5 turns - FIRE SPIN, WHIRLPOOL, CLAMP, SAND TOMB, WRAP, BIND...
             if (defender.effectMoves.get(4) == 0 && move.hasName("FIRESPIN")) {
                 defender.effectMoves.set(4, 1);
             } else if(defender.effectMoves.get(16) == 0 && move.hasName("WRAP")) {
                 defender.effectMoves.set(16, 1);
             } else if(defender.effectMoves.get(21) == 0 && move.hasName("SANDTOMB")) {
                 defender.effectMoves.set(21, 1);
+            } else if(defender.effectMoves.get(49) == 0 && move.hasName("CLAMP")) {
+                defender.effectMoves.set(49, 1);
+            } else if(defender.effectMoves.get(50) == 0 && move.hasName("WHIRLPOOL")) {
+                defender.effectMoves.set(50, 1);
+            } else if(defender.effectMoves.get(51) == 0 && move.hasName("BIND")) {
+                defender.effectMoves.set(51, 1);
             }
             defender.causeTemporalStatus(TemporalStatus.PARTIALLYTRAPPED, attacker);
             System.out.println(defender.nickname + " was trapped by " + move.name);
@@ -333,7 +342,11 @@ public class MoveEffects {
         } else if (effect == 35) {
             // returns the double of physical damage - COUNTER
             if (attacker.previousDamage > 0 && attacker.lastMoveInThisTurn.getCategory().equals(Category.PHYSICAL) && defender.hasType("GHOST")) {
-                defender.reduceHP(attacker.previousDamage * 2);
+                int dmg = attacker.previousDamage*2;
+                if(battle.resistsWith1HP(defender, dmg, move)) {
+                    dmg -= 1;
+                }
+                defender.reduceHP(dmg);
             } else {
                 return false;
             }
@@ -380,7 +393,11 @@ public class MoveEffects {
         } else if (effect == 46) {
             // returns the double of special damage - MIRROR COAT
             if (attacker.previousDamage > 0 && attacker.lastMoveInThisTurn.getCategory().equals(Category.SPECIAL) && defender.hasType("DARK")) {
-                defender.reduceHP(attacker.previousDamage * 2);
+                int dmg = attacker.previousDamage*2;
+                if(battle.resistsWith1HP(defender, dmg, move)) {
+                    dmg -= 1;
+                }
+                defender.reduceHP(dmg);
             } else {
                 return false;
             }
@@ -651,6 +668,9 @@ public class MoveEffects {
             if (dmg <= 0) {
                 dmg = 1;
             }
+            if(battle.resistsWith1HP(defender, dmg, move)) {
+                dmg -= 1;
+            }
             defender.reduceHP(dmg);
         } else if (effect == 81) {
             // decrease a lot of target defense - SCREECH
@@ -886,7 +906,11 @@ public class MoveEffects {
                 if(attacker.bideDamage == 0) {
                     return false;
                 }
-                defender.reduceHP(attacker.bideDamage*2);
+                int dmg = attacker.bideDamage*2;
+                if(battle.resistsWith1HP(defender, dmg, move)) {
+                    dmg -= 1;
+                }
+                defender.reduceHP(dmg);
                 attacker.bideDamage = 0;
 
             }
@@ -1364,7 +1388,11 @@ public class MoveEffects {
             }
         } else if (effect == 183) {
             // equals target HP to attacker level - SISMIC, NIGHT SHADE
-            defender.reduceHP(attacker.getLevel());
+            int dmg = attacker.getLevel();
+            if(battle.resistsWith1HP(defender, dmg, move)) {
+                dmg -= 1;
+            }
+            defender.reduceHP(dmg);
         } else if (effect == 184) {
             // confuses the target and increase a lot it Attack - SWAGGER
             defender.changeStat(0, 2, false, move.getAddEffect() == 0, attacker);
@@ -1396,6 +1424,7 @@ public class MoveEffects {
                 defender.encoreMove = null;
                 defender.effectMoves.set(17, 0); // disable
                 defender.disabledMove = null;
+                defender.cursedBodyMove = null;
                 // TODO: erase torment and cursed body
 
             } else if(attacker.hasItem("WHITEHERB")) {
@@ -1604,6 +1633,66 @@ public class MoveEffects {
                 return false;
             }
             defender.changeAbility(attacker.getAbility().getInternalName());
+        } else if (effect == 220) {
+            // increases a lot the Attack, Special Attack and Speed, but decreases Defense and Special Defense of user - SHELL SMASH
+            attacker.changeStat(1, -1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(3, -1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(0, 2, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(2, 2, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(4, 2, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 221) {
+            // if the user faints in this turn, the defender faints also - DESTINY BOND
+            if(attacker.destinyBondTurns > 0) {
+                attacker.destinyBondTurns = 0;
+                attacker.effectMoves.set(53, 0);
+                return false;
+            }
+            attacker.effectMoves.set(53, 1);
+            System.out.println(attacker.nickname + " is trying to take its rival with it!");
+            attacker.destinyBondTurns++;
+        } else if (effect == 222) {
+            // reduce HP every turn if target is asleep - NIGHTMARE
+            if(defender.effectMoves.get(54) > 0 || !defender.hasStatus(Status.ASLEEP)) {
+                return false;
+            }
+            defender.effectMoves.set(54, 1);
+            System.out.println(defender.nickname + " is suffering a nightmare!");
+        } else if (effect == 223) {
+            // inflicts a variable damage - PSYWAVE
+            double rand = 0.5 + battle.random.nextDouble();
+            int dmg = (int) (attacker.getLevel()*rand);
+            if(battle.resistsWith1HP(defender, dmg, move)) {
+                dmg -= 1;
+            }
+            defender.reduceHP(dmg);
+        } else if (effect == 225) {
+            // share the sum of Attack and Special Attack between user and target - POWER SPLIT
+            int attacks = (attacker.getStats().get(1) + defender.getStats().get(1))/2;
+            int specialAtt = (attacker.getStats().get(3) + defender.getStats().get(3))/2;
+            attacker.setStatValue(1, attacks);
+            attacker.setStatValue(3, specialAtt);
+            defender.setStatValue(1, attacks);
+            defender.setStatValue(3, specialAtt);
+            System.out.println("The attacks of " + attacker.nickname + " and " + defender.nickname + " were shared between them!");
+        } else if (effect == 226) {
+            // decreases a lot Special Attack of rival - EERIE IMPULSE
+            defender.changeStat(2, -2, false, move.getAddEffect() == 0, attacker);
+        } else if (effect == 227) {
+            // increases Special Attack of user - CHARGE BEAM
+            attacker.changeStat(2, 1, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 228) {
+            // increases Defense and Special Defense of allies if has Plus and Minus ability - MAGNETIC FLUX
+            System.out.println("There is a magnetic flux in the team!");
+            if(defender.hasAbility("PLUS") || defender.hasAbility("MINUS")) {
+                attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
+                attacker.changeStat(3, 1, true, move.getAddEffect() == 0, defender);
+            }
+        } else if (effect == 230) {
+            // sum current HP of rival and user and share equally - PAIN SPLIT
+            System.out.println("HP of " + attacker.nickname + " and " + defender.nickname + " were equally shared!");
+            int totalHP = attacker.getPsActuales() + defender.getPsActuales();
+            attacker.setHP(totalHP/2);
+            defender.setHP(totalHP/2);
         }
 
         return true;

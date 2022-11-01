@@ -65,10 +65,12 @@ public class Pokemon {
     public int sleepTurns = 0;
     public int badPoisonTurns = 0;
     public int protectTurns = 0;
+    public int destinyBondTurns = 0;
     public Movement previousMove;
     public Movement lastMoveInThisTurn, lastMoveUsedInTurn;
     public Movement lastMoveReceived;
     public Movement disabledMove, encoreMove, chosenMove;
+    public Movement cursedBodyMove;
     public int previousDamage;
     public int bideDamage;
     public List<Integer> effectMoves;
@@ -195,8 +197,15 @@ public class Pokemon {
            46 -> dive
            47 -> micle berry (more accuracy in next turn)
            48 -> custap berry (priority in next turn)
+           49 -> clamp
+           50 -> whirlpool
+           51 -> bind
+           52 -> cursed body
+           53 -> destiny bond
+           54 -> nightmare
+           55 -> unburden
         */
-        for(int i=0;i<49;i++) {
+        for(int i=0;i<56;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -204,6 +213,7 @@ public class Pokemon {
         participate = false;
         battle = null;
         disabledMove = null;
+        cursedBodyMove = null;
         encoreMove = null;
         chosenMove = null;
         originalItem = null;
@@ -237,6 +247,7 @@ public class Pokemon {
 
     public void giveItem(String newItem, boolean temporal) {
         item = utils.getItem(newItem);
+        effectMoves.set(55, 0);
         if(!temporal) originalItem = item;
     }
 
@@ -296,16 +307,23 @@ public class Pokemon {
     }
 
     public boolean disabledMove(int i) {
+        Movement mv = moves.get(i).getMove();
         if((hasItem("ASSAULTVEST") || effectMoves.get(37) > 0) && moves.get(i).getMove().getCategory().equals(Category.STATUS) && !moves.get(i).getMove().getInternalName().equals("MEFIRST")) {
             return true; // assault vest and taunt
         }
-        if(disabledMove == moves.get(i).getMove()) {
+        if(disabledMove == mv) {
             return true;
         }
-        if(battle.effectFieldMoves.get(2) > 0 && moves.get(i).getMove().hasName("TELEKINESIS")) { // telekinesis cannot select with gravity
+        if(battle.hasDamp() && (mv.hasName("SELFDESTRUCT") || mv.hasName("EXPLOSION") || mv.hasName("MINDBLOWN") || mv.hasName("MISTYEXPLOSION"))) {
+           return true;
+        }
+        if(cursedBodyMove == mv) {
             return true;
         }
-        if(choiceMove() && moves.get(i).getMove() != chosenMove) {
+        if(battle.effectFieldMoves.get(2) > 0 && mv.hasName("TELEKINESIS")) { // telekinesis cannot select with gravity
+            return true;
+        }
+        if(choiceMove() && mv != chosenMove) {
             return true;
         }
         return false;
@@ -370,7 +388,10 @@ public class Pokemon {
         if(item != null) {
             if(message) System.out.println(nickname + " consumed " + item.name + "!");
             item = null;
-            if(!temporal) originalItem = null;
+            if(!temporal) {
+                originalItem = null;
+                if(hasAbility("UNBURDEN")) effectMoves.set(55,1);
+            }
         }
     }
     public List<Integer> getStatChanges() { return statChanges; }
@@ -507,6 +528,7 @@ public class Pokemon {
         if(hasItem("QUICKPOWDER") && specieNameIs("DITTO")) {
             speed *= 2.0;
         }
+        if(effectMoves.get(55) > 0) speed *= 2.0;
         return speed;
     }
     public int getHP() { return stats.get(0); }
@@ -635,7 +657,7 @@ public class Pokemon {
     }
 
     public boolean learnMove(Movement move) {
-        if(!specie.isCompatible(move)) {
+        if(!move.isCompatible(specie.getInternalName())) {
             System.out.println(nickname + " can't learn " + move.name + "!");
             return false;
         }
@@ -722,7 +744,7 @@ public class Pokemon {
             psActuales = 0;
             status = Status.FAINTED;
             System.out.println(nickname + " fainted!");
-            team.effectTeamMoves.set(13, 1);
+            team.effectTeamMoves.set(13, 1); // retaliate
             // decrease happiness
             modifyHappiness(-1,-1,-1);
         }
@@ -848,6 +870,9 @@ public class Pokemon {
         if(hasAbility("BIGPECKS") && stat == 1 && quantity < 0 && !selfCaused) { // BIG PECKS effect
             return false;
         }
+        if(hasAbility("HYPERCUTTER") && stat == 0 && quantity < 0 && !selfCaused) { // HYPER CUTTER effect
+            return false;
+        }
 
         if(statChanges.get(stat) == -6 && quantity < 0) {
             if(message) { System.out.println(st + " of " + nickname + " can't decrease more!"); }
@@ -959,6 +984,7 @@ public class Pokemon {
             System.out.println(nickname + " recovers from Poison!");
         } else if(hasStatus(Status.ASLEEP)) {
             System.out.println(nickname + " woke up!");
+            effectMoves.set(54,0);
         } else if(hasStatus(Status.BURNED)) {
             System.out.println(nickname + " is no longer burned!");
         } else if(hasStatus(Status.FROZEN)) {
@@ -1097,6 +1123,8 @@ public class Pokemon {
         if(!inBattle) System.out.println("It doesn't have any effect...");
         return false;
     }
+    public int getEVs(int i) { return evs.get(i); }
+    public void setEVs(int i, int ev) { evs.set(i, ev); }
 
     public boolean increaseMaxPP(Movement move, double incr) {
         int ind = getIndexMove(move.getInternalName());
@@ -1229,6 +1257,7 @@ public class Pokemon {
         lastMoveInThisTurn = null;
         lastMoveReceived = null;
         disabledMove = null;
+        cursedBodyMove = null;
         encoreMove = null;
         chosenMove = null;
         previousDamage = 0;
@@ -1237,6 +1266,7 @@ public class Pokemon {
         criticalIndex = 0;
 
         protectTurns = 0;
+        destinyBondTurns = 0;
         pokeTurn = 0;
         // recover move effects
         for(int i=0;i<effectMoves.size();i++) {
@@ -1339,7 +1369,7 @@ public class Pokemon {
         if(!getStatus().equals(Status.FINE) || battle.effectFieldMoves.get(1) > 0) {
             return false;
         }
-        if(hasAbility("VITALSPIRIT")) {
+        if(hasAbility("VITALSPIRIT") || hasAbility("INSOMNIA")) {
             return false;
         }
         if((battle.terrain.hasTerrain(TerrainTypes.ELECTRIC) || battle.terrain.hasTerrain(TerrainTypes.MISTY)) && !isLevitating()) {
@@ -1373,7 +1403,7 @@ public class Pokemon {
 
     public boolean canConfuse(boolean selfCaused, Pokemon other) {
         //TODO: conditions for confusion
-        if(hasTemporalStatus(TemporalStatus.CONFUSED)) {
+        if(hasTemporalStatus(TemporalStatus.CONFUSED) || battle == null) {
             return false;
         }
         if(hasAbility("OWNTEMPO")) {
@@ -1543,7 +1573,7 @@ public class Pokemon {
         ArrayList<Movement> posibleMoves = new ArrayList<>();
         for(int i=0;i<moves.size();i++) {
             Movement m = moves.get(i).getMove();
-            if(!disabledMove.equals(m) && !battle.moveEffects.attacksForbiddenBySleepTalk.contains(m.getCode())) {
+            if(!disabledMove.equals(m) && !cursedBodyMove.equals(m) && !battle.moveEffects.attacksForbiddenBySleepTalk.contains(m.getCode())) {
                 posibleMoves.add(m);
             }
         }
@@ -1559,6 +1589,9 @@ public class Pokemon {
             effectMoves.set(4, 0); // fire spin
             effectMoves.set(16, 0); // wrap
             effectMoves.set(21, 0); // sand tomb
+            effectMoves.set(49, 0); // clamp
+            effectMoves.set(50, 0); // whirlpool
+            effectMoves.set(51, 0); // bind
             //TODO: rest of partially trapped moves
         }
         if(getTeam().effectTeamMoves.get(3) > 0) {
@@ -1594,6 +1627,31 @@ public class Pokemon {
             }
         }
         return false;
+    }
+
+    public Movement getMorePowerfulMove() {
+        Movement move = getMoves().get(random.nextInt(getMoves().size())).getMove();
+        int power = move.getPower();
+        for(int i=0;i<getMoves().size();i++) {
+            Movement currentMove = getMoves().get(i).getMove();
+            if(currentMove.getPower() == -1) {
+                if(currentMove.getCode() == 133) power = 160; // OHKO moves
+                else if(currentMove.getCode() == 54) power = 150; // water spout, eruption
+                else if(currentMove.hasName("COUNTER") || currentMove.hasName("MIRRORCOAT") || currentMove.hasName("METALBURST")) power = 120;
+                else if(currentMove.hasName("CRUSHGRIP") || currentMove.hasName("TRUMPCARD") || currentMove.hasName("FLAIL") ||
+                        currentMove.hasName("SONICBOOM") || currentMove.hasName("NATURALGIFT") || currentMove.hasName("ENDEAVOR") ||
+                        currentMove.hasName("WRINGOUT") || currentMove.hasName("FRUSTRATION") || currentMove.hasName("DRAGONRAGE") ||
+                        currentMove.hasName("GYROBALL") || currentMove.hasName("GRASSKNOT") || currentMove.hasName("REVERSAL") ||
+                        currentMove.hasName("SEISMICTOSS") || currentMove.hasName("LOWKICK") || currentMove.hasName("HIDDENPOWER") ||
+                        currentMove.hasName("PSYWAVE") || currentMove.hasName("RETURN") || currentMove.hasName("NIGHTSHADE")) power = 80;
+                else power = 1;
+            }
+            if(currentMove.getPower() > power) {
+               power = currentMove.getPower();
+               move = currentMove;
+           }
+        }
+        return move;
     }
 
     public boolean canUseLastResort() {

@@ -197,17 +197,17 @@ public class Utils {
             File myObj = new File("COMPATIBLE.txt");
             int i = 0;
             Scanner myReader = new Scanner(myObj,"iso-8859-1");
-            Specie specie = null;
+            Movement mv = null;
             while (myReader.hasNextLine()) {
                 String[] data = myReader.nextLine().split(",");
                 if(i%2==0) {
-                    specie = getPokemon(data[0]);
+                    mv = getMove(data[0]);
                 } else if(i%2 == 1) {
-                    ArrayList<Movement> tms = new ArrayList<Movement>();
+                    ArrayList<String> compatiblePokes = new ArrayList<>();
                     for(int k=0;k<data.length;k++) {
-                        tms.add(getMove(data[k]));
+                        compatiblePokes.add(data[k]);
                     }
-                    if(specie != null) specie.setCompatibleTM(tms);
+                    if(mv != null) mv.setCompatibleTM(compatiblePokes);
                 }
                 i++;
             }

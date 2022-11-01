@@ -107,7 +107,7 @@ public class Item {
 
     public boolean useMedicine(Pokemon target) {
         // recover HP
-        if(hasName("POTION") || hasName("SWEETHEART") || hasName("BERRYJUICE")) {
+        if(hasName("POTION") || hasName("SWEETHEART") || hasName("BERRYJUICE") || hasName("ORANBERRY")) {
             return target.healHP(20,true,true,false);
         } else if(hasName("FRESHWATER")) {
             return target.healHP(30,true,true,false);
@@ -139,13 +139,15 @@ public class Item {
             target.healPermanentStatus();
             target.healTempStatus(TemporalStatus.CONFUSED, true);
             return true;
+        } else if(hasName("SITRUSBERRY")) {
+            return target.healHP(target.getHP()/4,true,true,false);
         }
         // restore status
-        if((hasName("PARLYZHEAL") && target.hasStatus(Status.PARALYZED)) ||
-                (hasName("AWAKENING") && target.hasStatus(Status.ASLEEP)) ||
-                (hasName("ANTIDOTE") && (target.hasStatus(Status.POISONED) || target.hasStatus(Status.BADLYPOISONED))) ||
-                (hasName("BURNHEAL") && target.hasStatus(Status.BURNED)) ||
-                (hasName("ICEHEAL") && target.hasStatus(Status.FROZEN))) {
+        if(((hasName("PARLYZHEAL") || hasName("CHERIBERRY")) && target.hasStatus(Status.PARALYZED)) ||
+                ((hasName("AWAKENING") || hasName("CHESTOBERRY")) && target.hasStatus(Status.ASLEEP)) ||
+                ((hasName("ANTIDOTE") || hasName("PECHABERRY")) && ((target.hasStatus(Status.POISONED)) || target.hasStatus(Status.BADLYPOISONED))) ||
+                ((hasName("BURNHEAL") || hasName("RAWSTBERRY")) && target.hasStatus(Status.BURNED)) ||
+                ((hasName("ICEHEAL") || hasName("ASPEARBERRY")) && target.hasStatus(Status.FROZEN))) {
             if(target.isFainted()) {
                 return false;
             }
@@ -153,7 +155,7 @@ public class Item {
             return true;
         } else if(hasName("FULLHEAL") || hasName("RAGECANDYBAR") || hasName("LAVACOOKIE") || hasName("OLDGATEAU")
                 || hasName("CASTELIACONE") || hasName("LUMIOSEGALETTE") || hasName("SHALOURSABLE") || hasName("BIGMALASADA")
-                || hasName("PEWTERCRUNCHIES") || hasName("HEALPOWDER")) {
+                || hasName("PEWTERCRUNCHIES") || hasName("HEALPOWDER") || hasName("LUMBERRY")) {
             if(!target.hasSomeStatus() && !target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
                 return false;
             }
@@ -165,6 +167,10 @@ public class Item {
             if(hasName("HEALPOWDER")) {
                 target.modifyHappiness(-5,-5,-10);
             }
+            return true;
+        }
+        if(hasName("PERSIMBERRY") && target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+            target.healTempStatus(TemporalStatus.CONFUSED, true); // heal confusion
             return true;
         }
 
@@ -228,6 +234,76 @@ public class Item {
                 incr = 1.6;
             }
             return target.increaseMaxPP(move,incr);
+        }
+        // berries
+        if(hasName("FIGYBERRY")) {
+            if(!target.healHP(target.getHP()/3,true,true,false)) {
+                return false;
+            }
+            if(target.canConfuse(false,null) && (target.getNature("MODEST") || target.getNature("TIMID") || target.getNature("CALM") || target.getNature("BOLD"))) {
+                target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+            }
+            return true;
+        }
+        if(hasName("WIKIBERRY")) {
+            if(!target.healHP(target.getHP()/3,true,true,false)) {
+                return false;
+            }
+            if(target.canConfuse(false,null) && (target.getNature("ADAMANT") || target.getNature("IMPISH") || target.getNature("CAREFUL") || target.getNature("JOLLY"))) {
+                target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+            }
+            return true;
+        }
+        if(hasName("MAGOBERRY")) {
+            if(!target.healHP(target.getHP()/3,true,true,false)) {
+                return false;
+            }
+            if(target.canConfuse(false,null) && (target.getNature("BRAVE") || target.getNature("RELAXED") || target.getNature("QUIET") || target.getNature("SASSY"))) {
+                target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+            }
+            return true;
+        }
+        if(hasName("AGUAVBERRY")) {
+            if(!target.healHP(target.getHP()/3,true,true,false)) {
+                return false;
+            }
+            if(target.canConfuse(false,null) && (target.getNature("NAUGHTY") || target.getNature("LAX") || target.getNature("RASH") || target.getNature("NAIVE"))) {
+                target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+            }
+            return true;
+        }
+        if(hasName("IAPAPABERRY")) {
+            if(!target.healHP(target.getHP()/3,true,true,false)) {
+                return false;
+            }
+            if(target.canConfuse(false,null) && (target.getNature("LONELY") || target.getNature("MILD") || target.getNature("GENTLE") || target.getNature("HASTY"))) {
+                target.causeTemporalStatus(TemporalStatus.CONFUSED,null);
+            }
+            return true;
+        }
+        if(hasName("POMEGBERRY") || hasName("KELPSYBERRY") || hasName("QUALOTBERRY") || hasName("HONDEWBERRY")
+                || hasName("GREPABERRY") || hasName("TAMATOBERRY")) {
+            int i = 0;
+            if(hasName("KELPSYBERRY")) i = 1;
+            if(hasName("QUALOTBERRY")) i = 2;
+            if(hasName("HONDEWBERRY")) i = 3;
+            if(hasName("GREPABERRY")) i = 4;
+            if(hasName("TAMATOBERRY")) i = 5;
+
+            if(target.getEVs(i) == 0) {
+                int ev = target.getEVs(i)-10;
+                if(ev < 0) ev = 0;
+                if(target.happiness == 255) {
+                    System.out.println("This doesn't have any effect.");
+                    return false;
+                }
+                target.setEVs(i, ev);
+                target.modifyHappiness(10,5,1);
+                System.out.println(target.nickname + " is now more friendly.");
+                return true;
+            }
+            System.out.println("This doesn't have any effect.");
+            return false;
         }
 
         return false;

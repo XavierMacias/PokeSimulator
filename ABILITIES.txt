@@ -67,8 +67,25 @@ POISONTOUCH,Toque tóxico,Puede envenenar al tocar al objetivo
 STICKYHOLD,Viscosidad,Evita el robo de objetos
 EARLYBIRD,Madrugar,Se despierta más pronto de lo habitual
 UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.
-DAMP,-------------------Humedad-------------------,Evita los movimientos de explosión
-GLUTTONY,Gula,Utiliza las bayas equipadas antes de lo normal
-SHEERFORCE,Potencia bruta,Potencia los ataques con efecto secundario pero elimina el efecto
+GLUTTONY,Gula,Utiliza las bayas equipadas antes de lo normal.
+SHELLARMOR,Caparazón,Evita golpes críticos.
+BATTLEARMOR,Armadura batalla,Evita golpes críticos.
+OVERCOAT,Funda,Protege de climas y ataques de polvos.
+LEVITATE,Levitación,Evita ataques de tipo Tierra.
+CURSEDBODY,Cuerpo maldito,Puede anular un movimiento usado contra el poseedor
+WEAKARMOR,Armadura frágil,Cuando lo golpean con ataques de físicos su Defensa baja y su Velocidad sube.
+SKILLLINK,Encadenado,Los ataques que golpean varias veces siempre lo harán el máximo posible.
+DAMP,Humedad,Evita los movimientos de explosión.
+HYPERCUTTER,Corte fuerte,Evita que baje el Ataque del usuario.
+INSOMNIA,Insomnio,Evita el sueño.
+SOUNDPROOF,Insonorizar,Evita los ataques de sonido.
+AFTERMATH,Detonación,Daña al oponente si es debilitado por un ataque de contacto.
+FOREWARN,Alerta,Revela el movimiento más potente del oponente.
+IRONFIST,Puño férreo,Aumenta la potencia de los movimientos basados en puño.
+UNBURDEN,Liviano,Duplica la velocidad cuando pierde o usa un objeto equipado.
+RECKLESS,Audaz,Aumenta la potencia de los movimientos que dañan al usuario.
+SHEERFORCE,-------------------Potencia bruta-------------------,Potencia los ataques con efecto secundario pero elimina el efecto
+NEUTRALIZINGGAS,Gas reactivo,Anula las otras habilidades que hay en combate.
+HARVEST,Cosecha,Puede recuperar una baya usada anteriormente en combate.
 FRIENDGUARD,Compiescolta,Reduce el daño causado a Pokémon aliados
 PICKUP,Recogida,Recoge objetos mientras caminas
