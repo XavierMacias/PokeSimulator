@@ -310,6 +310,10 @@ public class Item {
     }
 
     public boolean useBattleItem(Pokemon target) {
+        if(target.effectMoves.get(62) > 0) {
+            System.out.println("Can't use items in " + target.nickname);
+            return false;
+        }
         // flutes
         if(hasName("YELLOWFLUTE") && target.hasTemporalStatus(TemporalStatus.CONFUSED)) {
             target.healTempStatus(TemporalStatus.CONFUSED, true); // heal confusion

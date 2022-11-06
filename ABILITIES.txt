@@ -19,6 +19,7 @@ HUSTLE,Entusiasmo,Aumenta el Ataque pero baja la precisión.
 INTIMIDATE,Intimidación,Reduce el Ataque del rival al entrar al campo.
 STATIC,Electricidad estática,Puede paralizar al contacto.
 LIGHTNINGROD,Pararrayos,Atrae los ataques eléctricos hacia él.
+STORMDRAIN,Colector,Atrae los ataques agua hacia él.
 SANDVEIL,Velo arena,Disminuye la precisión del enemigo cuando hay tormenta de arena.
 SANDRUSH,Ímpetu arena,Aumenta la velocidad cuando hay tormenta de arena.
 POISONPOINT,Punto tóxico,Envenena al mínimo contacto.
@@ -47,10 +48,12 @@ DEFIANT,Competitivo,Aumenta mucho el Ataque cuando le reducen alguna caracterís
 JUSTIFIED,Justiciero,Aumenta el Ataque al recibir un movimiento Siniestro
 CLOUDNINE,Aclimatación,Anula los efectos del clima en el combate
 WATERABSORB,Absorbe agua,Absorbe los ataques de tipo Agua
+VOLTABSORB,Absorbe electricidad,Absorbe los ataques de tipo Eléctrico
 SYNCHRONIZE,Sincronía,Transmite al rival los problemas de estado
 NOGUARD,Indefenso,Todos los movimientos usados por o para el poseedor nunca fallan
 STEADFAST,Impasible,Aumenta la velocidad al retroceder
 CLEARBODY,Cuerpo puro,Evita que bajen las características
+WHITESMOKE,Humo blanco,Evita que bajen las características
 LIQUIDOOZE,Lodo líquido,Los ataques de absorción de PS restan salud al oponente
 ROCKHEAD,Cabeza roca,Evita el daño de retroceso
 STURDY,Robustez,Evita debilitarse de un solo golpe
@@ -65,7 +68,7 @@ HYDRATION,Hidratación,Cura problemas de estado si llueve
 THICKFAT,Sebo,Reduce el daño de ataques fuego y hielo
 POISONTOUCH,Toque tóxico,Puede envenenar al tocar al objetivo
 STICKYHOLD,Viscosidad,Evita el robo de objetos
-EARLYBIRD,Madrugar,Se despierta más pronto de lo habitual
+EARLYBIRD,Madrugar,Se despierta más pronto de lo habitual.
 UNNERVE,Nerviosismo,Impide el uso de la baya equipada a los oponentes.
 GLUTTONY,Gula,Utiliza las bayas equipadas antes de lo normal.
 SHELLARMOR,Caparazón,Evita golpes críticos.
@@ -84,8 +87,32 @@ FOREWARN,Alerta,Revela el movimiento más potente del oponente.
 IRONFIST,Puño férreo,Aumenta la potencia de los movimientos basados en puño.
 UNBURDEN,Liviano,Duplica la velocidad cuando pierde o usa un objeto equipado.
 RECKLESS,Audaz,Aumenta la potencia de los movimientos que dañan al usuario.
-SHEERFORCE,-------------------Potencia bruta-------------------,Potencia los ataques con efecto secundario pero elimina el efecto
+NATURALCURE,Cura natural,Cura problemas de estado al cambiar de Pokémon.
+SERENEGRACE,Dicha,Aumenta la probabilidad de efectos secundarios.
+LEAFGUARD,Defensa hoja,Evita problemas de estado cuando hay Sol.
+REGENERATOR,Regeneración,Recupera algunos PS al volver a la PokéBall.
+WATERVEIL,Velo agua,Evita las quemaduras.
+RATTLED,Cobardía,Aumenta la Velocidad al ser golpeado por ataques Bicho Siniestro o Fantasma
+MOXIE,Autoestima,Aumenta el Ataque al debilitar a un Pokémon.
+MOLDBREAKER,Rompemoldes,Ataca independientemente de las habilidades.
+ADAPTABILITY,Adaptable,Aumenta la potencia de los movimientos de su mismo tipo
+QUICKFEET,Pies rápidos,Aumenta la Velocidad si tiene problemas de estado.
+TRACE,Rastro,Copia la habilidad del oponente.
+DOWNLOAD,Descarga,Aumenta el Ataque o Ataque Especial al inicio del combate.
+ANTICIPATION,Anticipación,Se estremece si el rival tiene un ataque fuerte.
+BULLETPROOF,Antibalas,Evita los ataques basados en bombas y balas.
+IMMUNITY,Inmunidad,Evita el envenenamiento.
+PRESSURE,Presión,Hace que el rival gaste más PP.
+MARVELSCALE,Escama especial,Sube la Defensa si sufre un problema de estado.
+MULTISCALE,Multiescamas,Si tiene los PS al máximo reduce el daño recibido.
+MOTORDRIVE,Electromotor,Absorbe los ataques eléctricos y sube la Velocidad.
+MAGMAARMOR,Escudo magma,Evita el congelamiento.
+SAPSIPPER,Herbívoro,Absorbe los ataques planta y sube el Ataque.
+SHEERFORCE,-------------------Potencia bruta-------------------,Potencia los ataques con efecto secundario pero elimina el efecto.
+IMPOSTER,Impostor,Se convierte en el oponente al salir al combate.
 NEUTRALIZINGGAS,Gas reactivo,Anula las otras habilidades que hay en combate.
 HARVEST,Cosecha,Puede recuperar una baya usada anteriormente en combate.
-FRIENDGUARD,Compiescolta,Reduce el daño causado a Pokémon aliados
-PICKUP,Recogida,Recoge objetos mientras caminas
+FRIENDGUARD,Compiescolta,Reduce el daño causado a Pokémon aliados.
+HEALER,Alma cura,Puede curar los problemas de estado de los aliados.
+PICKUP,Recogida,Recoge objetos mientras caminas.
+ILLUMINATE,Iluminación,Aumenta la probabilidad de encontrar Pokémon salvajes.

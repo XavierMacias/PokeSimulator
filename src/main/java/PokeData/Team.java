@@ -40,8 +40,9 @@ public class Team {
            15 -> spikes
            16 -> sticky web
            17 -> guard spec
+           18 -> aurora veil
         */
-        for(int i=0;i<18;i++) {
+        for(int i=0;i<19;i++) {
             effectTeamMoves.add(0);
         }
         player = trainer;
@@ -293,6 +294,8 @@ public class Team {
             System.out.println("The Sticky Web of " + target.nickname + "'s team is gone!");
         } else if(index == 17) {
             System.out.println("Guard Spec of " + target.nickname + "'s team is gone!");
+        } else if(index == 18) {
+            System.out.println("Aurora Veil of " + target.nickname + "'s team is gone!");
         }
     }
 

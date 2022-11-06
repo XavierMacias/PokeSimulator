@@ -19,5 +19,12 @@ public class Type {
     public void setWeaknesses(List<String> w) { weaknesses = w; }
     public void setResistances(List<String> r) { resistances = r; }
     public void setImmunities(List<String> i) { immunities = i; }
+    public ArrayList<String> resistAndInmun() {
+        ArrayList<String> resultList = new ArrayList<>();
+        resultList.addAll(resistances);
+        resultList.addAll(immunities);
+
+        return resultList;
+    }
     public String getInternalName() { return internalName; }
 }

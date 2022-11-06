@@ -189,7 +189,10 @@ public class Bag {
             System.out.println("Which do you want to use " + item.name + " to? ");
             Pokemon poke = player.getTeam().selectPokemon();
             if(poke != null) {
-                //System.out.println("You use "+ item.name+" to " + poke.nickname + "!");
+                if(poke.effectMoves.get(62) > 0) {
+                    System.out.println("Can't use items in " + poke.nickname);
+                    return false;
+                }
                 if(item.getPocket().toString().equals("MEDICINE") || item.getFlags().contains("c")) { // medicine, berries
                     return item.useMedicine(poke);
                 }
@@ -276,12 +279,12 @@ public class Bag {
             if(in.nextLine().equals("1")) {
                 System.out.println("You switched "+pokemon.item.name+" by " + newItem.name + "!");
                 addItem(pokemon.item, false);
-                pokemon.item = newItem;
                 loseItem(newItem, pocket, true);
+                pokemon.giveItem(newItem.getInternalName(),false);
             }
         } else {
-            pokemon.item = newItem;
             loseItem(newItem, pocket, true);
+            pokemon.giveItem(newItem.getInternalName(),false);
             System.out.println("You gave "+newItem.name+" to " + pokemon.nickname + "!");
         }
     }
