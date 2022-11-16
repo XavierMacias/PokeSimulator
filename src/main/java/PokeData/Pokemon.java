@@ -75,6 +75,7 @@ public class Pokemon {
     public int bideDamage;
     public List<Integer> effectMoves;
     public int stockpile = 0;
+    public boolean truant;
     private double weight;
     private Scanner in;
     Random random;
@@ -140,6 +141,7 @@ public class Pokemon {
         moves = new ArrayList<Pair<Movement,Integer>>();
         remainPPs = new ArrayList<Integer>();
         usedMoves = new ArrayList<Boolean>();
+        truant = false;
         setMoves(false, false);
         //is shiny?
         if(utils.getRandomNumberBetween(1,4097) == 1) {
@@ -212,8 +214,11 @@ public class Pokemon {
            60 -> laser focus
            61 -> infestation
            62 -> embargo
+           63 -> throat chop
+           64 -> heal block
+           65 -> phantomp force
         */
-        for(int i=0;i<63;i++) {
+        for(int i=0;i<65;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -315,27 +320,34 @@ public class Pokemon {
         return moves.get(chosenIndex-1).getMove();
     }
 
-    public boolean disabledMove(int i) {
-        Movement mv = moves.get(i).getMove();
-        if((hasItem("ASSAULTVEST") || effectMoves.get(37) > 0) && moves.get(i).getMove().getCategory().equals(Category.STATUS) && !moves.get(i).getMove().getInternalName().equals("MEFIRST")) {
+    public boolean disabledMove(Movement mv) {
+        if((hasItem("ASSAULTVEST") || effectMoves.get(37) > 0) && mv.getCategory().equals(Category.STATUS) && !mv.hasName("MEFIRST")) {
             return true; // assault vest and taunt
         }
-        if(disabledMove == mv) {
+        if(disabledMove != null) return disabledMove.equals(mv);
+
+        if(battle.moveEffects.attacksToHeal.contains(mv.getCode()) && effectMoves.get(64) > 0) {
             return true;
         }
         if(battle.hasDamp() && (mv.hasName("SELFDESTRUCT") || mv.hasName("EXPLOSION") || mv.hasName("MINDBLOWN") || mv.hasName("MISTYEXPLOSION"))) {
-           return true;
-        }
-        if(cursedBodyMove == mv) {
             return true;
         }
+        if(cursedBodyMove != null) return cursedBodyMove.equals(mv);
+
         if(battle.effectFieldMoves.get(2) > 0 && mv.hasName("TELEKINESIS")) { // telekinesis cannot select with gravity
             return true;
         }
-        if(choiceMove() && mv != chosenMove) {
+        if(effectMoves.get(63) > 0 && mv.getFlags().contains("j")) { // throat chop can't use sound moves
             return true;
         }
+        if(chosenMove != null) return choiceMove() && !mv.equals(chosenMove);
+
         return false;
+    }
+
+    public boolean disabledMove(int i) {
+        Movement mv = moves.get(i).getMove();
+        return disabledMove(mv);
     }
 
     public boolean choiceMove() {
@@ -352,16 +364,18 @@ public class Pokemon {
         return ability.getInternalName().equals(ab); }
     public int getGender() { return gender; }
     public int getCriticalIndex() {
-        if((hasItem("SCOPELENS") || hasItem("RAZORCLAW")) && criticalIndex < 4) {
-            return criticalIndex + 1;
+        int crit = criticalIndex;
+        if((hasItem("SCOPELENS") || hasItem("RAZORCLAW"))) {
+            crit += 1;
         }
+        if(hasAbility("SUPERLUCK")) crit += 1;
         if(hasItem("LEEK") && (specieNameIs("FARFETCHD") || specieNameIs("SIRFETCHD"))
             || hasItem("LUCKYPUNCH") && specieNameIs("CHANSEY")) {
-            int crit = criticalIndex + 2;
-            if(crit > 4) crit = 4;
-            return crit;
+            crit += 2;
         }
-        return criticalIndex;
+
+        if(crit > 4) crit = 4;
+        return crit;
     }
 
     public Team getTeam() { return team; }
@@ -426,6 +440,7 @@ public class Pokemon {
 
     public int getAttack(boolean critic, boolean ignore, Movement move) {
         int attack = stats.get(1);
+        if(hasAbility("HUGEPOWER") || hasAbility("PUREPOWER")) attack *= 2;
         if(ignore) {
             if(hasStatus(Status.BURNED) && !hasAbility("GUTS")) {
                 attack /= 2.0;
@@ -589,10 +604,14 @@ public class Pokemon {
     public int getPsActuales() {
         return psActuales;
     }
-    public double getWeight() {
-        if(hasItem("FLOATSTONE")) {
+    public double getWeight(boolean moldbreaker) {
+        if(hasItem("FLOATSTONE") || (hasAbility("LIGHTMETAL") && !moldbreaker)) {
             return weight/2;
         }
+        if(hasAbility("HEAVYMETAL") && !moldbreaker) {
+            return weight*2;
+        }
+
         return weight;
     }
     public void setWeight(double w) {
@@ -876,6 +895,7 @@ public class Pokemon {
             case 5 -> st = "Accuracy";
             case 6 -> st = "Evasion";
         }
+        if(hasAbility("CONTRARY") && !(other.hasAbility("MOLDBREAKER") && !selfCaused)) quantity *= -1;
         if(quantity == 1) {
             raise = "raised";
         } else if(quantity == 2) {
@@ -1002,10 +1022,18 @@ public class Pokemon {
         }
         return true;
     }
+    public boolean statsAreMinimum() {
+        for(int i=0;i<statChanges.size();i++) {
+            if(statChanges.get(i) > -6) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public void healPokemon(boolean message) {
         psActuales = 1;
-        healHP(-1, message, message, false);
+        healHP(-1, message, message, false, false);
         healStatus(true, message);
         healPP(-1,-1);
     }
@@ -1040,6 +1068,7 @@ public class Pokemon {
             System.out.println(nickname + " recovers from Poison!");
         } else if(hasStatus(Status.ASLEEP)) {
             System.out.println(nickname + " woke up!");
+            truant = false;
             effectMoves.set(54,0);
         } else if(hasStatus(Status.BURNED)) {
             System.out.println(nickname + " is no longer burned!");
@@ -1069,8 +1098,12 @@ public class Pokemon {
         return psActuales >= getHP();
     }
 
-    public boolean healHP(int hp, boolean message, boolean messageAll, boolean absorb) {
+    public boolean healHP(int hp, boolean message, boolean messageAll, boolean absorb, boolean healblock) {
         if(psActuales <= 0) {
+            return false;
+        }
+        if(healblock && effectMoves.get(64) > 0) {
+            System.out.println(nickname + " can't heal due to Heal Block!");
             return false;
         }
         // hp -1 means all the HP will be restored
@@ -1092,6 +1125,7 @@ public class Pokemon {
     }
 
     public void revivePokemon(int hp) {
+        if(hp == 0) hp = 1;
         System.out.println(nickname + " is no longer fainted!");
         psActuales = hp;
         if(hp == -1) {
@@ -1297,6 +1331,7 @@ public class Pokemon {
             if(i==0) {
                 // HP stat
                 stats.set(0,(int) (((((specie.stats.get(0)*2)+ivs.get(0)+(evs.get(0)/4.0))*level)/100.0)+level+10));
+                if(specieNameIs("SHEDINJA")) stats.set(0,1);
             } else {
                 // other stats
                 stats.set(i,(int) (((((((specie.stats.get(i)*2)+ivs.get(i)+(evs.get(i)/4.0))*level)/100.0)+5)*getNat(i))));
@@ -1310,7 +1345,7 @@ public class Pokemon {
             badPoisonTurns = 1;
         }
         if(hasAbility("NATURALCURE") && !isFainted()) healStatus(false,false);
-        if(hasAbility("REGENERATOR") && !isFainted()) healHP(getHP()/3,false,false,false);
+        if(hasAbility("REGENERATOR") && !isFainted()) healHP(getHP()/3,false,false,false, false);
         previousMove = null;
         lastMoveInThisTurn = null;
         lastMoveReceived = null;
@@ -1320,6 +1355,7 @@ public class Pokemon {
         chosenMove = null;
         previousDamage = 0;
         bideDamage = 0;
+        truant = false;
 
         criticalIndex = 0;
 
@@ -1411,7 +1447,7 @@ public class Pokemon {
         if(!getStatus().equals(Status.FINE)) {
             return false;
         }
-        if(hasAbility("WATERVEIL")) {
+        if(hasAbility("WATERVEIL") || hasAbility("WATERBUBBLE")) {
             if(other != null) {
                 if(!other.hasAbility("MOLDBREAKER")) {
                     return false;
@@ -1767,6 +1803,10 @@ public class Pokemon {
 
         if(posibleMoves.isEmpty()) { return null; }
         return posibleMoves.get(random.nextInt(posibleMoves.size()));
+    }
+
+    public void changeTruant() {
+        truant = !truant;
     }
 
     public void rapidSpin() {

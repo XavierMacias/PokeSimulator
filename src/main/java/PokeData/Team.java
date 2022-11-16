@@ -305,6 +305,9 @@ public class Team {
         if(in.nextLine().equals("1")) {
             System.out.println("What nickname do you want?");
             pkm.nickname = in.nextLine();
+            if(pkm.nickname.replaceAll(" ", "").equals("")) {
+                pkm.nickname = pkm.getSpecie().name;
+            }
         }
     }
 }

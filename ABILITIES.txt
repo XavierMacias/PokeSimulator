@@ -108,11 +108,43 @@ MULTISCALE,Multiescamas,Si tiene los PS al máximo reduce el daño recibido.
 MOTORDRIVE,Electromotor,Absorbe los ataques eléctricos y sube la Velocidad.
 MAGMAARMOR,Escudo magma,Evita el congelamiento.
 SAPSIPPER,Herbívoro,Absorbe los ataques planta y sube el Ataque.
+HEATPROOF,Ignífugo,Reduce a la mitad el daño recibido por ataques Fuego.
+FILTER,Filtro,Reduce el daño de movimientos supereficaces.
+SOLIDROCK,Roca sólida,Reduce el daño de movimientos supereficaces.
+WATERBUBBLE,Pompa,Aumenta la potencia de los movimientos Agua y evita el fuego.
+FURCOAT,Pelaje recio,Reduce el daño de ataques físicos contra el usuario.
+FLUFFY,Peluche,Aumenta el daño recibido por ataques Fuego pero reduce los de contacto.
+SNOWCLOAK,Manto níveo,Disminuye la precisión del enemigo cuando hay granizo.
+SUPERLUCK,Afortunado,Aumenta el índice de golpe crítico del poseedor.
+MAGICBOUNCE,Espejo mágico,Devuelve movimientos de estado.
+HUGEPOWER,Potencia,Dobla el ataque del usuario.
+PUREPOWER,Energía pura,Dobla el ataque del usuario.
+DRIZZLE,Llovizna,Provoca lluvia al salir al campo de batalla.
+SPEEDBOOST,Impulso,Sube la Velocidad en cada turno.
+SHADOWTAG,Sombra trampa,Evita huir al rival.
+PRANKSTER,Bromista,Los movimientos de estado obtienen prioridad.
+CONTRARY,Respondón,Invierte los cambios en las características.
+LIGHTMETAL,Metal liviano,El peso del Pokémon se reduce a la mitad.
+HEAVYMETAL,Metal pesado,El peso del Pokémon se aumenta al doble.
+PICKPOCKET,Hurto,Roba objetos al contacto.
+MOODY,Veleta,En cada turno sube una característica y aumenta otra.
+SCRAPPY,Intrépido,Permite atacar a Pokémon Fantasma con ataques Normal y Lucha.
+SANDSTREAM,Chorro arena,Provoca tormenta de arena al salir al campo de batalla.
+SNOWWARNING,Nevada,Provoca granizo al salir al campo de batalla.
+POISONHEAL,Antídoto,Cura PS en vez de perderlos al envenenarse.
+TRUANT,Ausente,Ataca cada dos turnos.
+WONDERGUARD,Superguarda,Evita los ataques no supereficaces.
+NORMALIZE,Normalidad,Convierte los ataques al tipo Normal.
+STALL,Rezagado,Siempre ataca el último.
 SHEERFORCE,-------------------Potencia bruta-------------------,Potencia los ataques con efecto secundario pero elimina el efecto.
 IMPOSTER,Impostor,Se convierte en el oponente al salir al combate.
 NEUTRALIZINGGAS,Gas reactivo,Anula las otras habilidades que hay en combate.
 HARVEST,Cosecha,Puede recuperar una baya usada anteriormente en combate.
+TELEPATHY,Telepatía,Elimina el daño causado a Pokémon aliados.
 FRIENDGUARD,Compiescolta,Reduce el daño causado a Pokémon aliados.
 HEALER,Alma cura,Puede curar los problemas de estado de los aliados.
+PLUS,Más,Aumenta el Ataque Especial si un compañero tiene la habilidad Menos.
+MINUS,Menos,Aumenta el Ataque Especial si un compañero tiene la habilidad Más.
 PICKUP,Recogida,Recoge objetos mientras caminas.
+HONEYGATHER,Recogemiel,Recoge miel después de combatir.
 ILLUMINATE,Iluminación,Aumenta la probabilidad de encontrar Pokémon salvajes.

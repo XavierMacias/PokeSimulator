@@ -8,13 +8,15 @@ public class MoveEffects {
 
     Battle battle;
     public ArrayList<Integer> attacksForbiddenBySleepTalk; // attacks that cannot be selected by SLEEP TALK
-    ArrayList<Integer> attacksWithSecondaryEffects; // attack with secondary effects that affect the opponent (SHIELD DUST)
+    public ArrayList<Integer> attacksWithSecondaryEffects; // attack with secondary effects that affect the opponent (SHIELD DUST)
+    public ArrayList<Integer> attacksToHeal; // attack that can heal immediatly or HP-draining moves
     double probability = 0.1;
 
     public MoveEffects(Battle battle) {
         this.battle = battle;
-        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 92, 97, 101, 102, 118, 141, 154, 226, 241));
+        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 92, 97, 101, 102, 118, 141, 154, 226, 241, 260, 261, 268));
         attacksForbiddenBySleepTalk = new ArrayList<>(Arrays.asList(11, 37, 76, 77, 82, 109, 139, 161, 172));
+        attacksToHeal = new ArrayList<>(Arrays.asList(10, 18, 75, 158, 165, 237));
         // TODO: complete lists
     }
 
@@ -31,6 +33,27 @@ public class MoveEffects {
             attacker.changeAbility(defender.getAbility().getInternalName());
             return true;
         }
+    }
+
+    public boolean stealItem(Pokemon attacker, Pokemon defender) {
+        if(attacker.item != null) {
+            return false;
+        }
+        if(defender.item != null || (defender.hasAbility("STICKYHOLD") && !attacker.hasAbility("MOLDBREAKER"))) {
+            return false;
+        }
+        if((defender.hasItem("GRISEOUSORB") && defender.specieNameIs("GIRATINA")) ||
+                (defender.item.getFlags().contains("l") && defender.specieNameIs("ARCEUS")) ||
+                ((defender.hasItem("DOUSEDRIVE") || defender.hasItem("SHOCKDRIVE") || defender.hasItem("CHILLDRIVE") ||
+                        defender.hasItem("BURNDRIVE")) && defender.specieNameIs("GENESECT")) ||
+                (defender.item.getFlags().contains("m") && defender.specieNameIs("SILVALLY"))) {
+            return false;
+        } // TODO: kyogre with blue orb, groudon with red orb, mail and mega stones
+
+        System.out.println(attacker.nickname + " steals " + defender.item.name + " from " + defender.nickname + "!");
+        attacker.giveItem(defender.item.getInternalName(), false);
+        defender.loseItem(false, false);
+        return true;
     }
 
     public boolean moveEffects(Movement move, Pokemon attacker, Pokemon defender, Movement defenderMove, int damage) {
@@ -116,7 +139,7 @@ public class MoveEffects {
                 quantity = attacker.getHP() / 4;
             }
 
-            return attacker.healHP(quantity, true, true, false);
+            return attacker.healHP(quantity, true, true, false, true);
         } else if (effect == 11 && !attacker.isFainted()) {
             // first turn: load, second turn: attack - SKULL BASH, SOLAR BEAM, RAZOR WIND, SKY ATTACK, DIG, BOUNCE, DIVE, FLY...
             double prob = 0.3;
@@ -124,6 +147,7 @@ public class MoveEffects {
 
             if (move.hasName("SOLARBEAM")) {
                 if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0 && !battle.weather.hasWeather(Weathers.SUNLIGHT) && !battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     System.out.println(attacker.nickname + " is charging solar energy!");
                     attacker.recover1PP(move);
                     attacker.effectMoves.set(3, 1);
@@ -132,6 +156,7 @@ public class MoveEffects {
                 }
             } else if (move.hasName("SKULLBASH")) {
                 if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     System.out.println(attacker.nickname + " bowed its head!");
                     attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
                     attacker.recover1PP(move);
@@ -141,6 +166,7 @@ public class MoveEffects {
                 }
             } else if (move.hasName("RAZORWIND")) {
                 if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     System.out.println(attacker.nickname + " raised a whirlwind!");
                     attacker.recover1PP(move);
                     attacker.effectMoves.set(3, 1);
@@ -149,6 +175,7 @@ public class MoveEffects {
                 }
             } else if (move.hasName("SKYATTACK")) {
                 if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     System.out.println(attacker.nickname + " is charging!");
                     attacker.recover1PP(move);
                     attacker.effectMoves.set(3, 1);
@@ -161,6 +188,7 @@ public class MoveEffects {
                 }
             } else if (move.hasName("DIG")) {
                 if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     System.out.println(attacker.nickname + " dug underground!");
                     attacker.recover1PP(move);
                     attacker.effectMoves.set(3, 1);
@@ -171,6 +199,7 @@ public class MoveEffects {
                 }
             } else if (move.hasName("BOUNCE") || move.hasName("FLY")) {
                 if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     if(move.hasName("BOUNCE")) {
                         System.out.println(attacker.nickname + " jumped very high!");
                     } else {
@@ -188,6 +217,7 @@ public class MoveEffects {
                 }
             } else if (move.hasName("DIVE")) {
                 if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     System.out.println(attacker.nickname + " dived underwater!");
                     attacker.recover1PP(move);
                     attacker.effectMoves.set(3, 1);
@@ -196,8 +226,20 @@ public class MoveEffects {
                     attacker.effectMoves.set(3, 0);
                     attacker.effectMoves.set(46, 0);
                 }
+            } else if (move.hasName("PHANTOMFORCE")) {
+                if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
+                    System.out.println(attacker.nickname + " disappeared!");
+                    attacker.recover1PP(move);
+                    attacker.effectMoves.set(3, 1);
+                    attacker.effectMoves.set(65, 1);
+                } else {
+                    attacker.effectMoves.set(3, 0);
+                    attacker.effectMoves.set(65, 0);
+                }
             } else if (move.hasName("SKYDROP")) {
                 if (attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
                     System.out.println(attacker.nickname + " took " + defender.nickname + " with it!");
                     attacker.recover1PP(move);
                     attacker.effectMoves.set(3, 1);
@@ -260,7 +302,7 @@ public class MoveEffects {
         } else if (effect == 18) {
             // absorb HP to enemy and recovers 1/2 of the damage - ABSORB, MEGA DRAIN, GIGA DRAIN, DREAM EATER
             if(!defender.hasAbility("LIQUIDOOZE")) {
-                attacker.healHP(damage / 2, true, false, true);
+                attacker.healHP(damage / 2, true, false, true, true);
             } else {
                 attacker.reduceHP(damage / 2);
             }
@@ -599,7 +641,7 @@ public class MoveEffects {
             // TODO: AUTOTOMIZE reduces weight
             if(move.hasName("AUTOTOMIZE")) {
                 System.out.println(attacker.nickname + " is lighter now!");
-                attacker.setWeight(attacker.getWeight()-100);
+                attacker.setWeight(attacker.getWeight(false)-100);
             }
         } else if (effect == 74) {
             // equals target HP to attacker HP - ENDEAVOR
@@ -614,7 +656,7 @@ public class MoveEffects {
             if (attacker.hasAllHP()) {
                 return false;
             } else {
-                attacker.healHP(attacker.getHP() / 2, true, false, false);
+                attacker.healHP(attacker.getHP() / 2, true, false, false, true);
                 if (attacker.hasType("FLYING") && move.hasName("ROOST")) {
                     attacker.effectMoves.set(10, 1);
                     //TODO: forest curse and halloween effect
@@ -778,7 +820,7 @@ public class MoveEffects {
             } else if(attacker.stockpile == 3) {
                 recover = 1;
             }
-            attacker.healHP(attacker.getHP()/recover,true,true, false);
+            attacker.healHP(attacker.getHP()/recover,true,true, false, true);
             for(int i=0;i<attacker.stockpile;i++) {
                 attacker.changeStat(1,-attacker.stockpile,true,false, defender);
                 attacker.changeStat(3,-attacker.stockpile,true,false, defender);
@@ -1105,8 +1147,7 @@ public class MoveEffects {
             do {
                 randomMove = attacker.utils.getMoves().get(rand.nextInt(attacker.utils.getMoves().size()));
             } while(randomMove.getFlags().contains("p") || randomMove.hasName("RELICSONG") || randomMove.hasName("CHATTER") ||
-                    randomMove.hasName("SKETCH") || randomMove.hasName("ICEBURN") || randomMove.hasName("VCREATE") ||
-                    randomMove.hasName("FREEZESHOCK") || randomMove.hasName("SNORE") || randomMove.hasName("QUASH") ||
+                    randomMove.hasName("ICEBURN") || randomMove.hasName("VCREATE") || randomMove.hasName("FREEZESHOCK") ||
                     randomMove.hasName("SECRETSWORD") || randomMove.hasName("TECHNOBLAST")); // forbidden moves
 
             battle.useMove(attacker, defender, randomMove, defenderMove, false, false, true);
@@ -1166,31 +1207,15 @@ public class MoveEffects {
                 }
             }
         } else if (effect == 146) {
-            // steals target item - COVET
-            if(attacker.item != null) {
-                return false;
-            }
-            if(defender.item != null || (defender.hasAbility("STICKYHOLD") && !attacker.hasAbility("MOLDBREAKER"))) {
-                return false;
-            }
-            if((defender.hasItem("GRISEOUSORB") && defender.specieNameIs("GIRATINA")) ||
-                    (defender.item.getFlags().contains("l") && defender.specieNameIs("ARCEUS")) ||
-                    ((defender.hasItem("DOUSEDRIVE") || defender.hasItem("SHOCKDRIVE") || defender.hasItem("CHILLDRIVE") ||
-                            defender.hasItem("BURNDRIVE")) && defender.specieNameIs("GENESECT")) ||
-                    (defender.item.getFlags().contains("m") && defender.specieNameIs("SILVALLY"))) {
-                return false;
-            } // TODO: kyogre with blue orb, groudon with red orb, mail and mega stones
-
-            System.out.println(attacker.nickname + " steals " + defender.item.name + " from " + defender.nickname + "!");
-            attacker.giveItem(defender.item.getInternalName(), false);
-            defender.loseItem(false, false);
+            // steals target item - COVET, THIEF
+            return stealItem(attacker,defender);
         } else if (effect == 147) {
             // recover 50% of HP to target - HEAL PULSE
             int quantity = defender.getHP()/2;
             if(attacker.hasAbility("MEGALAUNCHER")) {
                 quantity = (int) (defender.getHP()*0.75);
             }
-            return attacker.healHP(quantity, true, true, false);
+            return attacker.healHP(quantity, true, true, false, true);
         } else if (effect == 148) {
             // copies the last move used by target - MIMIC
             // TODO: mimic effect
@@ -1247,7 +1272,7 @@ public class MoveEffects {
             if(!attacker.canSleep(true,defender)) {
                 return false;
             }
-            attacker.healHP(-1,true,false, false);
+            attacker.healHP(-1,true,false, false, true);
             attacker.causeStatus(Status.ASLEEP, defender, true);
             attacker.effectMoves.set(32, 1);
         } else if (effect == 159) {
@@ -1294,7 +1319,7 @@ public class MoveEffects {
             int ps = (int) (defender.getStats().get(1) * defender.getStatChange(0));
             defender.changeStat(0, -1, false, move.getAddEffect() == 0, attacker);
             if(!defender.hasAbility("LIQUIDOOZE")) {
-                attacker.healHP(ps,true,true,true);
+                attacker.healHP(ps,true,true,true, true);
             } else {
                 attacker.reduceHP(ps);
             }
@@ -1802,7 +1827,7 @@ public class MoveEffects {
         } else if (effect == 237) {
             // absorb HP to enemy and recovers 75% of the damage - DRAINING KISS
             if (!defender.hasAbility("LIQUIDOOZE")) {
-                attacker.healHP((int) (damage * 0.75), true, false, true);
+                attacker.healHP((int) (damage * 0.75), true, false, true, true);
             } else {
                 attacker.reduceHP((int) (damage * 0.75));
             }
@@ -1883,6 +1908,58 @@ public class MoveEffects {
                 battle.effectFieldMoves.set(7, 0);
             }
             System.out.println("The slowest Pokémon will be the first to attack!");
+        } else if (effect == 258) {
+            // decreases target speed and poison it - TOXIC THREAD
+            boolean ef1 = defender.changeStat(4, -1, false, move.getAddEffect() == 0, attacker);
+            if(defender.canPoison(false,attacker)) {
+                defender.causeStatus(Status.POISONED, attacker, false);
+            } else return ef1;
+        } else if (effect == 259) {
+            // turns Normal Type attacks to Electric Type during this turn - ION DELUGE
+            if(battle.effectFieldMoves.get(8) > 0) return false;
+            battle.effectFieldMoves.set(8,1);
+            System.out.println(attacker.nickname + " creates a " + move.name);
+        } else if (effect == 260) {
+            // increase +3 user defense - COTTON GUARD...
+            attacker.changeStat(1, 3, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 261) {
+            // decreases target attack and special attack - TEARFUL-LOOK, NOBLE ROAR...
+            defender.changeStat(0, 1, false, move.getAddEffect() == 0, attacker);
+            defender.changeStat(2, 1, false, move.getAddEffect() == 0, attacker);
+        } else if (effect == 262) {
+            // increase Defense of Grass Pokemon - FLOWER SHIELD
+            int nGrass = 0;
+            if(attacker.hasType("GRASS") && attacker.effectMoves.get(36) == 0 && attacker.effectMoves.get(44) == 0 &&
+                    attacker.effectMoves.get(59) == 0 && attacker.effectMoves.get(46) == 0) {
+                attacker.changeStat(1, 1, false, move.getAddEffect() == 0, defender);
+                nGrass++;
+            }
+            if(defender.hasType("GRASS") && defender.effectMoves.get(36) == 0 && defender.effectMoves.get(44) == 0 &&
+                    defender.effectMoves.get(59) == 0 && defender.effectMoves.get(46) == 0) {
+                defender.changeStat(1, 1, false, move.getAddEffect() == 0, attacker);
+                nGrass++;
+            }
+            return nGrass != 0;
+        } else if (effect == 263) {
+            // impedes sound moves - THROAT CHOP
+            defender.effectMoves.set(63, 1);
+        } else if (effect == 264) {
+            // burns the equipped berry/gem of target - INCINERATE
+            if(defender.hasItemWithFlag("c") || defender.hasItemWithFlag("g")) {
+                System.out.println(attacker.nickname + " burns " + defender.item.name + " of " + defender.nickname + "!");
+                defender.loseItem(false,false);
+            }
+        } else if (effect == 265) {
+            // copies permanently the last move used by target - SKETCH
+            // TODO: SKETCH effect
+            return false;
+        } else if (effect == 267) {
+            // impedes target to heal - HEAL BLOCK
+            defender.effectMoves.set(64, 1);
+            System.out.println(defender.nickname + " can't heal now!");
+        } else if (effect == 268) {
+            // increase +3 user special attack - TAIL GLOW...
+            attacker.changeStat(2, 3, true, move.getAddEffect() == 0, defender);
         }
 
         return true;

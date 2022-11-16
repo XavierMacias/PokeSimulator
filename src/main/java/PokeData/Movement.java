@@ -31,6 +31,8 @@ public class Movement {
     */
     private String flags;
     private Type originalType;
+    private int originalPriority;
+    private int originalPower;
     private ArrayList<String> compatibleTM;
 
     public Movement(String internalName, String name, Type type, int power, int accuracy, Category category, int pp, int priority,
@@ -49,6 +51,8 @@ public class Movement {
         this.code = code;
         this.description = description;
         originalType = type;
+        originalPriority = priority;
+        originalPower = power;
     }
 
     public String getInternalName() { return internalName; }
@@ -59,6 +63,9 @@ public class Movement {
 
     public int getPower() {
         return power;
+    }
+    public void setPower(int p) {
+        power = p;
     }
 
     public int getAccuracy() {
@@ -71,6 +78,9 @@ public class Movement {
 
     public int getPriority() {
         return priority;
+    }
+    public void setPriority(int pr) {
+        priority = pr;
     }
 
     public int getAddEffect() {
@@ -105,6 +115,11 @@ public class Movement {
     }
     public void recoverType() {
         type = originalType;
+        priority = originalPriority;
+        power = originalPower;
+    }
+    public boolean typeIsChanged() {
+        return !type.equals(originalType);
     }
     public void setCompatibleTM(ArrayList<String> ctm) { compatibleTM = ctm; }
     public boolean isCompatible(String poke) {
