@@ -18,8 +18,8 @@ public class Battle {
     public Movement lastMoveUsed;
     Scanner in;
     Random random;
-    //TODO: MOLD BREAKER ability affects: ICEFACE, FRIENDGUARD, MIRRORARMOR, DAZZLING, AROMAVEIL, DISGUISE, FLOWERGIFT, PUNKROCK
-    //TODO: ICESCALES, FLOWERVEIL, SWEETVEIL, PASTELVEIL, TELEPATHY, SIMPLE, QUEENLYMAJESTY
+    //TODO: MOLD BREAKER ability affects: ICEFACE, FRIENDGUARD, MIRRORARMOR, DAZZLING, AROMAVEIL, DISGUISE,
+    //TODO: FLOWERGIFT, PUNKROCK, ICESCALES, FLOWERVEIL, SWEETVEIL, PASTELVEIL, TELEPATHY, QUEENLYMAJESTY
 
     public Battle() {
         random = new Random();
@@ -251,6 +251,9 @@ public class Battle {
         if(rival.hasItem("AIRBALLOON")) {
             System.out.println(rival.nickname + " has " + rival.item.name);
         }
+        // MULTITYPE
+        user.multiType();
+        rival.multiType();
         // healing wish
         if(user.getTeam().effectTeamMoves.get(8) > 0 && (!user.hasAllHP() || !user.hasStatus(Status.FINE))) {
             System.out.println(user.nickname + " is affected by Healing Wish!");
@@ -258,11 +261,26 @@ public class Battle {
             user.healPermanentStatus();
             user.getTeam().effectTeamMoves.set(8, 0);
         }
-        if(rival.getTeam().effectTeamMoves.get(8) > 0 && (!user.hasAllHP() || !user.hasStatus(Status.FINE))) {
+        if(rival.getTeam().effectTeamMoves.get(8) > 0 && (!rival.hasAllHP() || !rival.hasStatus(Status.FINE))) {
             System.out.println(rival.nickname + " is affected by Healing Wish!");
             rival.healHP(-1,true, false, false, true);
             rival.healPermanentStatus();
             rival.getTeam().effectTeamMoves.set(8, 0);
+        }
+        // lunar dance
+        if(user.getTeam().effectTeamMoves.get(20) > 0 && !user.isFullHealed()) {
+            System.out.println(user.nickname + " is affected by Lunar Dance!");
+            user.healHP(-1,true, false, false, true);
+            user.healPP(-1,-1);
+            user.healPermanentStatus();
+            user.getTeam().effectTeamMoves.set(20, 0);
+        }
+        if(rival.getTeam().effectTeamMoves.get(20) > 0 && !rival.isFullHealed()) {
+            System.out.println(rival.nickname + " is affected by Lunar Dance!");
+            rival.healHP(-1,true, false, false, true);
+            user.healPP(-1,-1);
+            rival.healPermanentStatus();
+            rival.getTeam().effectTeamMoves.set(20, 0);
         }
     }
 
@@ -810,6 +828,10 @@ public class Battle {
         if(attacker.hasAbility("COMPOUNDEYES")) {
             moveAccuracy *= 1.3;
         }
+        // victory star
+        if(attacker.hasAbility("VICTORYSTAR")) {
+            moveAccuracy *= 1.1;
+        }
         // wide lens
         if(attacker.hasItem("WIDELENS") && attacker.canUseItem()) {
             moveAccuracy *= 1.1;
@@ -859,7 +881,7 @@ public class Battle {
         }
         // MINIMIZE MAKES INFALLIBLE THESE MOVES
         if((attackerMove.hasName("BODYSLAM") || attackerMove.hasName("STOMP") || attackerMove.hasName("STEAMROLLER")
-                || attackerMove.hasName("HEATCRASH") || attackerMove.hasName("DRAGONRUSH") || attackerMove.hasName("PHANTOMFORCE")
+                || attackerMove.hasName("HEATCRASH") || attackerMove.hasName("DRAGONRUSH")
                 || attackerMove.hasName("FLYINGPRESS") || attackerMove.hasName("HEAVYSLAM")
                 || attackerMove.hasName("DOUBLEIRONBASH")) && defender.effectMoves.get(29) > 0) {
             moveAccuracy = 0;
@@ -981,16 +1003,28 @@ public class Battle {
         if(attackerMove.getCode() == 189 && !attacker.hasType("FIRE")) { // burn up is only usable for Fire type Pokemon
             return true;
         }
-        if(attacker.getTeam().effectTeamMoves.get(9) > 0 && attackerMove.getPriority() > 0 && !attackerMove.hasName("FEINT")) { // priority attacks blocked by Quick Guard
+        if(attacker.getTeam().effectTeamMoves.get(9) > 0 && attackerMove.targetIsEnemy() && attackerMove.getPriority() > 0 && !attackerMove.hasName("FEINT")) { // priority attacks blocked by Quick Guard
+            return true;
+        }
+        if(attacker.getTeam().effectTeamMoves.get(19) > 0 && attackerMove.targetIsEnemy() && attackerMove.getCategory().equals(Category.STATUS) &&
+                !attackerMove.hasName("PERISHSONG") && !attackerMove.hasName("FLOWERSHIELD") &&
+                !attackerMove.hasName("ROTOTILLER") && !attackerMove.hasName("STICKYWEB") &&
+                !attackerMove.hasName("SPIKES") && !attackerMove.hasName("TOXICSPIKES")  && !attackerMove.hasName("STEALTHROCK")) { // status moves blocked by Crafty Shield
             return true;
         }
         if(attacker.getTeam().effectTeamMoves.get(10) > 0 && attackerMove.multiTarget()) { // multi target attacks blocked by Wide Guard
+            return true;
+        }
+        if(attacker.getTeam().effectTeamMoves.get(21) > 0 && !attackerMove.getCategory().equals(Category.STATUS)) { // non-status moves blocked by Mat Block
             return true;
         }
         if(attackerMove.getCode() == 164 && (!attacker.hasItemWithFlag("c") || defender.hasAbility("UNNERVE") || !attacker.canUseItem()) || effectFieldMoves.get(6) > 0) { // if natural gift attacker doesnt have a berry, it fails
             return true;
         }
         if(attackerMove.getCode() == 211 && !attacker.hasStatus(Status.ASLEEP)) { // if user is not slept, snore fails
+            return true;
+        }
+        if(!attacker.specieNameIs("DARKRAI") && attackerMove.hasName("DARKVOID")) { // only Darkrai can use DARK VOID
             return true;
         }
         if(attackerMove.getCode() == 187) { // if fling attacker doesnt have item or has forbidden items, it fails
@@ -1133,6 +1167,12 @@ public class Battle {
             attacker.moveUsedAdded(attackerMove);
             System.out.println(attacker.nickname + " used " + attackerMove.name + "!");
 
+            // change attacker type with protean
+            if(attacker.hasAbility("PROTEAN") && attacker.effectMoves.get(66) == 0 && !attacker.hasType(attackerMove.type.getInternalName()) && !attackerMove.type.is("UNKNOWN")) {
+                defender.changeType(attackerMove.type.getInternalName(),"");
+                System.out.println(defender.nickname + " change to " + attackerMove.type.name + "-Type!");
+                attacker.effectMoves.set(66, 1);
+            }
             // changes in move accuracy
             int moveAccuracy = moveAccuracyChanges(attacker,defender,attackerMove);
             double accuracy = attacker.getAccuracy(defender.hasAbility("UNAWARE") && !attacker.hasAbility("MOLDBREAKER"));
@@ -1183,6 +1223,7 @@ public class Battle {
                 // rival is protecting
                 else if(defender.effectMoves.get(2) == 1 && attackerMove.getFlags().contains("b") && twoTurnAttacks(attacker,attackerMove)) {
                     System.out.println(defender.nickname + " has protected!");
+                    if((defenderMove.hasName("SPIKYSHIELD")) && (attackerMove.getFlags().contains("a") && !(attacker.hasItem("PROTECTIVEPADS") && attacker.canUseItem()))) attacker.reduceHP(attacker.getHP()/8);
                     ifMoveFailed(attacker,attackerMove, false);
                 }
                 // rival is using dig, fly/bounce, dive, phantom force
@@ -1194,7 +1235,7 @@ public class Battle {
                     System.out.println(defender.nickname + " evaded the attack!");
                     ifMoveFailed(attacker,attackerMove, true);
                 } // moves that will fail
-                else if((attackerMove.hasName("FAKEOUT") || attackerMove.hasName("FIRSTIMPRESSION")) && attacker.pokeTurn > 1) { // fake out
+                else if((attackerMove.hasName("FAKEOUT") || attackerMove.hasName("FIRSTIMPRESSION") || attackerMove.hasName("MATBLOCK")) && attacker.pokeTurn > 1) { // fake out
                     System.out.println("But it failed!");
                     ifMoveFailed(attacker,attackerMove, true);
                 } else if(attackerMove.hasName("SPITUP") && attacker.stockpile == 0) { // spit up
@@ -1444,10 +1485,16 @@ public class Battle {
         }
 
         if(defender.canUseItem()) {
-            if(defender.hasItem("EJECTBUTTON") && !defender.isFainted() && defender.getTeam().alivePokemon() > 1) { // eject button
+            if(defender.hasItem("EJECTBUTTON") && attackerMove.getCode() != 59 && !defender.isFainted() && defender.getTeam().alivePokemon() > 1) { // eject button
                 System.out.println(defender.nickname + " has a " + defender.item.name + "!");
                 defender.loseItem(true, true);
                 doChange(defender == user, defender.getTeam().choseRandomAliveMember(defender));
+                battleResult = 5;
+            }
+            if(defender.hasItem("REDCARD") && !attacker.hasAbility("SUCTIONCUPS") && attackerMove.getCode() != 59 && !defender.isFainted() && attacker.getTeam().alivePokemon() > 1) { // red card
+                System.out.println(defender.nickname + " has a " + defender.item.name + "!");
+                defender.loseItem(true, true);
+                doChange(attacker == user, attacker.getTeam().choseRandomAliveMember(attacker));
                 battleResult = 5;
             }
             if(!defender.isFainted() && ((defender.hasItem("CELLBATTERY") && attackerMove.type.is("ELECTRIC"))
@@ -1522,6 +1569,11 @@ public class Battle {
     }
 
     private void abilityEffectsAfterAttack(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove, int damage) {
+        // color change
+        if(defender.hasAbility("COLORCHANGE") && !defender.isFainted() && !defender.hasType(attackerMove.type.getInternalName()) && !attackerMove.type.is("UNKNOWN")) {
+            defender.changeType(attackerMove.type.getInternalName(),"");
+            System.out.println(defender.nickname + " change to " + attackerMove.type.name + "-Type!");
+        }
         // moxie
         if(attacker.hasAbility("MOXIE") && defender.isFainted()) {
             attacker.changeStat(0,1,false,true, defender);
@@ -1576,16 +1628,28 @@ public class Battle {
             if(defender.hasAbility("STENCH") && attacker.canFlinch(attacker) && Math.random() <= 0.1) { // stench
                 attacker.causeTemporalStatus(TemporalStatus.FLINCHED, defender);
             }
+            if(defender.hasAbility("ROUGHSKIN") && !attacker.isFainted()) { // rough skin
+                attacker.reduceHP(attacker.getHP()/8);
+            }
             if(defender.hasAbility("AFTERMATH") && defender.isFainted() && !attacker.isFainted() && !attacker.hasAbility("DAMP")) { // aftermath
                 attacker.reduceHP(attacker.getHP()/4);
             }
             if(defender.hasAbility("PICKPOCKET") && !defender.isFainted()) { // pickpocket
                 moveEffects.stealItem(defender,attacker);
             }
+            if(defender.hasAbility("MUMMY") && !defender.isFainted()) { // mummy
+                if(!attacker.hasAbility("MUMMY") && !attacker.hasAbility("RKSSYSTEM") &&
+                        !attacker.hasAbility("POWERCONSTRUCT") && !attacker.hasAbility("SCHOOLING") &&
+                        !attacker.hasAbility("STANCECHANGE") && !attacker.hasAbility("DISGUISE") &&
+                        !attacker.hasAbility("SHIELDSDOWN") && !attacker.hasAbility("BATTLEBOND") && !attacker.hasAbility("MULTITYPE")) {
+                    attacker.changeAbility("MUMMY");
+                }
+            }
         }
     }
 
     private void moveEffectsAfterAttack(Pokemon attacker, Pokemon defender, Movement attackerMove, Movement defenderMove) {
+        if(attackerMove.hasName("PHANTOMFORCE") || attackerMove.hasName("SHADOWFORCE")) moveEffects.nullProtections(attacker,defender);
         if(attackerMove.hasName("RAPIDSPIN") && !attacker.isFainted()) { // rapid spin
             attacker.rapidSpin();
         }
@@ -1913,6 +1977,16 @@ public class Battle {
             System.out.println(target.nickname + " was freed from Infestation!");
             target.effectMoves.set(61, 0);
         }
+        // magma storm
+        if(0.5 >= Math.random() && target.effectMoves.get(68) == 4 && !(other.hasItem("GRIPCLAW") && other.canUseItem())) {
+            target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
+            System.out.println(target.nickname + " was freed from Magma Storm!");
+            target.effectMoves.set(68, 0);
+        } else if(target.effectMoves.get(68) >= durationTrap) {
+            target.healTempStatus(TemporalStatus.PARTIALLYTRAPPED, false);
+            System.out.println(target.nickname + " was freed from Magma Storm!");
+            target.effectMoves.set(68, 0);
+        }
     }
 
     private int checkFaint() {
@@ -2002,11 +2076,30 @@ public class Battle {
         if(attacker.hasAbility("NORMALIZE")) {
             attackerMove.changeType(attacker.utils.getType("NORMAL"));
         }
-        if(attackerMove.hasName("TECHNOBLAST") && attacker.specieNameIs("GENESECT")) {
-            if(attacker.hasItem("DOUSEDRIVE") && attacker.canUseItem()) attackerMove.changeType(attacker.utils.getType("WATER"));
-            if(attacker.hasItem("SHOCKDRIVE") && attacker.canUseItem()) attackerMove.changeType(attacker.utils.getType("ELECTRIC"));
-            if(attacker.hasItem("BURNDRIVE") && attacker.canUseItem()) attackerMove.changeType(attacker.utils.getType("FIRE"));
-            if(attacker.hasItem("CHILLDRIVE") && attacker.canUseItem()) attackerMove.changeType(attacker.utils.getType("ICE"));
+        if(attackerMove.hasName("TECHNOBLAST") && attacker.specieNameIs("GENESECT") && attacker.canUseItem()) {
+            if(attacker.hasItem("DOUSEDRIVE")) attackerMove.changeType(attacker.utils.getType("WATER"));
+            if(attacker.hasItem("SHOCKDRIVE")) attackerMove.changeType(attacker.utils.getType("ELECTRIC"));
+            if(attacker.hasItem("BURNDRIVE")) attackerMove.changeType(attacker.utils.getType("FIRE"));
+            if(attacker.hasItem("CHILLDRIVE")) attackerMove.changeType(attacker.utils.getType("ICE"));
+        }
+        if(attackerMove.getCode() == 271 && attacker.canUseItem()) { // judgment
+            if(attacker.hasItem("IRONPLATE")) attackerMove.changeType(attacker.utils.getType("STEEL"));
+            if(attacker.hasItem("SPLASHPLATE")) attackerMove.changeType(attacker.utils.getType("WATER"));
+            if(attacker.hasItem("INSECTPLATE")) attackerMove.changeType(attacker.utils.getType("BUG"));
+            if(attacker.hasItem("DRACOPLATE")) attackerMove.changeType(attacker.utils.getType("DRAGON"));
+            if(attacker.hasItem("ZAPPLATE")) attackerMove.changeType(attacker.utils.getType("ELECTRIC"));
+            if(attacker.hasItem("SPOOKYPLATE")) attackerMove.changeType(attacker.utils.getType("GHOST"));
+            if(attacker.hasItem("FLAMEPLATE")) attackerMove.changeType(attacker.utils.getType("FIRE"));
+            if(attacker.hasItem("PIXIEPLATE")) attackerMove.changeType(attacker.utils.getType("FAIRY"));
+            if(attacker.hasItem("ICICLEPLATE")) attackerMove.changeType(attacker.utils.getType("ICE"));
+            if(attacker.hasItem("FISTPLATE")) attackerMove.changeType(attacker.utils.getType("FIGHTING"));
+            if(attacker.hasItem("MEADOWPLATE")) attackerMove.changeType(attacker.utils.getType("GRASS"));
+            if(attacker.hasItem("MINDPLATE")) attackerMove.changeType(attacker.utils.getType("PSYCHIC"));
+            if(attacker.hasItem("STONEPLATE")) attackerMove.changeType(attacker.utils.getType("ROCK"));
+            if(attacker.hasItem("DREADPLATE")) attackerMove.changeType(attacker.utils.getType("DARK"));
+            if(attacker.hasItem("EARTHPLATE")) attackerMove.changeType(attacker.utils.getType("GROUND"));
+            if(attacker.hasItem("TOXICPLATE")) attackerMove.changeType(attacker.utils.getType("POISON"));
+            if(attacker.hasItem("SKYPLATE")) attackerMove.changeType(attacker.utils.getType("FLYING"));
         }
         if(attackerMove.getCode() == 164 && attacker.canUseItem()) { // natural gift
             if(attacker.hasItem("CHERIBERRY") || attacker.hasItem("OCCABERRY")) {
@@ -2089,6 +2182,7 @@ public class Battle {
         }
         // moves power changes for external reasons
         power = movePowerByExternalReasons(attacker, defender, move, power, critical, mefirst);
+        if(power < 1) power = 1;
 
         // get effectiveness
         double effectiveness = getEffectiveness(attacker, defender, move, true);
@@ -2453,8 +2547,8 @@ public class Battle {
                 p = 120;
             }
         }
-        if(move.getCode() == 205) { // wring out
-            p = 1 + 120*(defender.getPsActuales()/defender.getStats().get(0));
+        if(move.getCode() == 205) { // wring out, crush grip
+            p = 120*(defender.getPsActuales()/defender.getStats().get(0));
         }
         if(move.getCode() == 206 && !weather.hasWeather(Weathers.CLEARSKIES) && !weather.hasWeather(Weathers.STRONGWINDS)) { // weather ball
             p = move.getPower()*2;
@@ -2506,8 +2600,8 @@ public class Battle {
             power *= 2;
         }
         if((move.hasName("BODYSLAM") || move.hasName("STOMP") || move.hasName("STEAMROLLER") || move.hasName("HEATCRASH")
-                || move.hasName("DRAGONRUSH") || move.hasName("PHANTOMFORCE") || move.hasName("FLYINGPRESS")
-                || move.hasName("HEAVYSLAM") || move.hasName("DOUBLEIRONBASH")) && defender.effectMoves.get(29) > 0) { // minimize double damage
+                || move.hasName("DRAGONRUSH") || move.hasName("FLYINGPRESS") || move.hasName("HEAVYSLAM")
+                || move.hasName("DOUBLEIRONBASH")) && defender.effectMoves.get(29) > 0) { // minimize double damage
             power *= 2;
         }
         if(mefirst) { // me first
@@ -2528,6 +2622,9 @@ public class Battle {
         }
         if(attacker.hasAbility("IRONFIST") && move.getFlags().contains("k")) {
             power *= 1.2;
+        }
+        if(attacker.hasAbility("SHARPNESS") && move.getFlags().contains("r")) {
+            power *= 1.5;
         }
         if(attacker.hasAbility("RECKLESS") && (move.getCode() == 5 || move.getCode() == 8 || move.getCode() == 134)) {
             power *= 1.2;
@@ -2717,9 +2814,11 @@ public class Battle {
             return false;
         }
         if(move.getCode() == 239 || attacker.effectMoves.get(60) > 0) return true;
+        int criticIndex = attacker.getCriticalIndex();
+        if(move.getFlags().contains("h")) criticIndex += 1; // high critical ratio moves
         int rand = attacker.utils.getRandomNumberBetween(0,101);
-        return (attacker.getCriticalIndex() == 0 && rand <= 4.167) || (attacker.getCriticalIndex() == 1 && rand <= 12.5) ||
-                (attacker.getCriticalIndex() == 2 && rand <= 50) || attacker.getCriticalIndex() >= 3;
+        return (criticIndex == 0 && rand <= 4.167) || (criticIndex == 1 && rand <= 12.5) ||
+                (criticIndex == 2 && rand <= 50) || criticIndex >= 3;
     }
 
     private double changesInInmunities(Pokemon attacker, Pokemon defender, Movement move) {
@@ -2916,10 +3015,20 @@ public class Battle {
             target.reduceHP(target.getHP()/bindDamage);
             target.effectMoves.set(61, target.effectMoves.get(61)+1);
         }
+        if(target.hasTemporalStatus(TemporalStatus.PARTIALLYTRAPPED) && target.effectMoves.get(68) >= 1 && !target.hasAbility("MAGICGUARD")) {
+            System.out.println(target.nickname + " is hurt by Magma Storm!"); // magma storm
+            target.reduceHP(target.getHP()/bindDamage);
+            target.effectMoves.set(68, target.effectMoves.get(68)+1);
+        }
         // nightmare
         if(target.effectMoves.get(54) > 0 && !target.isFainted() && target.hasStatus(Status.ASLEEP) && !target.hasAbility("MAGICGUARD")) {
             System.out.println(target.nickname + " is affected by Nightmare!");
             target.reduceHP(target.getHP()/4);
+        }
+        // bad dreams
+        if(other.hasAbility("BADDREAMS") && !target.isFainted() && target.hasStatus(Status.ASLEEP) && !target.hasAbility("MAGICGUARD")) {
+            System.out.println(target.nickname + " is affected by " + other.getAbility().name + "!");
+            target.reduceHP(target.getHP()/8);
         }
         // solar power and dry skin
         if((target.hasAbility("SOLARPOWER") || target.hasAbility("DRYSKIN")) && target.effectMoves.get(36) == 0
@@ -3162,6 +3271,12 @@ public class Battle {
         if(target.getTeam().effectTeamMoves.get(10) > 0) { // wide guard
             target.getTeam().effectTeamMoves.set(10, 0);
         }
+        if(target.getTeam().effectTeamMoves.get(19) > 0) { // crafty shield
+            target.getTeam().effectTeamMoves.set(19, 0);
+        }
+        if(target.getTeam().effectTeamMoves.get(21) > 0) { // mat block
+            target.getTeam().effectTeamMoves.set(21, 0);
+        }
         if(target.getTeam().effectTeamMoves.get(17) > 0) { // guard spec
             target.getTeam().increaseEffectMove(17); // increase turn
             if(target.getTeam().effectTeamMoves.get(17) > 5) {
@@ -3243,7 +3358,16 @@ public class Battle {
                 target.reduceHP(-1);
             }
         }
-        effectFieldMoves.set(8,0);
+        effectFieldMoves.set(8,0); // ion deluge
+        // slow start ability
+        if(target.hasAbility("SLOWSTART")) {
+            target.increaseEffectMove(67); // increase turn
+            if(target.effectMoves.get(67) == 5) {
+                System.out.println(target.nickname + " is not slow starting now!");
+            }
+        } else {
+            target.effectMoves.set(67, 0);
+        }
         // truant ability
         target.changeTruant();
 
@@ -3256,7 +3380,7 @@ public class Battle {
     }
 
     public boolean hasCloudNine() {
-        return user.hasAbility("CLOUDNINE") || rival.hasAbility("CLOUDNINE");
+        return user.hasAbility("CLOUDNINE") || rival.hasAbility("CLOUDNINE") || user.hasAbility("AIRLOCK") || rival.hasAbility("AIRLOCK");
     }
     public boolean hasDamp() {
         return (user.hasAbility("DAMP") && !rival.hasAbility("MOLDBREAKER")) || (rival.hasAbility("DAMP") && !user.hasAbility("MOLDBREAKER"));

@@ -41,8 +41,11 @@ public class Team {
            16 -> sticky web
            17 -> guard spec
            18 -> aurora veil
+           19 -> crafty shield
+           20 -> lunar dance
+           21 -> mat block
         */
-        for(int i=0;i<19;i++) {
+        for(int i=0;i<22;i++) {
             effectTeamMoves.add(0);
         }
         player = trainer;

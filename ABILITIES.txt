@@ -136,7 +136,26 @@ TRUANT,Ausente,Ataca cada dos turnos.
 WONDERGUARD,Superguarda,Evita los ataques no supereficaces.
 NORMALIZE,Normalidad,Convierte los ataques al tipo Normal.
 STALL,Rezagado,Siempre ataca el último.
+ROUGHSKIN,Piel tosca,Daña al contacto.
+SIMPLE,Simple,Duplica los cambios de características.
+TOXICBOOST,Ímpetu tóxico,Aumenta el ataque cuando el usuario está envenenado.
+SUCTIONCUPS,Ventosas,Evita ser cambiado a la fuerza.
+COLORCHANGE,Cambio color,Cambia el tipo dependiendo del movimiento recibido.
+PROTEAN,Mutatipo,Cambia el tipo del usuario al del movimiento efectuado.
+AIRLOCK,Bucle aire,Anula los efectos del clima en el combate
+FLAREBOOST,Ímpetu ardiente,Aumenta el Ataque Especial cuando está quemado.
+KLUTZ,Zoquete,Evita el uso de objetos equipados.
+SHARPNESS,Cortante,Aumenta la potencia de los movimientos basados en cortes.
+SLOWSTART,Inicio lento,Los 5 primeros turnos su Ataque y Velocidad son reducidos.
+BADDREAMS,Mal sueño,Quita PS a los oponentes dormidos en cada turno.
+MULTITYPE,Multitipo,Cambia el tipo del poseedor a la tabla equipada.
+VICTORYSTAR,Tinovictoria,Aumenta la precisión.
+DEFEATIST,Flaqueza,Reduce su Ataque y Ataque Especial si sus PS bajan a la mitad.
+MUMMY,Momia,Transmite la habilidad al rival al contacto.
 SHEERFORCE,-------------------Potencia bruta-------------------,Potencia los ataques con efecto secundario pero elimina el efecto.
+FLOWERGIFT,Don floral,Aumenta el Ataque y Defensa Especial si hace sol.
+FORECAST,Predicción,Cambia de forma dependiendo del clima.
+ZENMODE,Modo daruma,Cambia de forma cuando tiene menos de la mitad de sus PS.
 IMPOSTER,Impostor,Se convierte en el oponente al salir al combate.
 NEUTRALIZINGGAS,Gas reactivo,Anula las otras habilidades que hay en combate.
 HARVEST,Cosecha,Puede recuperar una baya usada anteriormente en combate.

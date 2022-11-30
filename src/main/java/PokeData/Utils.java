@@ -7,10 +7,7 @@ import PokeData.*;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class Utils {
     private ArrayList<Type> types;
@@ -98,13 +95,15 @@ public class Utils {
             while (myReader.hasNextLine()) {
                 String[] data = myReader.nextLine().split(",");
                 Item item = new Item(data[0], data[1], Pocket.valueOf(data[2]),Double.valueOf(data[3]),FieldUse.valueOf(data[4]),
-                        BattleUse.valueOf(data[5]), Boolean.valueOf(data[6]), data[7], data[8], getMove(data[9]));
+                        BattleUse.valueOf(data[5]), Boolean.valueOf(data[6]), data[7], data[8], existsMove(data[9]));
                 items.add(item);
             }
             myReader.close();
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -137,6 +136,7 @@ public class Utils {
                 String[] data = myReader.nextLine().split(",");
                 if(i%3==0) {
                     // specie info
+                    //System.out.println(data[1]);
                     List<Integer> st = new ArrayList<Integer>();
                     for(int j=0;j<6;j++) {
                         st.add(Integer.parseInt(data[5+j]));
@@ -151,7 +151,7 @@ public class Utils {
                         evos.add(e);
                     }
                     EggGroups eggGroup2;
-                    if(data[27] == "") {
+                    if(Objects.equals(data[27], "")) {
                         eggGroup2 = null;
                     } else {
                         eggGroup2 =  EggGroups.valueOf(data[27]);
@@ -167,7 +167,7 @@ public class Utils {
                     // moveset
                     Multimap<Integer, Movement> mvs = ArrayListMultimap.create();
                     for(int k=0;k<data.length;k+=2) {
-                        mvs.put(Integer.parseInt(data[k]),getMove(data[k+1]));
+                        mvs.put(Integer.parseInt(data[k]),existsMove(data[k+1]));
                     }
                     if(getPokemon(p) != null) {
                         getPokemon(p).setMoveset(mvs);
@@ -176,7 +176,7 @@ public class Utils {
                     // egg moves
                     List<Movement> egg = new ArrayList<Movement>();
                     for(int k=0;k<data.length;k++) {
-                        egg.add(getMove(data[k]));
+                        egg.add(existsMove(data[k]));
                     }
                     if(getPokemon(p) != null) {
                         getPokemon(p).setEggMoves(egg);
@@ -188,6 +188,8 @@ public class Utils {
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         addTMCompatibility();
     }
@@ -201,7 +203,7 @@ public class Utils {
             while (myReader.hasNextLine()) {
                 String[] data = myReader.nextLine().split(",");
                 if(i%2==0) {
-                    mv = getMove(data[0]);
+                    mv = existsMove(data[0]);
                 } else if(i%2 == 1) {
                     ArrayList<String> compatiblePokes = new ArrayList<>();
                     for(int k=0;k<data.length;k++) {
@@ -215,6 +217,8 @@ public class Utils {
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -227,17 +231,41 @@ public class Utils {
         return null;
     }
 
-    public Ability getAbility(String a) {
+    public Ability getAbility(String a) throws Exception {
+        if(a == null) {
+            return null;
+        }
+        if(a.replaceAll("\\s+","").equals("")) {
+            return null;
+        }
         for(int i=0;i<abilities.size();i++) {
             if(abilities.get(i).getInternalName().equals(a)) {
                 return abilities.get(i);
             }
         }
-        return null;
+        throw new Exception("Ability " + a + " doesnt exist");
+    }
+
+    public Movement existsMove(String m) throws Exception {
+        if(m == null) {
+            return null;
+        }
+        if(m.replaceAll("\\s+","").equals("")) {
+            return null;
+        }
+        for(int i=0;i<moves.size();i++) {
+            if(moves.get(i).getInternalName().equals(m)) {
+                return moves.get(i);
+            }
+        }
+        throw new Exception("Move " + m + " doesnt exist");
     }
 
     public Movement getMove(String m) {
         if(m == null) {
+            return null;
+        }
+        if(m.equals("")) {
             return null;
         }
         for(int i=0;i<moves.size();i++) {

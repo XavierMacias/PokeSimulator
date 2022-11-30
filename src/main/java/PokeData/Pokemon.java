@@ -95,6 +95,7 @@ public class Pokemon {
         if(specie.ability2 != null && Math.random() < 0.5) {
             ability = specie.ability2;
         }
+        // TODO: change this because ability, weight, height and gender in case of azurill can change to evolve
         originalAbility = ability;
         battleType1 = specie.type1;
         battleType2 = specie.type2;
@@ -217,8 +218,11 @@ public class Pokemon {
            63 -> throat chop
            64 -> heal block
            65 -> phantomp force
+           66 -> protean
+           67 -> slow start
+           68 -> magma storm
         */
-        for(int i=0;i<65;i++) {
+        for(int i=0;i<69;i++) {
             effectMoves.add(0);
         }
         // alternative forms
@@ -246,8 +250,12 @@ public class Pokemon {
         usedMoves.add(false);
     }
     public void setAbility(String newAbility) { // ONLY FOR DEBUG
-        ability = utils.getAbility(newAbility);
-        originalAbility = utils.getAbility(newAbility);
+        try {
+            ability = utils.getAbility(newAbility);
+            originalAbility = utils.getAbility(newAbility);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     public void setItem(String newItem) { // ONLY FOR DEBUG
         item = utils.getItem(newItem);
@@ -397,6 +405,7 @@ public class Pokemon {
         if(item == null || battle.effectFieldMoves.get(6) > 0 || effectMoves.get(62) > 0) { // magic room, embargo
             return false;
         }
+        if(hasAbility("KLUTZ")) return false;
         return true;
     }
 
@@ -453,9 +462,15 @@ public class Pokemon {
         if(hasStatus(Status.BURNED) && !hasAbility("GUTS") && move.getCode() != 173 && move.getCode() != 250) {
             attack /= 2.0;
         }
+        if((hasAbility("SLOWSTART") && effectMoves.get(67) < 5) || (hasAbility("DEFEATIST") && psActuales < getHP()/2)) {
+            attack /= 2.0;
+        }
         if((hasAbility("GUTS") && (hasStatus(Status.BURNED) || hasStatus(Status.POISONED) || hasStatus(Status.BADLYPOISONED) ||
                 hasStatus(Status.PARALYZED) || hasStatus(Status.ASLEEP))) || hasAbility("HUSTLE")) {
             attack *= 1.5; // GUTS and HUSTLE effect
+        }
+        if(hasAbility("TOXICBOOST") && (hasStatus(Status.BADLYPOISONED) || hasStatus(Status.POISONED))) {
+            attack *= 1.5; // TOXIC BOOST
         }
         if(hasItem("MUSCLEBAND")) { // muscle band
             attack *= 1.1;
@@ -507,6 +522,9 @@ public class Pokemon {
         if(hasAbility("SOLARPOWER") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
             spatk *= 1.5;
         }
+        if(hasAbility("FLAREBOOST") && hasStatus(Status.BURNED)) {
+            spatk *= 1.5; // FLARE BOOST
+        }
         // deep sea tooth
         if((hasItem("DEEPSEATOOTH") && specieNameIs("CLAMPERL"))
                 || (hasItem("LIGHTBALL") && specieNameIs("PIKACHU"))) {
@@ -517,6 +535,9 @@ public class Pokemon {
         }
         if(hasItem("CHOICESPECS")) { // choice specs
             spatk *= 1.5;
+        }
+        if(hasAbility("DEFEATIST") && psActuales < getHP()/2) {
+            spatk /= 2.0;
         }
 
         return spatk;
@@ -575,6 +596,9 @@ public class Pokemon {
         }
         if(hasItem("QUICKPOWDER") && specieNameIs("DITTO")) {
             speed *= 2.0;
+        }
+        if(hasAbility("SLOWSTART") && effectMoves.get(67) < 5) {
+            speed /= 2.0;
         }
         if(effectMoves.get(55) > 0) speed *= 2.0;
         return speed;
@@ -878,9 +902,13 @@ public class Pokemon {
     public Status getStatus() { return status; }
 
     public void changeAbility(String newAbility) {
-        ability = utils.getAbility(newAbility);
-        System.out.println(nickname + " ability changed to " + ability.name + "!");
-        battle.outToFieldActivate();
+        try {
+            ability = utils.getAbility(newAbility);
+            System.out.println(nickname + " ability changed to " + ability.name + "!");
+            battle.outToFieldActivate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean changeStat(int stat, int quantity, boolean selfCaused, boolean message, Pokemon other) {
@@ -896,6 +924,12 @@ public class Pokemon {
             case 6 -> st = "Evasion";
         }
         if(hasAbility("CONTRARY") && !(other.hasAbility("MOLDBREAKER") && !selfCaused)) quantity *= -1;
+        if(hasAbility("SIMPLE") && !(other.hasAbility("MOLDBREAKER") && !selfCaused)) {
+            quantity *= 2;
+            if(quantity > 6) quantity = 6;
+            if(quantity < -6) quantity = -6;
+        }
+
         if(quantity == 1) {
             raise = "raised";
         } else if(quantity == 2) {
@@ -1096,6 +1130,17 @@ public class Pokemon {
 
     public boolean hasAllHP() {
         return psActuales >= getHP();
+    }
+    public boolean hasAllPP() {
+        for(int i=0;i<remainPPs.size();i++) {
+            if(remainPPs.get(i) < moves.get(i).getPP()) return false;
+        }
+
+        return true;
+    }
+
+    public boolean isFullHealed() {
+        return hasAllHP() && hasStatus(Status.FINE) && hasAllPP();
     }
 
     public boolean healHP(int hp, boolean message, boolean messageAll, boolean absorb, boolean healblock) {
@@ -1383,6 +1428,11 @@ public class Pokemon {
         // restore types
         battleType1 = specie.type1;
         battleType2 = specie.type2;
+    }
+
+    public void changeType(String type1, String type2) {
+        battleType1 = utils.getType(type1);
+        battleType2 = utils.getType(type2);
     }
 
     public void battleEnded() {
@@ -1763,6 +1813,28 @@ public class Pokemon {
         return false;
     }
 
+    public void multiType() {
+        if(hasAbility("MULTITYPE") && canUseItem()) {
+            if(hasItem("IRONPLATE")) changeType("STEEL","");
+            if(hasItem("SPLASHPLATE")) changeType("WATER","");
+            if(hasItem("INSECTPLATE")) changeType("BUG","");
+            if(hasItem("DRACOPLATE")) changeType("DRAGON","");
+            if(hasItem("ZAPPLATE")) changeType("ELECTRIC","");
+            if(hasItem("SPOOKYPLATE")) changeType("GHOST","");
+            if(hasItem("FLAMEPLATE")) changeType("FIRE","");
+            if(hasItem("PIXIEPLATE")) changeType("FAIRY","");
+            if(hasItem("ICICLEPLATE")) changeType("ICE","");
+            if(hasItem("FISTPLATE")) changeType("FIGHTING","");
+            if(hasItem("MEADOWPLATE")) changeType("GRASS","");
+            if(hasItem("MINDPLATE")) changeType("PSYCHIC","");
+            if(hasItem("STONEPLATE")) changeType("ROCK","");
+            if(hasItem("DREADPLATE")) changeType("DARK","");
+            if(hasItem("EARTHPLATE")) changeType("GROUND","");
+            if(hasItem("TOXICPLATE")) changeType("POISON","");
+            if(hasItem("SKYPLATE")) changeType("FLYING","");
+        }
+    }
+
     public Type getHiddenPowerType() {
         Type type;
         int t = 0;
@@ -1806,7 +1878,11 @@ public class Pokemon {
     }
 
     public void changeTruant() {
-        truant = !truant;
+        if(hasAbility("TRUANT")) {
+            truant = !truant;
+        } else {
+            truant = false;
+        }
     }
 
     public void rapidSpin() {

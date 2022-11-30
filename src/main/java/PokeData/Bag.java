@@ -189,7 +189,7 @@ public class Bag {
             System.out.println("Which do you want to use " + item.name + " to? ");
             Pokemon poke = player.getTeam().selectPokemon();
             if(poke != null) {
-                if(poke.effectMoves.get(62) > 0) {
+                if(poke.effectMoves.get(62) > 0) { // embargo
                     System.out.println("Can't use items in " + poke.nickname);
                     return false;
                 }

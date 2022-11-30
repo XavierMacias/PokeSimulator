@@ -28,6 +28,7 @@ public class Movement {
      o: is a dance based move
      p: cannot use by metronome
      q: affect substitute
+     r: cut move
     */
     private String flags;
     private Type originalType;
