@@ -163,6 +163,12 @@ public class Utils {
                             eggGroup2, Float.parseFloat(data[28]), Float.parseFloat(data[29]),data[30],evos);
                     species.add(specie);
                     p = specie.getInternalName();
+                    Form form0 = new Form(0,data[2],Integer.parseInt(data[0]),data[1],data[2],getType(data[3]),getType(data[4]),
+                            st,getAbility(data[11]),getAbility(data[12]),getAbility(data[13]),Integer.parseInt(data[14]),
+                            Integer.parseInt(data[15]),Integer.parseInt(data[16]),Float.parseFloat(data[17]),evs,
+                            Integer.parseInt(data[24]), GrowthRate.valueOf(data[25]), EggGroups.valueOf(data[26]),
+                            eggGroup2, Float.parseFloat(data[28]), Float.parseFloat(data[29]),data[30],evos);
+                    specie.formLists.add(form0);
                 } else if(i%3==1) {
                     // moveset
                     Multimap<Integer, Movement> mvs = ArrayListMultimap.create();
@@ -171,6 +177,7 @@ public class Utils {
                     }
                     if(getPokemon(p) != null) {
                         getPokemon(p).setMoveset(mvs);
+                        getPokemon(p).formLists.get(0).setMoveset(mvs);
                     }
                 } else if(i%3==2) {
                     // egg moves
@@ -180,6 +187,7 @@ public class Utils {
                     }
                     if(getPokemon(p) != null) {
                         getPokemon(p).setEggMoves(egg);
+                        getPokemon(p).formLists.get(0).setEggMoves(egg);
                     }
                 }
                 i++;
@@ -192,6 +200,83 @@ public class Utils {
             throw new RuntimeException(e);
         }
         addTMCompatibility();
+        addForms();
+    }
+
+    public void addForms() {
+        int i = 0;
+        String p = "";
+        try {
+            File myObj = new File("FORMS.txt");
+            Scanner myReader = new Scanner(myObj,"iso-8859-1");
+            int line = 0;
+            int index = 0;
+            Specie poke = null;
+            Form form = null;
+            while (myReader.hasNextLine()) {
+                String[] data = myReader.nextLine().split(",");
+                if(getPokemon(data[0]) != null) {
+                    poke = getPokemon(data[0]);
+                    line = 0;
+                    index = 0;
+                    poke.formLists.get(0).formName = data[1];
+                } else {
+                    if(line == 0) {
+                        // specie info
+                        List<Integer> st = new ArrayList<Integer>();
+                        for(int j=0;j<6;j++) {
+                            st.add(Integer.parseInt(data[5+j]));
+                        }
+                        List<Integer> evs = new ArrayList<Integer>();
+                        for(int j=0;j<6;j++) {
+                            evs.add(Integer.parseInt(data[18+j]));
+                        }
+                        List<Evolution> evos = new ArrayList<Evolution>();
+                        for(int k=31;k<data.length;k+=3) {
+                            Evolution e = new Evolution(data[k],data[k+1],data[k+2]);
+                            evos.add(e);
+                        }
+                        EggGroups eggGroup2;
+                        if(Objects.equals(data[27], "")) {
+                            eggGroup2 = null;
+                        } else {
+                            eggGroup2 =  EggGroups.valueOf(data[27]);
+                        }
+                        form = new Form(index,data[0],poke.number,poke.getInternalName(),poke.name,getType(data[3]),getType(data[4]),
+                                st,getAbility(data[11]),getAbility(data[12]),getAbility(data[13]),Integer.parseInt(data[14]),
+                                Integer.parseInt(data[15]),Integer.parseInt(data[16]),Float.parseFloat(data[17]),evs,
+                                Integer.parseInt(data[24]), GrowthRate.valueOf(data[25]), EggGroups.valueOf(data[26]),
+                                eggGroup2, Float.parseFloat(data[28]), Float.parseFloat(data[29]),data[30],evos);
+                        poke.formLists.add(form);
+                        line++;
+                    } else if(line == 1) {
+                        // moveset
+                        Multimap<Integer, Movement> mvs = ArrayListMultimap.create();
+                        for(int k=0;k<data.length;k+=2) {
+                            mvs.put(Integer.parseInt(data[k]),existsMove(data[k+1]));
+                        }
+                        form.setMoveset(mvs);
+                        line++;
+                    } else if(line == 2) {
+                        // egg moves
+                        List<Movement> egg = new ArrayList<Movement>();
+                        for(int k=0;k<data.length;k++) {
+                            egg.add(existsMove(data[k]));
+                        }
+                        form.setEggMoves(egg);
+                        line = 0;
+                        index++;
+                    }
+                }
+                i++;
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void addTMCompatibility() {

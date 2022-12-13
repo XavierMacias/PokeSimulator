@@ -8,7 +8,7 @@ public class Movement {
     public Type type;
     private int power, accuracy, pp, priority, addEffect, code;
     private Target target;
-    private Category category;
+    private Category category, originalCategory;
     /*
     FLAGS ->
      a: is contact move
@@ -28,7 +28,7 @@ public class Movement {
      o: is a dance based move
      p: cannot use by metronome
      q: affect substitute
-     r: cut move
+     r: is a cut move
     */
     private String flags;
     private Type originalType;
@@ -54,6 +54,7 @@ public class Movement {
         originalType = type;
         originalPriority = priority;
         originalPower = power;
+        originalCategory = category;
     }
 
     public String getInternalName() { return internalName; }
@@ -119,6 +120,10 @@ public class Movement {
         priority = originalPriority;
         power = originalPower;
     }
+    public void changeCategory(Category cat) {
+        category = cat;
+    }
+    public void restoreCategory() { category = originalCategory; }
     public boolean typeIsChanged() {
         return !type.equals(originalType);
     }

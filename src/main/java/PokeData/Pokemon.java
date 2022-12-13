@@ -37,7 +37,8 @@ enum Natures {
 public class Pokemon {
     Specie specie;
     public Utils utils;
-    int level, gender, form, psActuales;
+    int level, gender, psActuales;
+    public int form, originalForm;
     int experience = 0;
     public String nickname;
     private List<Integer> stats, evs, ivs;
@@ -49,7 +50,7 @@ public class Pokemon {
     private List<Pair<Movement,Integer>> moves;
     private List<Integer> remainPPs;
     public List<Boolean> usedMoves;
-    public Type battleType1, battleType2;
+    public Type battleType1, battleType2, battleType3;
     Ability ability, originalAbility;
     List<Integer> statChanges; // attack, defense, sp att, sp def, speed, accuracy, evasion
     Status status;
@@ -58,6 +59,7 @@ public class Pokemon {
     public Item item;
     public Item originalItem;
     public int criticalIndex = 0;
+    public int abIndex = -1;
     boolean participate;
     private Team team;
     // variables for status and moves
@@ -81,6 +83,7 @@ public class Pokemon {
     Random random;
     public Battle battle;
     public int substitute = -1;
+    public boolean intrepidsword, dauntlessshield;
 
     public Pokemon(Specie specie, int level, Utils utils) {
         random = new Random();
@@ -89,11 +92,12 @@ public class Pokemon {
         this.specie = specie;
         this.level = level;
         nickname = specie.name;
-        happiness = specie.baseHappiness;
         // ability
         ability = specie.ability1;
+        abIndex = 0;
         if(specie.ability2 != null && Math.random() < 0.5) {
             ability = specie.ability2;
+            abIndex = 1;
         }
         // TODO: change this because ability, weight, height and gender in case of azurill can change to evolve
         originalAbility = ability;
@@ -136,14 +140,8 @@ public class Pokemon {
             stats.add(0);
         }
         calcStats();
-        originalstats = stats;
         psActuales = stats.get(0);
-        // set initial moves
-        moves = new ArrayList<Pair<Movement,Integer>>();
-        remainPPs = new ArrayList<Integer>();
-        usedMoves = new ArrayList<Boolean>();
         truant = false;
-        setMoves(false, false);
         //is shiny?
         if(utils.getRandomNumberBetween(1,4097) == 1) {
             isShiny = true;
@@ -221,12 +219,31 @@ public class Pokemon {
            66 -> protean
            67 -> slow start
            68 -> magma storm
+           69 -> powder
+           70 -> kings shield
+           71 -> electrify
+           72 -> sun steel strike/moongeist beam
+           73 -> tar shot
+           74 -> octolock
+           75 -> no retreat
+           76 -> thunder cage
+           77 -> snap trap
         */
-        for(int i=0;i<69;i++) {
+        for(int i=0;i<78;i++) {
             effectMoves.add(0);
         }
         // alternative forms
         form = 0;
+        originalForm = form;
+        // TODO: decide permanent form
+        // set initial moves
+        moves = new ArrayList<Pair<Movement,Integer>>();
+        remainPPs = new ArrayList<Integer>();
+        usedMoves = new ArrayList<Boolean>();
+        setMoves(false, false);
+        // initial happiness
+        happiness = specie.formLists.get(form).baseHappiness;
+
         participate = false;
         battle = null;
         disabledMove = null;
@@ -333,8 +350,9 @@ public class Pokemon {
             return true; // assault vest and taunt
         }
         if(disabledMove != null) return disabledMove.equals(mv);
+        if(mv.getCode() == 301 && !hasItemWithFlag("c")) return true;
 
-        if(battle.moveEffects.attacksToHeal.contains(mv.getCode()) && effectMoves.get(64) > 0) {
+        if(battle.moveEffects.attacksToHeal.contains(mv.getCode()) && effectMoves.get(64) > 0) { // heal block
             return true;
         }
         if(battle.hasDamp() && (mv.hasName("SELFDESTRUCT") || mv.hasName("EXPLOSION") || mv.hasName("MINDBLOWN") || mv.hasName("MISTYEXPLOSION"))) {
@@ -369,7 +387,28 @@ public class Pokemon {
     public Ability getAbility() { return ability; }
     public boolean hasAbility(String ab) {
         if(ability == null) return false;
-        return ability.getInternalName().equals(ab); }
+        String name = ability.getInternalName();
+        // abilities with same effects and sun steel strike
+        if(ab.equals("MOLDBREAKER") && (effectMoves.get(72) > 0 || name.equals("TURBOBLAZE") || name.equals("TERAVOLT"))) {
+            return true;
+        }
+        if(ab.equals("QUEENLYMAJESTY") && name.equals("DAZZLING")) {
+            return true;
+        }
+        if(ab.equals("PROTEAN") && name.equals("LIBERO")) {
+            return true;
+        }
+        if(ab.equals("GOOEY") && name.equals("TANGLINGHAIR")) {
+            return true;
+        }
+        if(ab.equals("WIMPOUT") && name.equals("EMERGENCYEXIT")) {
+            return true;
+        }
+        if(ab.equals("MUMMY") && name.equals("LINGERINGAROMA")) {
+            return true;
+        }
+        return name.equals(ab);
+    }
     public int getGender() { return gender; }
     public int getCriticalIndex() {
         int crit = criticalIndex;
@@ -394,6 +433,25 @@ public class Pokemon {
     }
 
     public List<Integer> getStats() { return stats; }
+
+    public boolean changeForm(int index, boolean message) {
+        if(index == form) return false;
+        if(specie.formLists.size() <= index || index < 0) return false;
+        specie.changeForm(index);
+        form = index;
+        calcStats();
+        // set new ability
+        if(abIndex == 0 || specie.ability2 == null) ability = specie.ability1;
+        else if(abIndex == 1) ability = specie.ability2;
+        originalAbility = ability;
+        battleType1 = specie.type1;
+        battleType2 = specie.type2;
+        weight = specie.weight;
+        specie.moveset = specie.formLists.get(index).moveset;
+        // TODO: for ROTOM, learn move depends of form
+        if(message) System.out.println(nickname + " changed to " + specie.formLists.get(index).formName + "!");
+        return true;
+    }
     public boolean hasItem(String it) {
         if(item == null) {
             return false;
@@ -478,6 +536,10 @@ public class Pokemon {
         if(hasItem("CHOICEBAND")) { // choice band
             attack *= 1.5;
         }
+        // flower gift
+        if(hasAbility("FLOWERGIFT") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+            attack *= 1.5;
+        }
         // light ball
         if((hasItem("LIGHTBALL") && specieNameIs("PIKACHU")) ||
                 (hasItem("THICKCLUB") && (specieNameIs("MAROWAK") || specieNameIs("CUBONE")))) {
@@ -504,6 +566,12 @@ public class Pokemon {
         }
         if((hasItem("EVIOLITE") && !specie.evos.isEmpty())
                 || (hasItem("METALPOWDER") && specieNameIs("DITTO"))) {
+            defense *= 1.5;
+        }
+        if(battle.terrain.hasTerrain(TerrainTypes.GRASSY) && hasAbility("GRASSPELT")) {
+            defense *= 1.5;
+        }
+        if(battle.weather.hasWeather(Weathers.SNOW) && hasType("ICE")) {
             defense *= 1.5;
         }
 
@@ -553,6 +621,10 @@ public class Pokemon {
         if (!(critic && getStatChange(3) > 1.0)) {
             spdef = (int) (stats.get(4)*getStatChange(3));
         }
+        // flower gift
+        if(hasAbility("FLOWERGIFT") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+            spdef *= 1.5;
+        }
         // rock type with sandstorm
         if(hasType("ROCK") && battle.weather.hasWeather(Weathers.SANDSTORM)) {
             spdef *= 1.5;
@@ -580,12 +652,15 @@ public class Pokemon {
         if(team.effectTeamMoves.get(2) > 0) { // tailwind
             speed *= 2.0;
         }
+        if(hasAbility("SURGESURFER") && battle.terrain.hasTerrain(TerrainTypes.ELECTRIC)) { // surge surfer
+            speed *= 2.0;
+        }
         if(hasAbility("CHLOROPHYLL") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
             speed *= 2.0; // chlorophyll
         }
-        if((hasAbility("SANDRUSH") && battle.weather.hasWeather(Weathers.SANDSTORM)) ||
+        if((hasAbility("SANDRUSH") && battle.weather.hasWeather(Weathers.SANDSTORM)) || (hasAbility("SLUSHRUSH") && (battle.weather.hasWeather(Weathers.HAIL) || battle.weather.hasWeather(Weathers.SNOW))) ||
                 (hasAbility("SWIFTSWIM") && (battle.weather.hasWeather(Weathers.RAIN) || battle.weather.hasWeather(Weathers.HEAVYRAIN)))) {
-            speed *= 2.0; // sand rush
+            speed *= 2.0; // sand rush, swift swim and slush rush
         }
         if(hasAbility("QUICKFEET") && (hasStatus(Status.BURNED) || hasStatus(Status.POISONED) || hasStatus(Status.BADLYPOISONED) ||
                 hasStatus(Status.PARALYZED) || hasStatus(Status.ASLEEP))) {
@@ -864,13 +939,17 @@ public class Pokemon {
             }
         } else if(st.equals(Status.FROZEN)) {
             System.out.println(nickname + " was frozen solid!");
+            if(specieNameIs("SHAYMIN")) changeForm(0, true); // shaymin to Land Form
         }
     }
 
     public boolean hasTemporalStatus(TemporalStatus st) {
         return tempStatus.contains(st);
     }
-    public boolean hasStatus(Status st) { return status.equals(st); }
+    public boolean hasStatus(Status st) {
+        if(st.equals(Status.ASLEEP) && hasAbility("COMATOSE")) return true;
+        return status.equals(st);
+    }
     public boolean hasSomeStatus() {
         return (!hasStatus(Status.FINE) && !hasStatus(Status.FAINTED));
     }
@@ -953,35 +1032,35 @@ public class Pokemon {
                 return false;
             }
         }
-        if((hasAbility("CLEARBODY") || hasAbility("WHITESMOKE")) && quantity < 0 && !selfCaused) { // CLEAR BODY, WHITE SMOKE effect and substitute
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) return false;
-            } else {
-                return false;
-            }
+        // CLEAR BODY, WHITE SMOKE, FLOWER VEIL effect
+        if((hasAbility("CLEARBODY") || hasAbility("WHITESMOKE") || (hasAbility("FLOWERVEIL") && hasType("GRASS")))
+                && quantity < 0 && !selfCaused && other == null) {
+            return false;
+        } else if(hasAbility("FULLMETALBODY") && quantity < 0 && !selfCaused) {
+            return false;
+        } else if((hasAbility("CLEARBODY") || hasAbility("WHITESMOKE") || (hasAbility("FLOWERVEIL") && hasType("GRASS")))
+                && quantity < 0 && !selfCaused && !other.hasAbility("MOLDBREAKER")) {
+            return false;
         }
+        // substitute effect
         if(effectMoves.get(56) > 0 && quantity < 0 && !selfCaused) return false;
-
-        if(hasAbility("KEENEYE") && stat == 5 && quantity < 0) { // KEEN EYE effect
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) return false;
-            } else {
-                return false;
-            }
+        // KEEN EYE effect
+        if((hasAbility("KEENEYE") && stat == 5 && quantity < 0) && other == null) {
+            return false;
+        } else if(hasAbility("KEENEYE") && stat == 5 && quantity < 0 && !other.hasAbility("MOLDBREAKER")) {
+            return false;
         }
-        if(hasAbility("BIGPECKS") && stat == 1 && quantity < 0 && !selfCaused) { // BIG PECKS effect
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) return false;
-            } else {
-                return false;
-            }
+        // BIG PECKS effect
+        if((hasAbility("BIGPECKS") && stat == 1 && quantity < 0) && other == null) {
+            return false;
+        } else if(hasAbility("BIGPECKS") && stat == 1 && quantity < 0 && !other.hasAbility("MOLDBREAKER")) {
+            return false;
         }
-        if(hasAbility("HYPERCUTTER") && stat == 0 && quantity < 0 && !selfCaused) { // HYPER CUTTER effect
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) return false;
-            } else {
-                return false;
-            }
+        // HYPER CUTTER effect
+        if((hasAbility("HYPERCUTTER") && stat == 0 && quantity < 0) && other == null) {
+            return false;
+        } else if(hasAbility("HYPERCUTTER") && stat == 0 && quantity < 0 && !other.hasAbility("MOLDBREAKER")) {
+            return false;
         }
 
         if(statChanges.get(stat) == -6 && quantity < 0) {
@@ -1064,6 +1143,17 @@ public class Pokemon {
         }
         return true;
     }
+    public int getMaxStat() {
+        int max = 0;
+        int index = 1;
+        for(int i=index;i<stats.size();i++) {
+            if(stats.get(i) > max) {
+                index = i;
+                max = stats.get(i);
+            }
+        }
+        return index;
+    }
 
     public void healPokemon(boolean message) {
         psActuales = 1;
@@ -1100,7 +1190,7 @@ public class Pokemon {
     public void healPermanentStatus() {
         if(hasStatus(Status.POISONED) || hasStatus(Status.BADLYPOISONED)) {
             System.out.println(nickname + " recovers from Poison!");
-        } else if(hasStatus(Status.ASLEEP)) {
+        } else if(hasStatus(Status.ASLEEP) && !hasAbility("COMATOSE")) {
             System.out.println(nickname + " woke up!");
             truant = false;
             effectMoves.set(54,0);
@@ -1264,7 +1354,11 @@ public class Pokemon {
     public boolean increaseMaxPP(Movement move, double incr) {
         int ind = getIndexMove(move.getInternalName());
         int newPP = (int) (getMoves().get(ind).getPP()*incr);
-        if (getMoves().get(ind).getPP() == move.getPP()*1.6) {
+        if(move.getCode() == 315) { // revival blessing
+            System.out.println("It doesn't have any effect...");
+            return false;
+        }
+        if (getMoves().get(ind).getPP() == move.getPP()*1.6) { // maximum PP
             System.out.println("It doesn't have any effect...");
             return false;
         }
@@ -1308,8 +1402,8 @@ public class Pokemon {
     }
 
     public void checkEvolution() {
-        for(int i=0;i<specie.evos.size();i++) {
-            Evolution ev = specie.evos.get(i);
+        for(int i=0;i<specie.formLists.get(form).evos.size();i++) {
+            Evolution ev = specie.formLists.get(form).evos.get(i);
             // check evolution method -> LEVEL
             if(ev.method.equals("Level")) {
                 if(level >= Integer.parseInt(ev.complement)) {
@@ -1328,6 +1422,14 @@ public class Pokemon {
         }
         specie = evolution;
         calcStats();
+        // set new ability
+        if(abIndex == 0 || specie.ability2 == null) ability = specie.ability1;
+        else if(abIndex == 1) ability = specie.ability2;
+        originalAbility = ability;
+        battleType1 = specie.type1;
+        battleType2 = specie.type2;
+        weight = specie.weight;
+        originalForm = form;
         setMoves(true,true);
     }
 
@@ -1382,6 +1484,7 @@ public class Pokemon {
                 stats.set(i,(int) (((((((specie.stats.get(i)*2)+ivs.get(i)+(evs.get(i)/4.0))*level)/100.0)+5)*getNat(i))));
             }
         }
+        originalstats = stats;
     }
 
     public void changedPokemon() {
@@ -1428,64 +1531,87 @@ public class Pokemon {
         // restore types
         battleType1 = specie.type1;
         battleType2 = specie.type2;
+        battleType3 = null;
     }
 
     public void changeType(String type1, String type2) {
         battleType1 = utils.getType(type1);
         battleType2 = utils.getType(type2);
+        battleType3 = null;
+    }
+
+    public void recoverType() {
+        battleType1 = specie.formLists.get(form).type1;
+        battleType2 = specie.formLists.get(form).type2;
     }
 
     public void battleEnded() {
         changedPokemon();
+        intrepidsword = false;
+        dauntlessshield = false;
         originalItem = null;
         battle = null;
         if(hasStatus(Status.ASLEEP)) {
             sleepTurns = 1;
         }
+        changeForm(temporalFormsEnd(), false);
         stockpile = 0;
         participate = false;
     }
+    public int temporalFormsEnd() {
+        if(specieNameIs("MELOETTA")) return 0;
+        if(specieNameIs("AEGISLASH")) return 0;
+        if(specieNameIs("MIMIKYU")) return 0;
+        if(specieNameIs("CRAMORANT")) return 0;
+        if(specieNameIs("EISCUE")) return 0;
+        if(specieNameIs("MORPEKO")) return 0;
+        if(specieNameIs("ZACIAN")) return 0;
+        if(specieNameIs("ZAMAZENTA")) return 0;
+        if(specieNameIs("WISHIWASHI") || hasAbility("SCHOOLING")) return originalForm;
+        if(specieNameIs("CASTFORM") || hasAbility("FORECAST")) return originalForm;
+        if(specieNameIs("CHERRIM") || hasAbility("FLOWERGIFT")) return originalForm;
+        if(specieNameIs("DARMANITAN")) {
+            if(form == 1) return 0;
+            if(form == 3) return 2;
+        }
+        if(specieNameIs("ZYGARDE") && hasAbility("POWERCONSTRUCT")) {
+            healHP(-1,false,false,false,false);
+            return originalForm;
+        }
+        return form;
+    }
     public boolean canPoison(boolean selfCaused, Pokemon other) {
         // TODO: conditions for poison
-        if(hasType("POISON") || hasType("STEEL")) {
+        if((hasType("POISON") || hasType("STEEL")) && other == null) {
+            return false;
+        } else if(hasType("POISON") || hasType("STEEL") && !other.hasAbility("CORROSION")) {
             return false;
         }
+
         if(!getStatus().equals(Status.FINE)) {
-            return false;
-        }
-        if(hasAbility("IMMUNITY")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        }
-        if((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
             return false;
         }
         if(battle.terrain.hasTerrain(TerrainTypes.MISTY) && !isLevitating()) {
             return false;
         }
-        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) { // safeguard
-            if(other != null) {
-                if(!other.hasAbility("INFILTRATOR")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+        if(hasAbility("IMMUNITY") && other == null) {
+            return false;
+        } else if(hasAbility("IMMUNITY") && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
+
+        if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && other == null) {
+            return false;
+        } else if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && !other.hasAbility("MOLDBREAKER")) {
+            return false;
+        }
+
+        if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && other == null) {
+            return false;
+        } else if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && !other.hasAbility("INFILTRATOR")) {
+            return false;
+        }
+
         return true;
     }
 
@@ -1497,32 +1623,29 @@ public class Pokemon {
         if(!getStatus().equals(Status.FINE)) {
             return false;
         }
-        if(hasAbility("WATERVEIL") || hasAbility("WATERBUBBLE")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        }
+
         if(battle.terrain.hasTerrain(TerrainTypes.MISTY) && !isLevitating()) {
             return false;
         }
-        if((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+
+        if((hasAbility("WATERVEIL") || hasAbility("WATERBUBBLE")) && other == null) {
+            return false;
+        } else if((hasAbility("WATERVEIL") || hasAbility("WATERBUBBLE")) && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
-        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // safeguard
+
+        if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && other == null) {
+            return false;
+        } else if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
+
+        if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && other == null) {
+            return false;
+        } else if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && !other.hasAbility("INFILTRATOR")) {
+            return false;
+        }
+
         return true;
     }
 
@@ -1531,35 +1654,31 @@ public class Pokemon {
         if(hasType("ELECTRIC")) {
             return false;
         }
-        if(hasAbility("LIMBER")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+        if(hasAbility("LIMBER") && other == null) {
+            return false;
+        } else if(hasAbility("LIMBER") && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
+
         if(!getStatus().equals(Status.FINE)) {
             return false;
         }
         if(battle.terrain.hasTerrain(TerrainTypes.MISTY) && !isLevitating()) {
             return false;
         }
-        if((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+
+        if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && other == null) {
+            return false;
+        } else if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
-        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // safeguard
+
+        if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && other == null) {
+            return false;
+        } else if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && !other.hasAbility("INFILTRATOR")) {
             return false;
         }
+
         return true;
     }
 
@@ -1568,32 +1687,26 @@ public class Pokemon {
         if(!getStatus().equals(Status.FINE) || battle.effectFieldMoves.get(1) > 0) {
             return false;
         }
-        if(hasAbility("VITALSPIRIT") || hasAbility("INSOMNIA")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+        if((hasAbility("VITALSPIRIT") || hasAbility("INSOMNIA") || hasAbility("SWEETVEIL")) && other == null) {
+            return false;
+        } else if((hasAbility("VITALSPIRIT") || hasAbility("INSOMNIA") || hasAbility("SWEETVEIL")) && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
+
         if((battle.terrain.hasTerrain(TerrainTypes.ELECTRIC) || battle.terrain.hasTerrain(TerrainTypes.MISTY)) && !isLevitating()) {
             return false;
         }
-        if((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+        if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && other == null) {
+            return false;
+        } else if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
-        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // safeguard
+        if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && other == null) {
+            return false;
+        } else if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && !other.hasAbility("INFILTRATOR")) {
             return false;
         }
+
         return true;
     }
 
@@ -1608,22 +1721,23 @@ public class Pokemon {
         if(battle.terrain.hasTerrain(TerrainTypes.MISTY) && !isLevitating()) {
             return false;
         }
-        if(hasAbility("MAGMAARMOR")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+        if(hasAbility("MAGMAARMOR") && other == null) {
+            return false;
+        } else if(hasAbility("MAGMAARMOR") && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
-        if(battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
+
+        if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && other == null) {
+            return false;
+        } else if(((battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) && hasAbility("LEAFGUARD")) && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
-        if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // safeguard
+        if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && other == null) {
+            return false;
+        } else if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && !other.hasAbility("INFILTRATOR")) {
             return false;
         }
+
         return true;
     }
 
@@ -1632,23 +1746,20 @@ public class Pokemon {
         if(hasTemporalStatus(TemporalStatus.CONFUSED) || battle == null) {
             return false;
         }
-        if(hasAbility("OWNTEMPO")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+        if(hasAbility("OWNTEMPO") && other == null) {
+            return false;
+        } else if(hasAbility("OWNTEMPO") && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
+
         if(battle.terrain.hasTerrain(TerrainTypes.MISTY) && !isLevitating()) {
             return false;
         }
-        if(other != null) {
-            if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // safeguard
-                return false;
-            }
+
+        if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && other == null) {
+            return false;
+        } else if((getTeam().effectTeamMoves.get(1) > 0 && !selfCaused) && !other.hasAbility("INFILTRATOR")) {
+            return false;
         }
 
         return true;
@@ -1664,12 +1775,8 @@ public class Pokemon {
         if(hasTemporalStatus(TemporalStatus.INFATUATED)) {
             return false;
         }
-        if(hasAbility("OBLIVIOUS")) {
-            if(!other.hasAbility("MOLDBREAKER")) {
-                return false;
-            } else {
-                return true;
-            }
+        if(hasAbility("OBLIVIOUS") && !other.hasAbility("MOLDBREAKER")) {
+            return false;
         }
         if(getTeam().effectTeamMoves.get(1) > 0 && !selfCaused && !other.hasAbility("INFILTRATOR")) { // safeguard
             return false;
@@ -1691,16 +1798,12 @@ public class Pokemon {
         if(hasTemporalStatus(TemporalStatus.FLINCHED)) {
             return false;
         }
-        if(hasAbility("INNERFOCUS")) {
-            if(other != null) {
-                if(!other.hasAbility("MOLDBREAKER")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+        if(hasAbility("INNERFOCUS") && other == null) {
+            return false;
+        } else if(hasAbility("INNERFOCUS") && !other.hasAbility("MOLDBREAKER")) {
             return false;
         }
+
         return true;
     }
 
@@ -1815,23 +1918,42 @@ public class Pokemon {
 
     public void multiType() {
         if(hasAbility("MULTITYPE") && canUseItem()) {
-            if(hasItem("IRONPLATE")) changeType("STEEL","");
-            if(hasItem("SPLASHPLATE")) changeType("WATER","");
-            if(hasItem("INSECTPLATE")) changeType("BUG","");
-            if(hasItem("DRACOPLATE")) changeType("DRAGON","");
-            if(hasItem("ZAPPLATE")) changeType("ELECTRIC","");
-            if(hasItem("SPOOKYPLATE")) changeType("GHOST","");
-            if(hasItem("FLAMEPLATE")) changeType("FIRE","");
-            if(hasItem("PIXIEPLATE")) changeType("FAIRY","");
-            if(hasItem("ICICLEPLATE")) changeType("ICE","");
-            if(hasItem("FISTPLATE")) changeType("FIGHTING","");
-            if(hasItem("MEADOWPLATE")) changeType("GRASS","");
-            if(hasItem("MINDPLATE")) changeType("PSYCHIC","");
-            if(hasItem("STONEPLATE")) changeType("ROCK","");
-            if(hasItem("DREADPLATE")) changeType("DARK","");
-            if(hasItem("EARTHPLATE")) changeType("GROUND","");
-            if(hasItem("TOXICPLATE")) changeType("POISON","");
-            if(hasItem("SKYPLATE")) changeType("FLYING","");
+            if(hasItem("IRONPLATE")) changeForm(1, false);
+            if(hasItem("SPLASHPLATE")) changeForm(2, false);
+            if(hasItem("INSECTPLATE")) changeForm(3, false);
+            if(hasItem("DRACOPLATE")) changeForm(4, false);
+            if(hasItem("ZAPPLATE")) changeForm(5, false);
+            if(hasItem("SPOOKYPLATE")) changeForm(6, false);
+            if(hasItem("FLAMEPLATE")) changeForm(7, false);
+            if(hasItem("PIXIEPLATE")) changeForm(8, false);
+            if(hasItem("ICICLEPLATE")) changeForm(9, false);
+            if(hasItem("FISTPLATE")) changeForm(10, false);
+            if(hasItem("MEADOWPLATE")) changeForm(11, false);
+            if(hasItem("MINDPLATE")) changeForm(12, false);
+            if(hasItem("STONEPLATE")) changeForm(13, false);
+            if(hasItem("DREADPLATE")) changeForm(14, false);
+            if(hasItem("EARTHPLATE")) changeForm(15, false);
+            if(hasItem("TOXICPLATE")) changeForm(16, false);
+            if(hasItem("SKYPLATE")) changeForm(17, false);
+        }
+        if(hasAbility("RKSSYSTEM") && canUseItem()) {
+            if(hasItem("IRONMEMORY")) changeForm(1, false);
+            if(hasItem("WATERMEMORY")) changeForm(2, false);
+            if(hasItem("BUGMEMORY")) changeForm(3, false);
+            if(hasItem("DRAGONMEMORY")) changeForm(4, false);
+            if(hasItem("ELECTRICMEMORY")) changeForm(5, false);
+            if(hasItem("GHOSTMEMORY")) changeForm(6, false);
+            if(hasItem("FIREMEMORY")) changeForm(7, false);
+            if(hasItem("FAIRYMEMORY")) changeForm(8, false);
+            if(hasItem("ICEMEMORY")) changeForm(9, false);
+            if(hasItem("FIGHTINGMEMORY")) changeForm(10, false);
+            if(hasItem("GRASSMEMORY")) changeForm(11, false);
+            if(hasItem("PSYCHICMEMORY")) changeForm(12, false);
+            if(hasItem("ROCKMEMORY")) changeForm(13, false);
+            if(hasItem("DARKMEMORY")) changeForm(14, false);
+            if(hasItem("GROUNDMEMORY")) changeForm(15, false);
+            if(hasItem("POISONMEMORY")) changeForm(16, false);
+            if(hasItem("FLYINGMEMORY")) changeForm(17, false);
         }
     }
 
@@ -1895,6 +2017,9 @@ public class Pokemon {
             effectMoves.set(49, 0); // clamp
             effectMoves.set(50, 0); // whirlpool
             effectMoves.set(51, 0); // bind
+            effectMoves.set(68, 0); // magma storm
+            effectMoves.set(76, 0); // thunder cage
+            effectMoves.set(77, 0); // snap trap
             //TODO: rest of partially trapped moves
         }
         if(getTeam().effectTeamMoves.get(3) > 0) {

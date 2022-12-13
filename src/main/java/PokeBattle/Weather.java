@@ -43,6 +43,9 @@ public class Weather {
             case "HAIL":
                 System.out.println("The hail stopped.");
                 break;
+            case "SNOW":
+                System.out.println("The snow stopped.");
+                break;
             case "FOG":
                 System.out.println("The fog was wiped out.");
                 break;
@@ -94,6 +97,9 @@ public class Weather {
             case "HAIL":
                 System.out.println("It started to hail!");
                 break;
+            case "SNOW":
+                System.out.println("It started to snow!");
+                break;
             case "FOG":
                 System.out.println("The fog is deep...");
                 break;
@@ -128,6 +134,9 @@ public class Weather {
                     break;
                 case "HAIL":
                     System.out.println("Hail continues to fall.");
+                    break;
+                case "SNOW":
+                    System.out.println("Snow continues to fall.");
                     break;
                 case "FOG":
                     System.out.println("The fog is deep...");

@@ -108,7 +108,11 @@ public class Item {
     public boolean useMedicine(Pokemon target) {
         // recover HP
         if(hasName("POTION") || hasName("SWEETHEART") || hasName("BERRYJUICE") || hasName("ORANBERRY")) {
-            return target.healHP(20,true,true,false, false);
+            if(hasName("ORANBERRY") && target.hasAbility("RIPEN")) {
+                return target.healHP(40,true,true,false, false);
+            } else {
+                return target.healHP(20,true,true,false, false);
+            }
         } else if(hasName("FRESHWATER")) {
             return target.healHP(30,true,true,false, false);
         } else if(hasName("SODAPOP") || hasName("ENERGYPOWDER")) {
@@ -140,7 +144,11 @@ public class Item {
             target.healTempStatus(TemporalStatus.CONFUSED, true);
             return true;
         } else if(hasName("SITRUSBERRY")) {
-            return target.healHP(target.getHP()/4,true,true,false, false);
+            int hp = target.getHP()/4;
+            if(target.hasAbility("RIPEN")) {
+                hp *= 2;
+            }
+            return target.healHP(hp,true,true,false, false);
         }
         // restore status
         if(((hasName("PARLYZHEAL") || hasName("CHERIBERRY")) && target.hasStatus(Status.PARALYZED)) ||
@@ -236,8 +244,12 @@ public class Item {
             return target.increaseMaxPP(move,incr);
         }
         // berries
+        int h = target.getHP()/3;
+        if(target.hasAbility("RIPEN")) {
+            h *= 2;
+        }
         if(hasName("FIGYBERRY")) {
-            if(!target.healHP(target.getHP()/3,true,true,false, false)) {
+            if(!target.healHP(h,true,true,false, false)) {
                 return false;
             }
             if(target.canConfuse(false,null) && (target.getNature("MODEST") || target.getNature("TIMID") || target.getNature("CALM") || target.getNature("BOLD"))) {
@@ -246,7 +258,7 @@ public class Item {
             return true;
         }
         if(hasName("WIKIBERRY")) {
-            if(!target.healHP(target.getHP()/3,true,true,false, false)) {
+            if(!target.healHP(h,true,true,false, false)) {
                 return false;
             }
             if(target.canConfuse(false,null) && (target.getNature("ADAMANT") || target.getNature("IMPISH") || target.getNature("CAREFUL") || target.getNature("JOLLY"))) {
@@ -255,7 +267,7 @@ public class Item {
             return true;
         }
         if(hasName("MAGOBERRY")) {
-            if(!target.healHP(target.getHP()/3,true,true,false, false)) {
+            if(!target.healHP(h,true,true,false, false)) {
                 return false;
             }
             if(target.canConfuse(false,null) && (target.getNature("BRAVE") || target.getNature("RELAXED") || target.getNature("QUIET") || target.getNature("SASSY"))) {
@@ -264,7 +276,7 @@ public class Item {
             return true;
         }
         if(hasName("AGUAVBERRY")) {
-            if(!target.healHP(target.getHP()/3,true,true,false, false)) {
+            if(!target.healHP(h,true,true,false, false)) {
                 return false;
             }
             if(target.canConfuse(false,null) && (target.getNature("NAUGHTY") || target.getNature("LAX") || target.getNature("RASH") || target.getNature("NAIVE"))) {
@@ -273,7 +285,7 @@ public class Item {
             return true;
         }
         if(hasName("IAPAPABERRY")) {
-            if(!target.healHP(target.getHP()/3,true,true,false, false)) {
+            if(!target.healHP(h,true,true,false, false)) {
                 return false;
             }
             if(target.canConfuse(false,null) && (target.getNature("LONELY") || target.getNature("MILD") || target.getNature("GENTLE") || target.getNature("HASTY"))) {

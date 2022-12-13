@@ -23,6 +23,7 @@ public class PCBox {
                 i++;
             } else {
                 System.out.println(poke.nickname + " was sent to Box " + (i+1) + "!");
+                if(poke.specieNameIs("SHAYMIN")) poke.changeForm(0, false); // shaymin to Land Form
                 boxes.get(i).addPoke(poke);
                 return;
             }

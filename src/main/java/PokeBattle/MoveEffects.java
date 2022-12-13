@@ -1,6 +1,7 @@
 package PokeBattle;
 
 import PokeData.*;
+import org.w3c.dom.html.HTMLAreaElement;
 
 import java.util.*;
 
@@ -14,13 +15,13 @@ public class MoveEffects {
 
     public MoveEffects(Battle battle) {
         this.battle = battle;
-        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 92, 97, 101, 102, 118, 141, 154, 226, 241, 260, 261, 268));
+        attacksWithSecondaryEffects = new ArrayList<>(Arrays.asList(1, 3, 4, 6, 12, 21, 22, 24, 25, 30, 33, 36, 39, 42, 56, 65, 78, 81, 88, 92, 97, 101, 102, 118, 141, 154, 162, 226, 241, 260, 261, 268, 288, 308, 310, 312));
         attacksForbiddenBySleepTalk = new ArrayList<>(Arrays.asList(11, 37, 76, 77, 82, 109, 139, 161, 172));
-        attacksToHeal = new ArrayList<>(Arrays.asList(10, 18, 75, 158, 165, 237));
+        attacksToHeal = new ArrayList<>(Arrays.asList(10, 18, 75, 158, 165, 237, 292, 302));
         // TODO: complete lists
     }
 
-    public boolean changeAbility(Pokemon attacker, Pokemon defender) {
+    public boolean changeAbility(Pokemon attacker, Pokemon defender, Ability toChange) {
         if (defender.getAbility().equals(attacker.getAbility()) || defender.hasAbility("POWERCONSTRUCT")
                 || defender.hasAbility("SCHOOLING") || defender.hasAbility("STANCECHANGE") || defender.hasAbility("DISGUISE")
                 || defender.hasAbility("FLOWERGIFT") || defender.hasAbility("SHIELDSDOWN") || defender.hasAbility("BATTLEBOND")
@@ -30,7 +31,11 @@ public class MoveEffects {
                 || defender.hasAbility("RKSSYSTEM") || defender.hasAbility("WONDERGUARD")) {
             return false;
         } else {
-            attacker.changeAbility(defender.getAbility().getInternalName());
+            if(toChange == null) {
+                attacker.changeAbility(defender.getAbility().getInternalName());
+            } else {
+                attacker.changeAbility(toChange.getInternalName());
+            }
             return true;
         }
     }
@@ -64,9 +69,9 @@ public class MoveEffects {
             defender.getTeam().effectTeamMoves.set(10, 0);
             defender.getTeam().effectTeamMoves.set(19, 0);
             defender.getTeam().effectTeamMoves.set(21, 0);
+            defender.getTeam().effectTeamMoves.set(70, 0);
             System.out.println(defender.nickname + " lost its protection!");
         }
-        //TODO: breaks kings shield and baneful bunker
     }
 
     public boolean moveEffects(Movement move, Pokemon attacker, Pokemon defender, Movement defenderMove, int damage) {
@@ -90,7 +95,7 @@ public class MoveEffects {
             } else {
                 return false;
             }
-        } else if (effect == 3 || effect == 65) {
+        } else if ((effect == 3 || effect == 65 || effect == 309 || effect == 310) && !defender.isFainted()) {
             // poisons the target - POISON STING, SLUDGE BOMB, POISON POWDER
             if (defender.canPoison(false, attacker)) {
                 defender.causeStatus(Status.POISONED, attacker, false);
@@ -111,9 +116,10 @@ public class MoveEffects {
             // decreases target evasion - SWEET SCENT
             defender.changeStat(6, -1, false, move.getAddEffect() == 0, attacker);
         } else if (effect == 7) {
-            // increases user attack and special attack - GROWTH, WORK UP
+            // increases user attack and special attack - GROWTH, WORK UP, DECORATE
             int quantity = 1;
-            if (move.hasName("GROWTH") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) {
+            if ((move.hasName("GROWTH") && (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT))) ||
+                    (move.hasName("DECORATE"))) {
                 quantity = 2;
             }
             attacker.changeStat(0, quantity, true, move.getAddEffect() == 0, defender);
@@ -141,14 +147,14 @@ public class MoveEffects {
                 defender.changeAbility("INSOMNIA");
             }
         } else if (effect == 10) {
-            // recover HP depending on the weather - SYNTHESIS
+            // recover HP depending on the weather - SYNTHESIS, MORNING SUN, MOON LIGHT...
             int quantity = attacker.getHP() / 2;
 
             if (battle.weather.hasWeather(Weathers.SUNLIGHT) || battle.weather.hasWeather(Weathers.HEAVYSUNLIGHT)) {
                 quantity = attacker.getHP() * 2 / 3;
             } else if (battle.weather.hasWeather(Weathers.RAIN) || battle.weather.hasWeather(Weathers.HEAVYRAIN) ||
-                    battle.weather.hasWeather(Weathers.HAIL) || battle.weather.hasWeather(Weathers.SANDSTORM) ||
-                    battle.weather.hasWeather(Weathers.FOG)) {
+                    battle.weather.hasWeather(Weathers.HAIL) || battle.weather.hasWeather(Weathers.SNOW) ||
+                    battle.weather.hasWeather(Weathers.SANDSTORM) || battle.weather.hasWeather(Weathers.FOG)) {
                 quantity = attacker.getHP() / 4;
             }
 
@@ -263,6 +269,45 @@ public class MoveEffects {
                     attacker.effectMoves.set(59, 0);
                     defender.effectMoves.set(59, 0);
                 }
+            } else if (move.hasName("ICEBURN")) {
+                if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
+                    System.out.println(attacker.nickname + " is charging!");
+                    attacker.recover1PP(move);
+                    attacker.effectMoves.set(3, 1);
+                } else {
+                    // ice burn can burn enemy
+                    attacker.effectMoves.set(3, 0);
+                    if (Math.random() <= prob && attacker.canBurn(false,defender)) {
+                        defender.causeStatus(Status.BURNED,attacker,false);
+                    }
+                }
+            } else if (move.hasName("FREEZESHOCK")) {
+                if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
+                    System.out.println(attacker.nickname + " is charging!");
+                    attacker.recover1PP(move);
+                    attacker.effectMoves.set(3, 1);
+                } else {
+                    // freeze shock can paralyze enemy
+                    attacker.effectMoves.set(3, 0);
+                    if (Math.random() <= prob && attacker.canParalyze(false,defender)) {
+                        defender.causeStatus(Status.PARALYZED,attacker,false);
+                    }
+                }
+            } else if (move.hasName("GEOMANCY")) {
+                if (!(attacker.hasItem("POWERHERB") && attacker.canUseItem()) && attacker.effectMoves.get(3) == 0) {
+                    if(attacker.hasAbility("TRUANT")) return false;
+                    System.out.println(attacker.nickname + " is charging!");
+                    attacker.recover1PP(move);
+                    attacker.effectMoves.set(3, 1);
+                } else {
+                    // increase a lot special attack, special defense and speed
+                    attacker.effectMoves.set(3, 0);
+                    attacker.changeStat(2, 2, true, move.getAddEffect() == 0, defender);
+                    attacker.changeStat(3, 2, true, move.getAddEffect() == 0, defender);
+                    attacker.changeStat(4, 2, true, move.getAddEffect() == 0, defender);
+                }
             }
 
             if(attacker.hasItem("POWERHERB") && attacker.canUseItem() && !move.hasName("SKYDROP")) { // use power herb
@@ -347,7 +392,7 @@ public class MoveEffects {
                 attacker.effectMoves.set(11, 2);
                 attacker.recover1PP(move);
             }
-        } else if (effect == 21) {
+        } else if (effect == 21 || effect == 312) {
             // burns the target - EMBER, FLAME WHEEL, FLAMETHROWER...
             if (defender.canBurn(false, attacker)) {
                 defender.causeStatus(Status.BURNED, attacker, false);
@@ -373,10 +418,19 @@ public class MoveEffects {
             defender.changeStat(4, -2, false, move.getAddEffect() == 0, attacker);
         } else if (((effect == 25 || effect == 211) && !defender.isFainted()) || ((attacker.hasItem("KINGSROCK") || attacker.hasItem("RAZORFANG")) && attacker.canUseItem() && Math.random() < probability)) {
             // flinched target - BITE, HYPER FANG, AIR SLASH, TWISTER, FAKE OUT...
-            if (defender.canFlinch(attacker)) {
-                defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
+            if(move.hasName("TRIPLEARROWS")) {
+                if(Math.random() <= 0.30 && defender.canFlinch(attacker)) {
+                    defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
+                }
+                if(Math.random() <= 0.50) {
+                    defender.changeStat(1, -1, false, move.getAddEffect() == 0, attacker);
+                }
             } else {
-                return false;
+                if (defender.canFlinch(attacker)) {
+                    defender.causeTemporalStatus(TemporalStatus.FLINCHED, attacker);
+                } else {
+                    return false;
+                }
             }
         } else if (effect == 26) {
             // damages rival ally - FLAME BURST
@@ -399,6 +453,10 @@ public class MoveEffects {
                 defender.effectMoves.set(61, 1);
             } else if(defender.effectMoves.get(68) == 0 && move.hasName("MAGMASTORM")) {
                 defender.effectMoves.set(68, 1);
+            } else if(defender.effectMoves.get(76) == 0 && move.hasName("THUNDERCAGE")) {
+                defender.effectMoves.set(76, 1);
+            } else if(defender.effectMoves.get(76) == 0 && move.hasName("SNAPTRAP")) {
+                defender.effectMoves.set(77, 1);
             }
             defender.causeTemporalStatus(TemporalStatus.PARTIALLYTRAPPED, attacker);
             System.out.println(defender.nickname + " was trapped by " + move.name);
@@ -457,7 +515,7 @@ public class MoveEffects {
                 return false;
             }
         } else if (effect == 37) {
-            // charges and in the end of turn attacks - FOCUS PUNCH
+            // charges and in the end of turn attacks - FOCUS PUNCH, BEAK BLAST
             attacker.effectMoves.set(14, 0);
         } else if (effect == 38) {
             // increase user defense - WITHDRAW, HARDEN, STEEL WING...
@@ -466,8 +524,11 @@ public class MoveEffects {
                 attacker.effectMoves.set(20, 1);
             }
         } else if (effect == 39) {
-            // decreases target speed - BUBBLE
+            // decreases target speed - BUBBLE, ICY WIND, TAR SHOT
             defender.changeStat(4, -1, false, move.getAddEffect() == 0, attacker);
+            if(move.hasName("TARSHOT")) {
+                defender.effectMoves.set(73, 1);
+            }
         } else if (effect == 40) {
             // increases user speed - RAPID SPIN
             attacker.changeStat(4, 1, true, move.getAddEffect() == 0, defender);
@@ -476,19 +537,19 @@ public class MoveEffects {
             attacker.effectMoves.set(2, 1);
             attacker.protectTurns++;
             System.out.println(attacker.nickname + " is protecting itself!");
-        } else if (effect == 42) {
-            // confuse target - SUPERSONIC, CONFUSION, CONFUSE RAY, SIGNAL BEAM, WATER PULSE...
+        } else if (effect == 42 || move.hasName("AXEKICK")) {
+            // confuse target - SUPERSONIC, CONFUSION, CONFUSE RAY, SIGNAL BEAM, WATER PULSE, AXE KICK...
             if (defender.canConfuse(false, attacker)) {
                 defender.causeTemporalStatus(TemporalStatus.CONFUSED, attacker);
             } else {
                 return false;
             }
         } else if (effect == 43) {
-            // increases a lot of user defense - IRON DEFENSE
+            // increases a lot of user defense - IRON DEFENSE, BARRIER, ACID ARMOR, DIAMOND STORM
             attacker.changeStat(1, 2, true, move.getAddEffect() == 0, defender);
         } else if (effect == 44) {
             // starts to rain - RAIN DANCE
-            return battle.weather.changeWeather(Weathers.RAIN, attacker.hasItem("DAMPROCK"));
+            return battle.weather.changeWeather(Weathers.RAIN, attacker.hasItem("DAMPROCK") && attacker.canUseItem());
         } else if (effect == 46) {
             // returns the double of special damage - MIRROR COAT
             if(attacker.lastMoveInThisTurn == null) return false;
@@ -560,7 +621,7 @@ public class MoveEffects {
             if(defender.hasItemWithFlag("c") && !defender.hasAbility("STICKYHOLD") && !attacker.hasAbility("MOLDBREAKER")) {
                 Item auxItem = attacker.item;
                 attacker.setItem(defender.item.getInternalName());
-                battle.useBerry(attacker,false);
+                battle.useBerry(attacker,false, attacker.hasAbility("CHEEKPOUCH"), false);
                 attacker.setItem(auxItem.getInternalName());
                 defender.loseItem(false,false);
             }
@@ -629,13 +690,13 @@ public class MoveEffects {
                 } else {
                     return false;
                 }
-            } else if(move.hasName("STEALTHROCK")) {
+            } else if(move.hasName("STEALTHROCK") || move.hasName("STONEAXE")) {
                 if(defender.getTeam().effectTeamMoves.get(14) < 1) {
                     defender.getTeam().increaseEffectMove(14);
                 } else {
                     return false;
                 }
-            } else if(move.hasName("SPIKES")) {
+            } else if(move.hasName("SPIKES") || move.hasName("CEASELESSEDGE")) {
                 if(defender.getTeam().effectTeamMoves.get(15) < 2) {
                     defender.getTeam().increaseEffectMove(15);
                 } else {
@@ -653,7 +714,6 @@ public class MoveEffects {
         } else if (effect == 73) {
             // increase a lot of user speed - AGILITY, ROCK POLIH, AUTOTOMIZE
             attacker.changeStat(4, 2, true, move.getAddEffect() == 0, defender);
-            // TODO: AUTOTOMIZE reduces weight
             if(move.hasName("AUTOTOMIZE")) {
                 System.out.println(attacker.nickname + " is lighter now!");
                 attacker.setWeight(attacker.getWeight(false)-100);
@@ -667,24 +727,24 @@ public class MoveEffects {
                 System.out.println(defender.nickname + " lost HP!");
             }
         } else if (effect == 75) {
-            // recovers half of max HP - ROOST, RECOVER
-            if (attacker.hasAllHP()) {
-                return false;
-            } else {
-                attacker.healHP(attacker.getHP() / 2, true, false, false, true);
-                if (attacker.hasType("FLYING") && move.hasName("ROOST")) {
-                    attacker.effectMoves.set(10, 1);
-                    //TODO: forest curse and halloween effect
-                    if (attacker.battleType2 != null) { // double type
-                        if (attacker.battleType1.is("FLYING")) {
-                            attacker.battleType1 = attacker.battleType2;
-                        }
-                        attacker.battleType2 = null;
-                    } else if (attacker.effectMoves.get(39) == 0) { // pure flying type
-                        attacker.changeType("NORMAL","");
-                    } else { // user used BURN UP
-                        attacker.changeType("UNKNOWN","");
+            // recovers half of max HP - ROOST, RECOVER, SOFT BOILED, SLACK OFF, HEAL ORDER, SHORE UP
+            int quantity = attacker.getHP() / 2;
+            if(move.hasName("SHOREUP") && battle.weather.hasWeather(Weathers.SANDSTORM)) {
+                quantity = (int)(attacker.getHP()*0.6);
+            }
+            attacker.healHP(quantity, true, false, false, true);
+            if (attacker.hasType("FLYING") && move.hasName("ROOST")) {
+                attacker.effectMoves.set(10, 1);
+                //TODO: forest curse and halloween effect
+                if (attacker.battleType2 != null) { // double type
+                    if (attacker.battleType1.is("FLYING")) {
+                        attacker.battleType1 = attacker.battleType2;
                     }
+                    attacker.battleType2 = null;
+                } else if (attacker.effectMoves.get(39) == 0) { // pure flying type
+                    attacker.changeType("NORMAL","");
+                } else { // user used BURN UP
+                    attacker.changeType("UNKNOWN","");
                 }
             }
         } else if (effect == 76) {
@@ -875,6 +935,7 @@ public class MoveEffects {
             if(defender.previousMove == null || defender.effectMoves.get(17) > 0) {
                 return false;
             }
+            if(defender.hasAbility("AROMAVEIL")) return false;
             if(defender.previousMove.hasName("STRUGGLE")) {
                 return false;
             }
@@ -894,14 +955,16 @@ public class MoveEffects {
             attacker.effectMoves.set(18, 1);
         } else if (effect == 99) {
             // reduces 4 PP to the last move used by target - SPITE
+            int pps = 4;
+            if(move.hasName("EERIESPELL")) pps = 3;
             if(defender.previousMove == null) {
                 return false;
             }
             if(!defender.hasPP(defender.previousMove) || defender.previousMove.hasName("STRUGGLE")) {
                 return false;
             }
-            defender.reducePP(defender.previousMove,4, attacker);
-            System.out.println(defender.previousMove.name + " of " + defender.nickname + " lost 4 PP!");
+            defender.reducePP(defender.previousMove,pps, attacker);
+            System.out.println(defender.previousMove.name + " of " + defender.nickname + " lost " + pps + " PP!");
         } else if (effect == 100) {
             // switches items with target - SWITCHEROO, TRICK
             // TODO: kyogre with blue orb, groudon with red orb, mail and mega stones
@@ -1020,21 +1083,22 @@ public class MoveEffects {
             attacker.changeStat(3, 1, true, move.getAddEffect() == 0, defender);
         } else if (effect == 111) {
             // create electric terrain - ELECTRIC TERRAIN
-            return battle.terrain.activateTerrain(attacker,TerrainTypes.ELECTRIC,attacker.hasItem("TERRAINEXTENDER"));
+            return battle.terrain.activateTerrain(attacker,TerrainTypes.ELECTRIC,attacker.hasItem("TERRAINEXTENDER") && attacker.canUseItem());
         } else if (effect == 112) {
             // create psychic terrain - PSYCHIC TERRAIN
-            return battle.terrain.activateTerrain(attacker,TerrainTypes.PSYCHIC,attacker.hasItem("TERRAINEXTENDER"));
+            return battle.terrain.activateTerrain(attacker,TerrainTypes.PSYCHIC,attacker.hasItem("TERRAINEXTENDER") && attacker.canUseItem());
         } else if (effect == 113) {
             // create misty terrain - MISTY TERRAIN
-            return battle.terrain.activateTerrain(attacker,TerrainTypes.MISTY,attacker.hasItem("TERRAINEXTENDER"));
+            return battle.terrain.activateTerrain(attacker,TerrainTypes.MISTY,attacker.hasItem("TERRAINEXTENDER") && attacker.canUseItem());
         } else if (effect == 114) {
             // create grassy terrain - GRASSY TERRAIN
-            return battle.terrain.activateTerrain(attacker,TerrainTypes.GRASSY,attacker.hasItem("TERRAINEXTENDER"));
+            return battle.terrain.activateTerrain(attacker,TerrainTypes.GRASSY,attacker.hasItem("TERRAINEXTENDER") && attacker.canUseItem());
         } else if (effect == 115) {
             // rival must use the last movement from 3 turns - ENCORE
             if(defender.effectMoves.get(26) > 0 || defender.previousMove == null) {
                 return false;
             }
+            if(defender.hasAbility("AROMAVEIL")) return false;
             if(!defender.hasPP(defender.previousMove)) {
                 return false;
             }
@@ -1085,7 +1149,7 @@ public class MoveEffects {
             }
         } else if (effect == 124) {
             // invokes a sandstorm weather - SAND STORM
-            return battle.weather.changeWeather(Weathers.SANDSTORM, attacker.hasItem("SMOOTHROCK"));
+            return battle.weather.changeWeather(Weathers.SANDSTORM, attacker.hasItem("SMOOTHROCK") && attacker.canUseItem());
         } else if (effect == 126) {
             // increase user attack and accuracy - HONE CLAWS
             attacker.changeStat(0, 1, true, move.getAddEffect() == 0, defender);
@@ -1153,9 +1217,7 @@ public class MoveEffects {
             Movement randomMove = null;
             do {
                 randomMove = attacker.utils.getMoves().get(rand.nextInt(attacker.utils.getMoves().size()));
-            } while(randomMove.getFlags().contains("p") || randomMove.hasName("RELICSONG") || randomMove.hasName("CHATTER") ||
-                    randomMove.hasName("ICEBURN") || randomMove.hasName("VCREATE") || randomMove.hasName("FREEZESHOCK") ||
-                    randomMove.hasName("SECRETSWORD") || randomMove.hasName("TECHNOBLAST")); // forbidden moves
+            } while(randomMove.getFlags().contains("p")); // forbidden moves
 
             battle.useMove(attacker, defender, randomMove, defenderMove, false, false, true);
         } else if (effect == 140) {
@@ -1163,7 +1225,7 @@ public class MoveEffects {
             attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
             attacker.changeStat(3, 1, true, move.getAddEffect() == 0, defender);
         } else if (effect == 141) {
-            // decreases Special Attack of target - MOON BLAST
+            // decreases Special Attack of target - MOON BLAST, SPIRIT BREAK, STRUGGLE BUG, SNARL, MYSTICAL FIRE
             defender.changeStat(2, -1, false, move.getAddEffect() == 0, attacker);
         } else if (effect == 142) {
             // increase gravity - GRAVITY
@@ -1221,9 +1283,10 @@ public class MoveEffects {
             // steals target item - COVET, THIEF
             return stealItem(attacker,defender);
         } else if (effect == 147) {
-            // recover 50% of HP to target - HEAL PULSE
+            // recover 50% of HP to target - HEAL PULSE, FLORAL HEALING
             int quantity = defender.getHP()/2;
-            if(attacker.hasAbility("MEGALAUNCHER")) {
+            if((attacker.hasAbility("MEGALAUNCHER") && move.getFlags().contains("m")) ||
+                    (battle.terrain.hasTerrain(TerrainTypes.GRASSY) && move.hasName("FLORALHEALING"))) {
                 quantity = (int) (defender.getHP()*0.75);
             }
             return attacker.healHP(quantity, true, true, false, true);
@@ -1305,12 +1368,18 @@ public class MoveEffects {
                 battle.useMove(attacker,defender,m,defenderMove,false,false,true);
             }
         } else if (effect == 162) {
-            // impedes rival to scape - MEAN LOOK
-            if(defender.hasType("GHOST")) {
-                return false;
+            // impedes rival to scape - MEAN LOOK, SPIDER WEB, BLOCK, FAIRY LOCK...
+            if(move.hasName("JAWLOCK")) {
+                if(defender.hasType("GHOST")) defender.effectMoves.set(34, 1);
+                if(attacker.hasType("GHOST")) attacker.effectMoves.set(34, 1);
+            } else {
+                if(defender.hasType("GHOST")) {
+                    return false;
+                }
+                System.out.println(defender.nickname + " can't scape now!");
+                defender.effectMoves.set(34, 1);
+                if(move.hasName("OCTOLOCK")) defender.effectMoves.set(74, 1);
             }
-            System.out.println(defender.nickname + " can't scape now!");
-            defender.effectMoves.set(34, 1);
         } else if (effect == 163) {
             // protect team from priority moves - QUICK GUARD
             if (attacker.getTeam().effectTeamMoves.get(9) > 0) {
@@ -1392,23 +1461,11 @@ public class MoveEffects {
                 if(pk != attacker) {
                     for(int j=0;j<pk.getMoves().size();j++) {
                         Movement mv = pk.getMoves().get(j).getMove();
-                        if(!mv.hasName("ENDURE") && !mv.hasName("COVET") && !mv.hasName("ASSIST") && !mv.hasName("STRUGGLE")
-                                && !mv.hasName("COUNTER") && !mv.hasName("DETECT") && !mv.hasName("SKETCH")
-                                && !mv.hasName("THIEF") && !mv.hasName("MIRRORCOAT") && !mv.hasName("METRONOME")
-                                && !mv.hasName("MIMIC") && !mv.hasName("DESTINYBOND") && !mv.hasName("PROTECT")
-                                && !mv.hasName("MIRRORMOVE") && !mv.hasName("MIRRORCOAT") && !mv.hasName("METRONOME")
-                                && !mv.hasName("FOCUSPUNCH") && !mv.hasName("HELPINGHAND") && !mv.hasName("SNATCH")
-                                && !mv.hasName("FOLLOWME") && !mv.hasName("SLEEPTALK") && !mv.hasName("TRICK")
-                                && !mv.hasName("FEINT") && !mv.hasName("CHATTER") && !mv.hasName("COPYCAT")
-                                && !mv.hasName("SWITCHEROO") && !mv.hasName("MEFIRST") && !mv.hasName("NATUREPOWER")
-                                && !mv.hasName("DRAGONTAIL") && !mv.hasName("CIRCLETHROW") && !mv.hasName("TRANSFORM")
-                                && !mv.hasName("SPIKYSHIELD") && !mv.hasName("BOUNCE") && !mv.hasName("DIVE")
-                                && !mv.hasName("SKYDROP") && !mv.hasName("CELEBRATE") && !mv.hasName("BELCH")
-                                && !mv.hasName("KINGSSHIELD") && !mv.hasName("MATBLOCK") && !mv.hasName("DIG")
-                                && !mv.hasName("PHANTOMFORCE") && !mv.hasName("SHADOWFORCE") && !mv.hasName("HOLDHANDS")
-                                && !mv.hasName("WHIRLWIND") && !mv.hasName("ROAR") && !mv.hasName("FLY")
-                                && !mv.hasName("BANEFULBUNKER") && !mv.hasName("SHELLTRAP") && !mv.hasName("SPOTLIGHT")
-                                && !mv.hasName("BEAKBLAST")) {
+                        if(!mv.hasName("DRAGONTAIL") && !mv.hasName("CIRCLETHROW") && !mv.hasName("BOUNCE")
+                                && !mv.hasName("DIVE") && !mv.hasName("SKYDROP") && !mv.hasName("CELEBRATE")
+                                && !mv.hasName("DIG") && !mv.hasName("PHANTOMFORCE") && !mv.hasName("SHADOWFORCE")
+                                && !mv.hasName("HOLDHANDS") && !mv.hasName("WHIRLWIND") && !mv.hasName("ROAR")
+                                && !mv.hasName("FLY") && !mv.getFlags().contains("p")) {
                             teamMoves.add(mv);
                         }
                     }
@@ -1525,13 +1582,14 @@ public class MoveEffects {
             } else if(attacker.hasItemWithFlag("c")) { // has a berry
                 Item auxItem = defender.item;
                 defender.setItem(attacker.item.getInternalName());
-                battle.useBerry(defender,false);
+                battle.useBerry(defender,false, false, false);
                 defender.setItem(auxItem.getInternalName());
             }
 
             attacker.loseItem(true, true);
         } else if (effect == 189) {
             // attacks and loses its Fire Type - BURN UP
+            if(!attacker.hasType("FIRE")) return false;
             if (attacker.battleType2 == null && attacker.battleType1.is("FIRE")) { // pure Fire type
                 attacker.changeType("UNKNOWN","");
             } else if(attacker.battleType2.is("FIRE")) { // Fire type is secondary
@@ -1642,7 +1700,7 @@ public class MoveEffects {
             System.out.println(defender.nickname + " is levitating with " + move.name + "!");
         } else if (effect == 200) {
             // copy target's ability - ROLE PLAY
-            return changeAbility(attacker,defender);
+            return changeAbility(attacker,defender,null);
         } else if (effect == 201) {
             // increases the Special Attack and Special Defense of user - CALM MIND
             attacker.changeStat(2, 1, true, move.getAddEffect() == 0, defender);
@@ -1691,7 +1749,7 @@ public class MoveEffects {
             attacker.changeStat(randomStat, 2, true, move.getAddEffect() == 0, defender);
         } else if (effect == 218) {
             // starts to hail - HAIL
-            return battle.weather.changeWeather(Weathers.HAIL, attacker.hasItem("ICYROCK"));
+            return battle.weather.changeWeather(Weathers.HAIL, attacker.hasItem("ICYROCK") && attacker.canUseItem());
         } else if (effect == 219) {
             // change target ability to user ability - ENTRAINMENT
             if(attacker.getAbility() == defender.getAbility()) {
@@ -1761,9 +1819,11 @@ public class MoveEffects {
         } else if (effect == 228) {
             // increases Defense and Special Defense of allies if has Plus and Minus ability - MAGNETIC FLUX
             System.out.println("There is a magnetic flux in the team!");
+            attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(3, 1, true, move.getAddEffect() == 0, defender);
             if(defender.hasAbility("PLUS") || defender.hasAbility("MINUS")) {
-                attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
-                attacker.changeStat(3, 1, true, move.getAddEffect() == 0, defender);
+                defender.changeStat(1, 1, true, move.getAddEffect() == 0, attacker);
+                defender.changeStat(3, 1, true, move.getAddEffect() == 0, attacker);
             }
         } else if (effect == 230) {
             // sum current HP of rival and user and share equally - PAIN SPLIT
@@ -1772,7 +1832,7 @@ public class MoveEffects {
             attacker.setHP(totalHP/2);
             defender.setHP(totalHP/2);
         } else if (effect == 231) {
-            // returns the 150% of damage - METAL BURST
+            // returns the 150% of damage - METAL BURST, COMEUPPANCE
             if (attacker.previousDamage > 0 && attacker.lastMoveInThisTurn != null) {
                 int dmg = (int)(attacker.previousDamage*1.5);
                 if(battle.resistsWith1HP(defender, attacker, dmg, move)) {
@@ -1838,7 +1898,7 @@ public class MoveEffects {
             }
         } else if (effect == 238) {
             // starts to sunlight - SUNNY DAY
-            return battle.weather.changeWeather(Weathers.SUNLIGHT, attacker.hasItem("HEATROCK"));
+            return battle.weather.changeWeather(Weathers.SUNLIGHT, attacker.hasItem("HEATROCK") && attacker.canUseItem());
         } else if (effect == 240) {
             // makes user repose in the next turn - GIGA IMPACT, HYPER BEAM, ROCK WRECKER...
             attacker.effectMoves.set(57, 1);
@@ -1876,11 +1936,12 @@ public class MoveEffects {
             System.out.println(attacker.nickname + " is focusing!");
         } else if (effect == 249) {
             // impedes that target uses a move two turns consecutive - TORMENT
+            if(defender.hasAbility("AROMAVEIL")) return false;
             // TODO: torment effect
             return false;
         } else if (effect == 251) {
             // infatuates target - ATTRACT
-            if (defender.canInfatuate(false, attacker)) {
+            if (defender.canInfatuate(false, attacker) && !defender.hasAbility("AROMAVEIL")) {
                 defender.causeTemporalStatus(TemporalStatus.INFATUATED, attacker);
             } else {
                 return false;
@@ -1925,8 +1986,8 @@ public class MoveEffects {
         } else if (effect == 260) {
             // increase +3 user defense - COTTON GUARD...
             attacker.changeStat(1, 3, true, move.getAddEffect() == 0, defender);
-        } else if (effect == 261) {
-            // decreases target attack and special attack - TEARFUL-LOOK, NOBLE ROAR...
+        } else if (effect == 261 || effect == 279) {
+            // decreases target attack and special attack - TEARFUL-LOOK, NOBLE ROAR, PARTING SHOT
             defender.changeStat(0, 1, false, move.getAddEffect() == 0, attacker);
             defender.changeStat(2, 1, false, move.getAddEffect() == 0, attacker);
         } else if (effect == 262) {
@@ -1958,6 +2019,7 @@ public class MoveEffects {
             return false;
         } else if (effect == 267) {
             // impedes target to heal - HEAL BLOCK
+            if(defender.hasAbility("AROMAVEIL")) return false;
             defender.effectMoves.set(64, 1);
             System.out.println(defender.nickname + " can't heal now!");
         } else if (effect == 268) {
@@ -1991,6 +2053,184 @@ public class MoveEffects {
             }
             attacker.getTeam().effectTeamMoves.set(21, 1);
             System.out.println(attacker.nickname + "'s team was protected by " + move.name);
+        } else if (effect == 274) {
+            // switches the stat value of Speed between user and target - SPEED SWAP
+            int spAux = defender.getStats().get(5);
+            defender.setStatValue(5, attacker.getStats().get(5));
+            attacker.setStatValue(5, spAux);
+            System.out.println("The Speed stats from " + attacker.nickname + " and " + defender.nickname + " swapped!");
+        } else if (effect == 275) {
+            // increases Attack and Special Attack of allies if has Plus and Minus ability - GEAR UP
+            System.out.println("There is a Gear Up in the team!");
+            attacker.changeStat(0, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(2, 1, true, move.getAddEffect() == 0, defender);
+            if(defender.hasAbility("PLUS") || defender.hasAbility("MINUS")) {
+                defender.changeStat(0, 1, true, move.getAddEffect() == 0, attacker);
+                defender.changeStat(2, 1, true, move.getAddEffect() == 0, attacker);
+            }
+        } else if (effect == 276) {
+            // increase a lot of user Speed and Attack - SHIFT GEAR
+            attacker.changeStat(4, 2, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(0, 1, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 278) {
+            // if target uses Fire moves during this turn it receives damage - POWDER
+            defender.effectMoves.set(69, 1);
+            System.out.println(defender.nickname + " is involved in a strange powder!");
+        } else if (effect == 280) {
+            // protects user - KING'S SHIELD, OBSTRUCT
+            attacker.effectMoves.set(2, 1);
+            attacker.protectTurns++;
+            System.out.println(attacker.nickname + " is protecting itself!");
+        } else if (effect == 281) {
+            // increases ally special defense, only works in double battles - AROMATIC MIST
+            // TODO: aromatic mist effect
+            return false;
+        } else if (effect == 282) {
+            // reverses the stat changes of the target - TOPSY-TURVY
+            defender.setStatChanges(0, -1*defender.getStatChanges().get(0));
+            defender.setStatChanges(1, -1*defender.getStatChanges().get(1));
+            defender.setStatChanges(2, -1*defender.getStatChanges().get(2));
+            defender.setStatChanges(3, -1*defender.getStatChanges().get(3));
+            defender.setStatChanges(4, -1*defender.getStatChanges().get(4));
+            defender.setStatChanges(5, -1*defender.getStatChanges().get(5));
+            defender.setStatChanges(6, -1*defender.getStatChanges().get(6));
+            System.out.println("The stat changes of " + defender.nickname + " was reversed!");
+        } else if (effect == 283) {
+            // turns to Electric Type the target's next move in this turn - ELECTRIFY
+            defender.effectMoves.set(71,1);
+            System.out.println(attacker.nickname + " electrifies " + defender.nickname + "!");
+        } else if (effect == 285) {
+            // adds to target Ghost Type - TRICK OR TREAT
+            if (defender.hasType("GHOST")) {
+                return false;
+            } else {
+                System.out.println(defender.nickname + " is now Ghost-Type!");
+                defender.battleType3 = defender.utils.getType("GHOST");
+            }
+        } else if (effect == 286) {
+            // adds to target Gras Type - FOREST'S CURSE
+            if (defender.hasType("GRASS")) {
+                return false;
+            } else {
+                System.out.println(defender.nickname + " is now Grass-Type!");
+                defender.battleType3 = defender.utils.getType("GRASS");
+            }
+        } else if (effect == 287) {
+            // decrease user defense - HYPERSPACE FURY, CLANGING SCALES
+            attacker.changeStat(1, -1, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 288) {
+            // heal target from burn - SPARKLING ARIA
+            if (defender.hasStatus(Status.BURNED)) {
+                defender.healPermanentStatus();
+            } else {
+                return false;
+            }
+        } else if (effect == 291) {
+            // makes target use its last move used - INSTRUCT
+            // TODO: instruct effect
+        } else if (effect == 292) {
+            // heals target from status condition and recover HP to user - PURIFY
+            if (defender.hasStatus(Status.POISONED) || defender.hasStatus(Status.BADLYPOISONED) || defender.hasStatus(Status.PARALYZED)
+                    || defender.hasStatus(Status.BURNED) || defender.hasStatus(Status.FROZEN) || defender.hasStatus(Status.ASLEEP)) {
+                defender.healPermanentStatus();
+                attacker.healHP(attacker.getHP()/2,true,false,false,true);
+            } else {
+                return false;
+            }
+        } else if (effect == 294) {
+            // increase all stats and loses 1/3 of HP - CLANGOROUS SOUL
+            if(attacker.getHP()/3 <= attacker.getPsActuales() || attacker.statsAreMaximum()) return false;
+            attacker.reduceHP(attacker.getHP()/3);
+            attacker.changeStat(0, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(2, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(3, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(4, 1, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 300) {
+            // switch the fields effects of each team - COURT CHANGE
+            // TODO: court change effect
+        } else if (effect == 301) {
+            // consumes its berry and increase Defense - STUFF CHEEKS, TEATIME
+            if(!attacker.hasItemWithFlag("c")) return false;
+            battle.useBerry(attacker,false, attacker.hasAbility("CHEEKPOUCH"),true);
+            if(move.hasName("STUFFCHEEKS")) attacker.changeStat(1, 2, false, move.getAddEffect() == 0, defender);
+        } else if (effect == 302) {
+            // recovers 1/4 of max HP - LIFE DEW, JUNGLE HEALING
+            if(attacker.hasAllHP() && !move.hasName("JUNGLEHEALING")) return false;
+            attacker.healHP(attacker.getHP()/4, true, false, false, true);
+            if(move.hasName("JUNGLEHEALING")) {
+                if (attacker.hasSomeStatus() || attacker.hasTemporalStatus(TemporalStatus.CONFUSED)) {
+                    attacker.healPermanentStatus();
+                    attacker.healTempStatus(TemporalStatus.CONFUSED,true);
+                } else if(attacker.hasAllHP()) return false;
+            }
+        } else if (effect == 303) {
+            // transforms target to Psychic Type - MAGIC POWDER
+            if ((defender.battleType2 == null && defender.battleType1.is("PSYCHIC")) || defender.hasAbility("MULTITYPE")
+                    || defender.hasAbility("RKSSYSTEM")) { // pure Psychic type
+                return false;
+            } else {
+                System.out.println(defender.nickname + " change to Psychic-Type!");
+                defender.changeType("PSYCHIC","");
+            }
+        } else if (effect == 304) {
+            // increases all stats and impedes rival to scape - NO RETREAT...
+            if(attacker.effectMoves.get(75) > 0 && attacker.effectMoves.get(34) == 0) return false;
+            attacker.changeStat(0, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(2, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(3, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(4, 1, true, move.getAddEffect() == 0, defender);
+            if(!attacker.hasType("GHOST")) {
+                System.out.println(attacker.nickname + " can't scape now!");
+                attacker.effectMoves.set(75, 1);
+            }
+        } else if (effect == 305) {
+            // starts to snowing - SNOW SCAPE
+            return battle.weather.changeWeather(Weathers.SNOW, attacker.hasItem("ICYROCK") && attacker.canUseItem());
+        } else if (effect == 307) {
+            // increase Attack and Defense of user OR decrease rival's Defense - SPRINGTIDE STORM
+            //TODO: effect change in another Enamorus form
+            attacker.changeStat(0, 1, false, move.getAddEffect() == 0, defender);
+            attacker.changeStat(1, 1, false, move.getAddEffect() == 0, defender);
+        } else if (effect == 308 && !defender.isFainted()) {
+            // can paralyze, burn or sleep - DIRE CLAW
+            if(Math.random() <= 0.33 && defender.canParalyze(false, attacker)) {
+                defender.causeStatus(Status.PARALYZED, attacker, false);
+            } else if(Math.random() <= 0.66 && defender.canBurn(false, attacker)) {
+                defender.causeStatus(Status.BURNED, attacker, false);
+            } else if(defender.canSleep(false, attacker)) {
+                defender.causeStatus(Status.ASLEEP, attacker, false);
+            } else {
+                return false;
+            }
+        } else if (effect == 311) {
+            // starts to snow - CHILLY RECEPTION
+            return battle.weather.changeWeather(Weathers.SNOW, attacker.hasItem("ICYROCK") && attacker.canUseItem());
+        } else if (effect == 313) {
+            // increase user attack, defense and speed - VICTORY DANCE
+            attacker.changeStat(0, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(1, 1, true, move.getAddEffect() == 0, defender);
+            attacker.changeStat(4, 1, true, move.getAddEffect() == 0, defender);
+        } else if (effect == 314) {
+            // attacks and loses its Electric Type - DOUBLE SHOCK
+            if(!attacker.hasType("ELECTRIC")) return false;
+            if (attacker.battleType2 == null && attacker.battleType1.is("ELECTRIC")) { // pure Electric type
+                attacker.changeType("UNKNOWN","");
+            } else if(attacker.battleType2.is("ELECTRIC")) { // Electric type is secondary
+                defender.battleType2 = null;
+            } else { // Electric type is primary
+                attacker.battleType1 = attacker.battleType2;
+                attacker.battleType2 = null;
+            }
+            System.out.println(attacker.nickname + " loses its Electric-Type!");
+            attacker.effectMoves.set(39, 1);
+        } else if (effect == 315) {
+            // revives a fainted ally - REVIVAL BLESSING
+            if(!attacker.getTeam().someoneFainted()) return false;
+            System.out.println("Who do you want to revive?");
+            Pokemon poke = attacker.getTeam().selectFaintedPokemon();
+            poke.revivePokemon(poke.getHP()/2);
         }
 
         return true;

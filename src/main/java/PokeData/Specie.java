@@ -22,6 +22,7 @@ public class Specie {
     public Multimap<Integer, Movement> moveset;
     public List<Movement> eggmoves;
     public List<Evolution> evos;
+    public ArrayList<Form> formLists;
 
     public Specie(int number, String internalName, String name, Type type1, Type type2, List<Integer> stats, Ability ability1,
                   Ability ability2, Ability hiddenAbility, int experience, int ratio, int baseHappiness, float genderrate, List<Integer> evs,
@@ -49,11 +50,35 @@ public class Specie {
         this.eggGroups1 = eggGroups1;
         this.eggGroups2 = eggGroups2;
         this.evos = evos;
+        formLists = new ArrayList<>();
     }
 
     public String getInternalName() { return internalName; }
 
     public void setMoveset(Multimap<Integer, Movement> m) { moveset = m; }
     public void setEggMoves(List<Movement> e) { eggmoves = e; }
+
+    public void changeForm(int index) {
+        Form newForm = formLists.get(index);
+        kind = newForm.kind;
+        experience = newForm.experience;
+        ratio = newForm.ratio;
+        baseHappiness = newForm.baseHappiness;
+        type1 = newForm.type1;
+        type2 = newForm.type2;
+        ability1 = newForm.ability1;
+        ability2 = newForm.ability2;
+        hiddenAbility = newForm.hiddenAbility;
+        genderrate = newForm.genderrate;
+        stepsToHatch = newForm.stepsToHatch;
+        height = newForm.height;
+        weight = newForm.weight;
+        stats = newForm.stats;
+        evs = newForm.evs;
+        growthRate = newForm.growthRate;
+        eggGroups1 = newForm.eggGroups1;
+        eggGroups2 = newForm.eggGroups2;
+        evos = newForm.evos;
+    }
 
 }

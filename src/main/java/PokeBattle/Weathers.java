@@ -8,6 +8,7 @@ public enum Weathers {
     HEAVYRAIN,
     SANDSTORM,
     HAIL,
+    SNOW,
     FOG,
     STRONGWINDS
 }

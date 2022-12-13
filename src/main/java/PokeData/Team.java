@@ -84,6 +84,15 @@ public class Team {
         return total;
     }
 
+    public boolean someoneFainted() {
+        for(int i=0;i<pokemonTeam.size();i++) {
+            if(pokemonTeam.get(i).status.equals(Status.FAINTED)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void showTeam() {
         for(int i=0;i<pokemonTeam.size();i++) {
             System.out.println((i+1) + ": " + pokemonTeam.get(i).nickname + " - " + pokemonTeam.get(i).status.toString());
@@ -100,6 +109,17 @@ public class Team {
                 return null;
             }
         } while(chosenIndex < 0 || chosenIndex > getPokemonTeam().size());
+
+        return getPokemon(chosenIndex-1);
+    }
+
+    public Pokemon selectFaintedPokemon() {
+        if(!someoneFainted()) return null;
+        int chosenIndex = -1;
+        do {
+            showTeam();
+            chosenIndex = Integer.parseInt(in.nextLine());
+        } while(chosenIndex <= 0 || chosenIndex > getPokemonTeam().size() || !getPokemon(chosenIndex-1).isFainted());
 
         return getPokemon(chosenIndex-1);
     }

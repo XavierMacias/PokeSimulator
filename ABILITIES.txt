@@ -26,6 +26,7 @@ POISONPOINT,Punto tóxico,Envenena al mínimo contacto.
 RIVALRY,Rivalidad,Quita más vida a rivales del mismo sexo.
 CUTECHARM,Gran encanto,Enamora al mínimo contacto.
 FLASHFIRE,Absorbe fuego,Absorbe los ataques de tipo Fuego.
+WELLBAKEDBODY,Cuerpo horneado,Absorbe los ataques de tipo Fuego y sube la Defensa.
 DROUGHT,Sequía,Provoca sol al salir al campo de batalla.
 UNAWARE,Ignorante,Ignora el cambio de características.
 MAGICGUARD,Muro mágico,Evita recibir daño indirecto.
@@ -127,6 +128,7 @@ CONTRARY,Respondón,Invierte los cambios en las características.
 LIGHTMETAL,Metal liviano,El peso del Pokémon se reduce a la mitad.
 HEAVYMETAL,Metal pesado,El peso del Pokémon se aumenta al doble.
 PICKPOCKET,Hurto,Roba objetos al contacto.
+MAGICIAN,Prestidigitador,Roba objetos al golpear al enemigo.
 MOODY,Veleta,En cada turno sube una característica y aumenta otra.
 SCRAPPY,Intrépido,Permite atacar a Pokémon Fantasma con ataques Normal y Lucha.
 SANDSTREAM,Chorro arena,Provoca tormenta de arena al salir al campo de batalla.
@@ -137,6 +139,7 @@ WONDERGUARD,Superguarda,Evita los ataques no supereficaces.
 NORMALIZE,Normalidad,Convierte los ataques al tipo Normal.
 STALL,Rezagado,Siempre ataca el último.
 ROUGHSKIN,Piel tosca,Daña al contacto.
+IRONBARBS,Punta acero,Daña al contacto.
 SIMPLE,Simple,Duplica los cambios de características.
 TOXICBOOST,Ímpetu tóxico,Aumenta el ataque cuando el usuario está envenenado.
 SUCTIONCUPS,Ventosas,Evita ser cambiado a la fuerza.
@@ -152,18 +155,110 @@ MULTITYPE,Multitipo,Cambia el tipo del poseedor a la tabla equipada.
 VICTORYSTAR,Tinovictoria,Aumenta la precisión.
 DEFEATIST,Flaqueza,Reduce su Ataque y Ataque Especial si sus PS bajan a la mitad.
 MUMMY,Momia,Transmite la habilidad al rival al contacto.
-SHEERFORCE,-------------------Potencia bruta-------------------,Potencia los ataques con efecto secundario pero elimina el efecto.
-FLOWERGIFT,Don floral,Aumenta el Ataque y Defensa Especial si hace sol.
+LINGERINGAROMA,Olor persistente,Transmite la habilidad al rival al contacto.
+SLUSHRUSH,Quitanieves,Aumenta la Velocidad cuando hay granizo.
+TURBOBLAZE,Turbollama,Ataca independientemente de las habilidades.
+TERAVOLT,Terravoltaje,Ataca independientemente de las habilidades.
+CHEEKPOUCH,Carrillo,Restaura PS al consumir una baya.
+GALEWINGS,Alas vendaval,Los movimientos de tipo Volador obtienen prioridad si tiene todos los PS.
+GRASSPELT,Manto frondoso,Aumenta la Defensa si hay activo un Campo de Hierba.
+HARVEST,Cosecha,Puede recuperar una baya usada anteriormente en combate.
+FURCOAT,Pelaje recio,Reduce el daño recibido por ataques físicos.
+MEGALAUNCHER,Megadisparador,Aumenta la potencia de los ataques de pulsos.
+TOUGHCLAWS,Garra dura,Aumenta la potencia de los ataques de contacto.
+STRONGJAW,Mandíbula fuerte,Aumenta la potencia de los ataques basados en mordiscos.
+REFRIGERATE,Piel helada,Convierte los ataques Normal en tipo Hielo.
+PIXILATE,Piel feérica,Convierte los ataques Normal en tipo Hada.
+GALVANIZE,Piel eléctrica,Convierte los ataques Normal en tipo Eléctrico.
+GOOEY,Baba,Baja la Velocidad del rival al contacto.
+TANGLINGHAIR,Rizos rebeldes,Baja la Velocidad del rival al contacto.
+FAIRYAURA,Aura feérica,Aumenta la potencia de los ataques Hada de todos los Pokémon.
+DARKAURA,Aura oscura,Aumenta la potencia de los ataques Siniestro de todos los Pokémon.
+AURABREAK,Rompeaura,Invierte el efecto de las auras presentes en combate.
+LONGREACH,Remoto,No se ve afectado por efectos secundarios de los ataques de contacto.
+LIQUIDVOICE,Voz fluida,Convierte los ataques de sonido en tipo Agua.
+DANCER,Pareja de baile,Copia un movimiento de danza usado por otro combatiente.
+MERCILESS,Ensañamiento,Causa un golpe crítico si el enemigo está envenenado.
+STAMINA,Firmeza,Sube la Defensa cuando recibe un ataque directo.
+CORROSION,Corrosión,Permite envenenar a Pokémon Veneno y Acero.
+QUEENLYMAJESTY,Regia presencia,Protege de los ataques con prioridad.
+DAZZLING,Cuerpo vívido,Protege de los ataques con prioridad.
+TRIAGE,Primer auxilio,Los movimientos de curación obtienen prioridad.
+WATERCOMPACTION,Hidrorrefuerzo,Aumenta la Defensa cuando recibe un ataque Agua.
+INNARDSOUT,Revés,Daña al oponente al ser debilitado.
+RKSSYSTEM,Sistema alfa,Cambia el tipo del poseedor al disco equipado.
+COMATOSE,Letargo perenne,El usuario actúa siempre como si estuviese dormido.
+STEELWORKER,Acero templado,Potencia los ataques de tipo Acero del usuario.
+BERSERK,Cólera,Aumenta el Ataque Especial cuando tiene menos de la mitad de sus PS.
+ELECTRICSURGE,Electrogénesis,Genera un Campo Eléctrico cuando entra al combate.
+PSYCHICSURGE,Psicogénesis,Genera un Campo Psíquico cuando entra al combate.
+GRASSYSURGE,Herbogénesis,Genera un Campo de Hierba cuando entra al combate.
+MISTYSURGE,Nebulogénesis,Genera un Campo de Niebla cuando entra al combate.
+SHADOWSHIELD,Guardia espectro,Si tiene los PS al máximo reduce el daño recibido.
+FULLMETALBODY,Guardia metálica,Evita que bajen las características.
+PRISMARMOR,Armadura prisma,Reduce el daño de movimientos supereficaces.
+BEASTBOOST,Ultraimpulso,Aumenta su mejor estadística al debilitar a un Pokémon.
+LIBERO,Líbero,Cambia el tipo del usuario al del movimiento efectuado.
+STEAMENGINE,Combustible,Si es golpeado por un movimiento Fuego o Agua maximiza su Velocidad.
+RIPEN,Maduración,Duplica el efecto de las bayas.
+SANDSPIT,Expulsarena,Provoca una Tormenta de Arena al ser golpeado.
+PUNKROCK,Punk rock,Potencia los movimientos de sonido y reduce el daño recibido por ellos.
+PERISHBODY,Cuerpo mortal,Si es alcanzado por un ataque de contacto condena al enemigo y al usuario.
+SCREENCLEANER,Antibarrera,Anula los efectos de las barreras.
+WANDERINGSPIRIT,Alma errante,Intercambia habilidades al contacto.
+ICESCALES,Escama de hielo,Reduce el daño de ataques especiales contra el usuario.
+INTREPIDSWORD,Espada indómita,Aumenta el Ataque del poseedor al salir al combate.
+DAUNTLESSSHIELD,Escudo recio,Aumenta la Defensa del poseedor al salir al combate.
+UNSEENFIST,Puño invisible,Permite golpear con movimientos de contacto a un rival protegido.
+TRANSISTOR,Transistor,Potencia los movimientos de tipo Eléctrico del poseedor.
+DRAGONSMAW,Mandíbula dragón,Potencia los movimientos de tipo Dragón del poseedor.
+CHILLINGNEIGH,Relincho blanco,Aumenta el Ataque al debilitar a un Pokémon.
+GRIMNEIGH,Relincho negro,Aumenta el Ataque Especial al debilitar a un Pokémon.
 FORECAST,Predicción,Cambia de forma dependiendo del clima.
 ZENMODE,Modo daruma,Cambia de forma cuando tiene menos de la mitad de sus PS.
+STANCECHANGE,Cambio táctico,Cambia de forma cuando ataca o se defiende.
+POWERCONSTRUCT,Agrupamiento,Cambia de forma cuando tiene menos de la mitad de sus PS.
+SCHOOLING,Banco,Cambia de forma si tiene buena salud.
+DISGUISE,Disfraz,El primer ataque no causa ningún daño al usuario.
+ICEFACE,Cara de hielo,Cambia de forma al recibir un ataque físico.
+GULPMISSILE,Tragamisil,Si usa Buceo o Surf cambia de forma.
+HUNGERSWITCH,Mutapetito,Cambia de forma al final del turno.
+SURGESURFER,Cola surf,Duplica la Velocidad cuando hay un Campo Eléctrico.
+MIMICRY,Mimetismo,Cambia de tipo dependiendo del campo en el combate.
+SHEERFORCE,-------------------Potencia bruta-------------------,Potencia los ataques con efecto secundario pero elimina el efecto.
+QUICKDRAW,Mano rápida,Puede atacar el primero independientemente de las velocidades.
+CURIOUSMEDICINE,Medicina extraña,Elimina los cambios de stats de los aliados cuando el poseedor entra al combate.
+BALLFETCH,Recogebolas,Recoge la primera PokéBall fallida durante su captura.
+ASONE,Unidad ecuestre,Combina la habilidad de Calyrex con la de su montura.
+GORILLATACTICS,Monotema,Aumenta el Ataque pero solo puede usar el primer movimiento seleccionado.
+STAKEOUT,Vigilante,Causa el doble de daño a Pokémon que entran en combate a mitad de un turno.
+SHIELDSDOWN,Escudo limitado,Cambia de forma cuando tiene menos de la mitad de sus PS.
+ILLUSION,Ilusión,Cambia la apariencia del usuario hasta que recibe un golpe.
 IMPOSTER,Impostor,Se convierte en el oponente al salir al combate.
 NEUTRALIZINGGAS,Gas reactivo,Anula las otras habilidades que hay en combate.
-HARVEST,Cosecha,Puede recuperar una baya usada anteriormente en combate.
+WIMPOUT,Huida,Se retira del combate si sus PS bajan de la mitad.
+EMERGENCYEXIT,Retirada,Se retira del combate si sus PS bajan de la mitad.
+MIRRORARMOR,Coraza reflejo,Devuelve el efecto de disminución de stats al rival.
+PROPELLERTAIL,Hélice caudal,Golpea siempre al objetivo seleccionado.
+STALWART,Acérrimo,Golpea siempre al objetivo seleccionado.
+STEELYSPIRIT,Alma acerada,Potencia los ataques de tipo Acero del usuario y sus aliados.
+FLOWERGIFT,Don floral,Aumenta el Ataque y Defensa Especial si hace sol.
+SYMBIOSIS,Simbiosis,Pasa un objeto a un aliado si lo pierde o lo usa.
+COTTONDOWN,Pelusa,Reduce la Velocidad de todos los Pokémon cuando recibe un golpe.
+SOULHEART,Coránima,Aumenta el Ataque Especial cuando alguno de los Pokémon se debilita.
+RECEIVER,Receptor,Recibe la habilidad de un aliado debilitado.
+POWEROFALCHEMY,Reacción química,Recibe la habilidad de un aliado debilitado.
+POWERSPOT,Fuente energía,Aumenta la potencia de los movimientos de los aliados.
+BATTERY,Batería,Aumenta la potencia de los movimientos especiales de los aliados.
+FLOWERVEIL,Velo flor,Evita que bajen los stats de los aliados de tipo Planta.
+SWEETVEIL,Velo dulce,Evita el sueño al poseedor y a los aliados.
+PASTELVEIL,Velo pastel,Evita el envenenamiento al poseedor y a los aliados.
+AROMAVEIL,Velo aroma,Protege al poseedor y a los aliados de Anticura Mofa etc...
 TELEPATHY,Telepatía,Elimina el daño causado a Pokémon aliados.
 FRIENDGUARD,Compiescolta,Reduce el daño causado a Pokémon aliados.
 HEALER,Alma cura,Puede curar los problemas de estado de los aliados.
 PLUS,Más,Aumenta el Ataque Especial si un compañero tiene la habilidad Menos.
 MINUS,Menos,Aumenta el Ataque Especial si un compañero tiene la habilidad Más.
-PICKUP,Recogida,Recoge objetos mientras caminas.
 HONEYGATHER,Recogemiel,Recoge miel después de combatir.
+PICKUP,Recogida,Recoge objetos mientras caminas.
 ILLUMINATE,Iluminación,Aumenta la probabilidad de encontrar Pokémon salvajes.

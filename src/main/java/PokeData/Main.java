@@ -29,15 +29,15 @@ public class Main {
         } while(!choose.equals("1") && !choose.equals("2")  && !choose.equals("3"));
 
         if(choose.equals("1")) {
-            starter = new Pokemon(utils.getPokemon("BULBASAUR"),14, utils);
+            starter = new Pokemon(utils.getPokemon("BULBASAUR"),15, utils);
         } else if(choose.equals("2")) {
-            starter = new Pokemon(utils.getPokemon("CHARMANDER"),14, utils);
+            starter = new Pokemon(utils.getPokemon("CHARMANDER"),15, utils);
         } else if(choose.equals("3")) {
-            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),14, utils);
+            starter = new Pokemon(utils.getPokemon("SQUIRTLE"),15, utils);
         }
 
         player.getTeam().obtainPokemon(starter);
-        player.getTeam().addPokemon(new Pokemon(utils.getPokemon("RATTATA"),11, utils));
+        player.getTeam().addPokemon(new Pokemon(utils.getPokemon("CASTFORM"),25, utils));
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIDGEY"),11, utils));
         player.getTeam().addPokemon(new Pokemon(utils.getPokemon("PIKACHU"),11, utils));
         //player.getTeam().obtainPokemon(new Pokemon(utils.getPokemon("SQUIRTLE"),13, utils));
